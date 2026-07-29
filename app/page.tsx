@@ -133,7 +133,7 @@ export default function Home() {
 
       <section className="manifesto" id="about"><p className="eyebrow">WHY A SCIENCE CALENDAR</p><p>科学并非一串遥远的姓名与年份，<br />而是一代代人对世界的<strong>耐心注视</strong>。</p><span>收藏今天的好奇，明天继续提问。</span></section>
 
-      <footer><a className="brand" href="#top"><span className="brand-mark">∴</span> 科学家日历</a><p>首批 30 则人物档案 · 持续更新中</p><a href="#top">回到顶部 ↑</a></footer>
+      <footer><a className="brand" href="#top"><span className="brand-mark">∴</span> 科学家日历</a><p>首批 30 则人物档案 · 持续更新中</p><a className="footer-download" href="print/科学家日历_首批30位_A4打印版.pdf" download>下载 A4 打印版 ↓</a><a href="#top">回到顶部 ↑</a></footer>
     </main>
   );
 }
