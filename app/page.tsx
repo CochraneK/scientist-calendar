@@ -105,6 +105,8 @@ export default function Home() {
   const monthDays = new Date(2026, calendarMonth, 0).getDate();
   const firstWeekday = new Date(2026, calendarMonth - 1, 1).getDay();
   const monthEntries = scientists.filter((scientist) => scientist.month === calendarMonth);
+  const coveredDays = new Set(scientists.map((scientist) => `${scientist.month}-${scientist.day}`)).size;
+  const coveragePercent = Math.min(100, (coveredDays / 365) * 100);
 
   function selectScientist(scientist: Scientist) {
     setSelectedId(scientist.id);
@@ -138,8 +140,8 @@ export default function Home() {
       <section className="overview-strip" aria-label="日历内容概览">
         <div><strong>{scientists.length}</strong><span>位人物档案</span></div>
         <div><strong>{fields.length - 1}</strong><span>个科学领域</span></div>
-        <div><strong>12</strong><span>个月的好奇线索</span></div>
-        <p>点开任意日期，读一则发现，也留下一点继续提问的余地。</p>
+        <div><strong>{coveredDays}</strong><span>个已覆盖日期</span></div>
+        <p className="coverage-note">全年覆盖进度 <strong>{coveredDays} / 365</strong><span className="coverage-bar"><i style={{ width: `${coveragePercent}%` }} /></span></p>
       </section>
 
       <section className="today-section" id="today" aria-labelledby="today-title">
