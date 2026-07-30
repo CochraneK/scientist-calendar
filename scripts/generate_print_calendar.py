@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import json
 from pathlib import Path
 
 from reportlab.lib.colors import Color, HexColor, white
@@ -13,6 +14,7 @@ from reportlab.lib.utils import ImageReader
 
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "app" / "page.tsx"
+QUOTES = ROOT / "app" / "quotes.json"
 OUTPUT = ROOT / "output" / "pdf" / "科学家日历_首批30位_A4打印版.pdf"
 W, H = landscape(A4)
 
@@ -46,6 +48,10 @@ def load_scientists() -> list[dict[str, str]]:
     if len(records) != 30:
         raise RuntimeError(f"Expected 30 calendar records, found {len(records)}")
     return sorted(records, key=lambda item: (int(item["month"]), int(item["day"]), item["name"]))
+
+
+def load_quotes() -> dict[str, dict[str, str]]:
+    return json.loads(QUOTES.read_text(encoding="utf-8"))
 
 
 def font(name: str = "cn") -> str:
@@ -208,7 +214,7 @@ def draw_back_cover(c: canvas.Canvas) -> None:
     c.showPage()
 
 
-def draw_entry(c: canvas.Canvas, entry: dict[str, str], page: int, total: int) -> None:
+def draw_entry(c: canvas.Canvas, entry: dict[str, str], page: int, total: int, quotes: dict[str, dict[str, str]]) -> None:
     accent = ACCENTS.get(entry["color"], ACCENTS["blue"])
     c.setFillColor(CREAM)
     c.rect(0, 0, W, H, fill=1, stroke=0)
@@ -237,11 +243,17 @@ def draw_entry(c: canvas.Canvas, entry: dict[str, str], page: int, total: int) -
     name_size = 40 if len(entry["name"]) <= 7 else 34
     draw_text(c, entry["name"], left, 383, name_size)
     draw_text(c, entry["latinName"] + " · " + entry["country"], left, 358, 10, MUTED)
-    quote_end = draw_wrapped(c, "“" + entry["tagline"] + "”", left, 315, 490, 18, 26, HexColor("#B85E4C"))
+    quotation = quotes.get(entry["id"])
+    quote_text = quotation["text"] if quotation else entry["tagline"]
+    quote_end = draw_wrapped(c, "“" + quote_text + "”", left, 315, 490, 18, 26, HexColor("#B85E4C"))
+    divider_y = quote_end - 5
+    if quotation:
+        draw_text(c, "— " + quotation["source"], left, quote_end - 5, 8, MUTED)
+        divider_y = quote_end - 20
     c.setStrokeColor(LINE)
     c.setLineWidth(0.7)
-    c.line(left, quote_end - 5, W - 48, quote_end - 5)
-    body_end = draw_wrapped(c, entry["story"], left, quote_end - 35, 490, 12, 20, INK)
+    c.line(left, divider_y, W - 48, divider_y)
+    body_end = draw_wrapped(c, entry["story"], left, divider_y - 30, 490, 12, 20, INK)
 
     meta_y = min(body_end - 12, 190)
     c.setFillColor(HexColor("#F0EBE1"))
@@ -262,6 +274,7 @@ def draw_entry(c: canvas.Canvas, entry: dict[str, str], page: int, total: int) -
 def main() -> None:
     pdfmetrics.registerFont(UnicodeCIDFont("STSong-Light"))
     entries = load_scientists()
+    quotes = load_quotes()
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     c = canvas.Canvas(str(OUTPUT), pagesize=(W, H), pageCompression=1)
     c.setTitle("科学家日历 - 首批30位 A4打印版")
@@ -271,7 +284,7 @@ def main() -> None:
     draw_overview(c, entries)
     total = len(entries) + 4
     for number, entry in enumerate(entries, start=4):
-        draw_entry(c, entry, number, total)
+        draw_entry(c, entry, number, total, quotes)
     draw_back_cover(c)
     c.save()
     print(OUTPUT)

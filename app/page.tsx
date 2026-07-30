@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import quotes from "./quotes.json";
 
 type Field = "物理" | "化学" | "生命科学" | "数学" | "计算机" | "天文" | "医学" | "地球科学";
 
@@ -65,10 +66,11 @@ function formatDate(month: number, day: number) {
 export default function Home() {
   const [activeField, setActiveField] = useState<Field | "全部">("全部");
   const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState("noether");
+  const [selectedId, setSelectedId] = useState("einstein");
   const [calendarMonth, setCalendarMonth] = useState(7);
 
   const selected = scientists.find((scientist) => scientist.id === selectedId) ?? scientists[0];
+  const selectedQuote = quotes[selected.id as keyof typeof quotes];
   const filtered = useMemo(() => scientists.filter((scientist) => {
     const inField = activeField === "全部" || scientist.field === activeField;
     const needle = query.trim().toLowerCase();
@@ -113,7 +115,7 @@ export default function Home() {
         <header className="section-heading"><div><p className="eyebrow">TODAY&apos;S NOTE · {formatDate(selected.month, selected.day)}</p><h2 id="today-title">今日人物</h2></div><p className="section-aside">第 {String(selected.month).padStart(2, "0")}.{String(selected.day).padStart(2, "0")} 页 / 365</p></header>
         <article className={`feature-card tone-${selected.color}`}>
           <div className="portrait-panel"><span className="portrait-number">{String(selected.month).padStart(2, "0")}.{String(selected.day).padStart(2, "0")}</span><div className="portrait-monogram">{selected.name.slice(0, 1)}</div><span className="portrait-field">{selected.field}</span></div>
-          <div className="feature-copy"><p className="feature-relation">{selected.relation} · {selected.years}</p><h3>{selected.name}</h3><p className="latin-name">{selected.latinName} · {selected.country}</p><p className="feature-tagline">“{selected.tagline}”</p><p className="feature-story">{selected.story}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selected.fact}</strong></div></div><button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button></div>
+          <div className="feature-copy"><p className="feature-relation">{selected.relation} · {selected.years}</p><h3>{selected.name}</h3><p className="latin-name">{selected.latinName} · {selected.country}</p><p className="feature-tagline">“{selected.tagline}”</p>{selectedQuote && <blockquote className="quote-block"><span>今日引语</span><p>“{selectedQuote.text}”</p><cite>— {selectedQuote.source}</cite></blockquote>}<p className="feature-story">{selected.story}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selected.fact}</strong></div></div><button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button></div>
           <div className="feature-index" aria-hidden="true"><span>SCIENCE</span><span>NOTE</span><b>{selected.id.slice(0, 3).toUpperCase()}</b></div>
         </article>
       </section>
