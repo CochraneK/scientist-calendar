@@ -101,7 +101,7 @@ export default function Home() {
           <p className="eyebrow">THE DAILY SCIENCE NOTEBOOK · 2026</p>
           <h1 id="hero-title">每天，<br /><em>遇见一个</em><br />改变世界的念头。</h1>
           <p className="hero-text">一份写给好奇心的科学日历。从一位科学家、一项发现，走进人类理解世界的方式。</p>
-          <div className="hero-actions"><a className="button-primary" href="#today">阅读今日人物 <span>↓</span></a><a className="text-link" href="#calendar">查看月历 <span>→</span></a></div>
+          <div className="hero-actions"><a className="button-primary" href="#today">阅读今日人物 <span>↓</span></a><a className="button-secondary" href="print/科学家日历_首批30位_A4打印版.pdf" download>获取 A4 打印版 <span>↓</span></a><a className="text-link" href="#calendar">查看月历 <span>→</span></a></div>
         </div>
         <div className="orbit-art" aria-hidden="true">
           <div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="orbit orbit-three" />
@@ -109,6 +109,13 @@ export default function Home() {
           <div className="hero-disc"><span>365</span><small>种好奇</small></div>
           <p className="art-caption">每一个答案<br />都从一个问题开始</p>
         </div>
+      </section>
+
+      <section className="overview-strip" aria-label="日历内容概览">
+        <div><strong>{scientists.length}</strong><span>位人物档案</span></div>
+        <div><strong>{fields.length - 1}</strong><span>个科学领域</span></div>
+        <div><strong>12</strong><span>个月的好奇线索</span></div>
+        <p>点开任意日期，读一则发现，也留下一点继续提问的余地。</p>
       </section>
 
       <section className="today-section" id="today" aria-labelledby="today-title">
@@ -129,6 +136,7 @@ export default function Home() {
       <section className="explore-section" id="explore" aria-labelledby="explore-title">
         <header className="section-heading explore-heading"><div><p className="eyebrow">THE ARCHIVE · 30 STARTING POINTS</p><h2 id="explore-title">从好奇出发</h2></div><label className="search-box"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索人物、领域或贡献" aria-label="搜索科学家档案" /></label></header>
         <div className="field-filters" aria-label="按科学领域筛选">{fields.map((field) => <button key={field} type="button" className={field === activeField ? "active" : ""} onClick={() => setActiveField(field)}>{field}</button>)}</div>
+        <div className="archive-toolbar" aria-live="polite"><p>当前显示 <strong>{filtered.length}</strong> / {scientists.length} 位人物{activeField !== "全部" ? ` · ${activeField}` : ""}{query.trim() ? ` · “${query.trim()}”` : ""}</p>{(activeField !== "全部" || query) && <button type="button" onClick={() => { setActiveField("全部"); setQuery(""); }}>清除筛选</button>}</div>
         <div className="archive-grid">{filtered.map((scientist, index) => <button className={`archive-card tone-${scientist.color}`} type="button" key={scientist.id} onClick={() => selectScientist(scientist)}><span className="archive-date">{String(scientist.month).padStart(2, "0")}.{String(scientist.day).padStart(2, "0")}</span><span className="archive-monogram">{scientist.name.slice(0, 1)}</span><span className="archive-field">{scientist.field}</span><h3>{scientist.name}</h3><p>{scientist.tagline}</p><span className="archive-open">阅读档案 <b>↗</b></span><i className="archive-index">{String(index + 1).padStart(2, "0")}</i></button>)}</div>
         {!filtered.length && <p className="empty-state">没有找到匹配的人物。换个关键词试试。</p>}
       </section>
