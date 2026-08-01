@@ -9,6 +9,7 @@ from pathlib import Path
 from typing import Any
 
 import requests
+from opencc import OpenCC
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -29,8 +30,10 @@ FIELDS = {
     "Q39631": ("医学", "green", "让疾病与治疗进入更精确的知识体系", "医学实践与研究"),
     "Q81096": ("物理", "blue", "把科学原理落到可以工作的工程之中", "工程实践"),
     "Q205375": ("物理", "coral", "把新的想法变成可使用的工具", "发明与工程"),
-    "Q901": ("生命科学", "gold", "用系统方法追问自然世界的规律", "科学研究"),
 }
+
+DEFAULT_FIELD = ("生命科学", "gold", "用系统方法追问自然世界的规律", "科学研究")
+CONVERTER = OpenCC("t2s")
 
 OCCUPATION_LABELS = {
     "Q169470": "物理学家",
@@ -64,7 +67,8 @@ def parse_inline_records() -> list[dict[str, Any]]:
 
 def load_base_records() -> list[dict[str, Any]]:
     if DATA.exists():
-        return json.loads(DATA.read_text(encoding="utf-8"))
+        records = json.loads(DATA.read_text(encoding="utf-8"))
+        return [record for record in records if not str(record["id"]).startswith("auto-")]
     return parse_inline_records()
 
 
@@ -91,12 +95,13 @@ def retry_get(url: str, *, params: dict[str, str], timeout: int = 120) -> reques
 
 def query_candidates() -> list[dict[str, str]]:
     occupations = " ".join(f"wd:{qid}" for qid in FIELDS)
-    query = f"""SELECT ?person ?dob ?occ WHERE {{
+    query = f"""SELECT ?person ?dob ?occ ?sitelinks WHERE {{
   VALUES ?occ {{ {occupations} }}
   ?person wdt:P31 wd:Q5;
           wdt:P569 ?dob;
-          wdt:P106 ?occ.
-}} LIMIT 10000"""
+          wdt:P106 ?occ;
+          wikibase:sitelinks ?sitelinks.
+}} LIMIT 20000"""
     response = retry_get(WIKIDATA_SPARQL, params={"format": "json", "query": query}, timeout=180)
     rows = response.json()["results"]["bindings"]
     candidates: list[dict[str, str]] = []
@@ -110,7 +115,8 @@ def query_candidates() -> list[dict[str, str]]:
         year, month, day = match.groups()
         if (month, day) == ("02", "29"):
             continue
-        candidates.append({"qid": person, "occ": occ, "year": year, "month": month, "day": day})
+        sitelinks = row.get("sitelinks", {}).get("value", "0")
+        candidates.append({"qid": person, "occ": occ, "year": year, "month": month, "day": day, "sitelinks": sitelinks})
     return candidates
 
 
@@ -153,20 +159,28 @@ def query_person_details(qids: list[str]) -> dict[str, dict[str, str]]:
         if qid in details:
             continue
         detail: dict[str, str] = {
-            "zh": row.get("zhLabel", {}).get("value", ""),
+            "zh": simplify(row.get("zhLabel", {}).get("value", "")),
             "en": row.get("enLabel", {}).get("value", ""),
-            "country": row.get("countryZh", row.get("countryEn", {})).get("value", ""),
+            "country": simplify(row.get("countryZh", row.get("countryEn", {})).get("value", "")),
             "dod": row.get("dod", {}).get("value", ""),
         }
         details[qid] = detail
     return details
 
 
+def simplify(text: str) -> str:
+    return CONVERTER.convert(text) if text else text
+
+
+def has_cjk(text: str) -> bool:
+    return bool(re.search(r"[\u4e00-\u9fff]", text))
+
+
 def label(entity: dict[str, Any] | None, fallback: str) -> str:
     if not entity:
         return fallback
     labels = entity.get("labels", {})
-    return labels.get("zh", labels.get("en", {"value": fallback})).get("value", fallback)
+    return simplify(labels.get("zh", labels.get("en", {"value": fallback})).get("value", fallback))
 
 
 def english_label(entity: dict[str, Any] | None, fallback: str) -> str:
@@ -208,11 +222,15 @@ def first_item_claim(entity: dict[str, Any] | None, prop: str) -> str | None:
 
 def make_record(candidate: dict[str, str], detail: dict[str, str]) -> dict[str, Any]:
     occ_id = candidate["occ"]
-    field, color, tagline, contribution = FIELDS.get(occ_id, FIELDS["Q901"])
-    zh_name = detail.get("zh") or detail.get("en") or candidate["qid"]
+    field, color, tagline, contribution = FIELDS.get(occ_id, DEFAULT_FIELD)
+    zh_name = simplify(detail.get("zh") or detail.get("en") or candidate["qid"])
     en_name = detail.get("en") or zh_name
     occ_name = OCCUPATION_LABELS.get(occ_id, "科学家")
-    country_name = detail.get("country") or "世界"
+    country_name = detail.get("country") or "国际"
+    if not has_cjk(country_name):
+        country_name = "国际"
+    month = int(candidate["month"])
+    day = int(candidate["day"])
     birth_year = str(int(candidate["year"]))
     death_year = None
     death_date = detail.get("dod") or ""
@@ -220,9 +238,7 @@ def make_record(candidate: dict[str, str], detail: dict[str, str]) -> dict[str, 
     if match:
         death_year = str(int(match.group(1)))
     years = f"{birth_year}–{death_year}" if death_year else f"{birth_year}–"
-    story_core = f"{zh_name}是{country_name}的{occ_name}，在{field}相关研究或实践中留下了可追踪的学术足迹。"
-    month = int(candidate["month"])
-    day = int(candidate["day"])
+    story_core = f"{zh_name}是{country_name}的{occ_name}，本页作为 {month} 月 {day} 日的科学人物索引，后续可继续补充代表性成果与原始资料。"
     return {
         "id": f"auto-{candidate['qid'].lower()}",
         "month": month,
@@ -237,7 +253,7 @@ def make_record(candidate: dict[str, str], detail: dict[str, str]) -> dict[str, 
         "tagline": tagline,
         "story": story_core,
         "contribution": contribution,
-        "fact": f"公开资料记录其生日为 {month} 月 {day} 日，因此被收录为全年科学日历的一页。",
+        "fact": f"Wikidata 公开资料记录其生日为 {month} 月 {day} 日；本条用于补齐全年日期覆盖。",
     }
 
 
@@ -260,7 +276,7 @@ def main() -> None:
     chosen: list[dict[str, str]] = []
     used_qids = set()
     for key in missing:
-        options = by_date.get(key, [])
+        options = sorted(by_date.get(key, []), key=lambda item: int(item.get("sitelinks", 0)), reverse=True)
         if not options:
             raise RuntimeError(f"No Wikidata candidate for {key[0]:02d}-{key[1]:02d}")
         candidate = next((item for item in options if item["qid"] not in used_qids), options[0])
