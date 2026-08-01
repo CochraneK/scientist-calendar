@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import re
 import json
 from pathlib import Path
 
@@ -13,7 +12,7 @@ from reportlab.lib.utils import ImageReader
 
 
 ROOT = Path(__file__).resolve().parents[1]
-SOURCE = ROOT / "app" / "page.tsx"
+DATA = ROOT / "app" / "scientists.json"
 QUOTES = ROOT / "app" / "quotes.json"
 OUTPUT_DIR = ROOT / "output" / "pdf"
 W, H = landscape(A4)
@@ -33,18 +32,7 @@ ACCENTS = {
 
 
 def load_scientists() -> list[dict[str, str]]:
-    source = SOURCE.read_text(encoding="utf-8")
-    objects = re.findall(r'\{ id: "(?P<id>[^"]+)", (?P<body>.*?) \}(?:,|(?=\n\s*\]))', source, re.S)
-    required = ("month", "day", "name", "latinName", "years", "field", "country", "color", "relation", "tagline", "story", "contribution", "fact")
-    records: list[dict[str, str]] = []
-    for item_id, body in objects:
-        record = {"id": item_id}
-        for key, value in re.findall(r'(\w+): "([^"]*)"', body):
-            record[key] = value
-        for key, value in re.findall(r'(month|day): (\d+)', body):
-            record[key] = value
-        if all(key in record for key in required):
-            records.append(record)
+    records = json.loads(DATA.read_text(encoding="utf-8"))
     if not records:
         raise RuntimeError("No calendar records found")
     return sorted(records, key=lambda item: (int(item["month"]), int(item["day"]), item["name"]))
