@@ -21,6 +21,8 @@ type Scientist = {
   story: string;
   contribution: string;
   fact: string;
+  quote?: string;
+  quoteSource?: string;
 };
 
 const scientists = scientistsData as Scientist[];
@@ -40,7 +42,7 @@ export default function Home() {
   const [calendarMonth, setCalendarMonth] = useState(7);
 
   const selected = scientists.find((scientist) => scientist.id === selectedId) ?? scientists[0];
-  const selectedQuote = quotes[selected.id as keyof typeof quotes];
+  const selectedQuote = quotes[selected.id as keyof typeof quotes] ?? (selected.quote ? { text: selected.quote, source: selected.quoteSource ?? "编者整理" } : undefined);
   const filtered = useMemo(() => scientists.filter((scientist) => {
     const inField = activeField === "全部" || scientist.field === activeField;
     const needle = query.trim().toLowerCase();

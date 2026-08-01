@@ -34,6 +34,28 @@ FIELDS = {
 
 DEFAULT_FIELD = ("生命科学", "gold", "用系统方法追问自然世界的规律", "科学研究")
 CONVERTER = OpenCC("t2s")
+RELATION_BY_OCC = {
+    "Q169470": "物理纪念",
+    "Q593644": "化学纪念",
+    "Q170790": "数学纪念",
+    "Q11063": "宇宙纪念",
+    "Q864503": "生命纪念",
+    "Q82594": "计算纪念",
+    "Q39631": "医学纪念",
+    "Q81096": "工程纪念",
+    "Q205375": "发明纪念",
+}
+
+QUOTE_BY_FIELD = {
+    "物理": "规律并不喧哗，它只等被测量。",
+    "化学": "变化不是混乱，而是结构在说话。",
+    "数学": "抽象不是远离世界，而是逼近本质。",
+    "天文": "宇宙的距离，先被耐心量过。",
+    "生命科学": "生命最深的答案，常藏在长期观察里。",
+    "医学": "知识若不能靠近治愈，就还不够完整。",
+    "计算机": "把思想变成系统，才算真正把问题说清。",
+    "地球科学": "地球从不沉默，只是需要更长的时间倾听。",
+}
 
 OCCUPATION_LABELS = {
     "Q169470": "物理学家",
@@ -238,7 +260,9 @@ def make_record(candidate: dict[str, str], detail: dict[str, str]) -> dict[str, 
     if match:
         death_year = str(int(match.group(1)))
     years = f"{birth_year}–{death_year}" if death_year else f"{birth_year}–"
-    story_core = f"{zh_name}是{country_name}的{occ_name}，本页作为 {month} 月 {day} 日的科学人物索引，后续可继续补充代表性成果与原始资料。"
+    relation = RELATION_BY_OCC.get(occ_id, "科学纪念")
+    quote = QUOTE_BY_FIELD.get(field, "科学的价值，不在答案，而在追问。")
+    story_core = f"{zh_name}是{country_name}的{occ_name}，这一天用来记住他/她在{field}中的{contribution}。"
     return {
         "id": f"auto-{candidate['qid'].lower()}",
         "month": month,
@@ -249,11 +273,13 @@ def make_record(candidate: dict[str, str], detail: dict[str, str]) -> dict[str, 
         "field": field,
         "country": country_name,
         "color": color,
-        "relation": "诞辰",
+        "relation": relation,
         "tagline": tagline,
         "story": story_core,
         "contribution": contribution,
-        "fact": f"Wikidata 公开资料记录其生日为 {month} 月 {day} 日；本条用于补齐全年日期覆盖。",
+        "fact": f"本条用于覆盖 {month} 月 {day} 日，并保留其在 {field} 领域的代表性。",
+        "quote": quote,
+        "quoteSource": "编者整理",
     }
 
 
