@@ -15,7 +15,7 @@ from reportlab.lib.utils import ImageReader
 ROOT = Path(__file__).resolve().parents[1]
 SOURCE = ROOT / "app" / "page.tsx"
 QUOTES = ROOT / "app" / "quotes.json"
-OUTPUT = ROOT / "output" / "pdf" / "科学家日历_精选100位_A4打印版.pdf"
+OUTPUT_DIR = ROOT / "output" / "pdf"
 W, H = landscape(A4)
 
 INK = HexColor("#15263D")
@@ -45,9 +45,13 @@ def load_scientists() -> list[dict[str, str]]:
             record[key] = value
         if all(key in record for key in required):
             records.append(record)
-    if len(records) != 100:
-        raise RuntimeError(f"Expected 100 calendar records, found {len(records)}")
+    if not records:
+        raise RuntimeError("No calendar records found")
     return sorted(records, key=lambda item: (int(item["month"]), int(item["day"]), item["name"]))
+
+
+def output_path(count: int) -> Path:
+    return OUTPUT_DIR / f"科学家日历_精选{count}位_A4打印版.pdf"
 
 
 def load_quotes() -> dict[str, dict[str, str]]:
@@ -105,7 +109,7 @@ def draw_mark(c: canvas.Canvas, x: float, y: float, size: float = 18) -> None:
     c.circle(x, y - size / 5, dot, stroke=0, fill=1)
 
 
-def draw_cover(c: canvas.Canvas) -> None:
+def draw_cover(c: canvas.Canvas, count: int) -> None:
     image = ROOT / "public" / "og.png"
     c.setFillColor(INK)
     c.rect(0, 0, W, H, fill=1, stroke=0)
@@ -118,7 +122,7 @@ def draw_cover(c: canvas.Canvas) -> None:
     c.roundRect(42, 37, 400, 91, 7, fill=1, stroke=0)
     c.setFillColor(HexColor("#F0B29F"))
     c.setFont(font(), 19)
-    c.drawString(61, 93, "精选 100 位人物 · A4 横版打印样稿")
+    c.drawString(61, 93, f"精选 {count} 位人物 · A4 横版打印样稿")
     c.setStrokeColor(HexColor("#DAB76A"))
     c.line(61, 75, 310, 75)
     c.setFillColor(Color(1, 1, 1, alpha=0.72))
@@ -135,7 +139,7 @@ def draw_overview(c: canvas.Canvas, entries: list[dict[str, str]]) -> None:
     c.rect(0, 0, W, H, fill=1, stroke=0)
     draw_mark(c, 47, H - 47)
     draw_text(c, "全年科学纪念日总览", 75, H - 53, 26)
-    draw_text(c, "54 SCIENCE NOTES", 76, H - 72, 8, MUTED, "latin")
+    draw_text(c, f"{len(entries)} SCIENCE NOTES", 76, H - 72, 8, MUTED, "latin")
     grouped = {month: [] for month in range(1, 13)}
     for entry in entries:
         grouped[int(entry["month"])].append(entry)
@@ -158,11 +162,11 @@ def draw_overview(c: canvas.Canvas, entries: list[dict[str, str]]) -> None:
             draw_text(c, entry["name"], x + 37, item_y, 10)
             item_y -= 18
     draw_text(c, "带色点的日期收录了科学人物或科学史纪念。", 42, 29, 9, MUTED)
-    draw_text(c, "科学家日历 · 100 个好奇心的起点", W - 230, 29, 9, MUTED)
+    draw_text(c, f"科学家日历 · {len(entries)} 个好奇心的起点", W - 230, 29, 9, MUTED)
     c.showPage()
 
 
-def draw_print_notes(c: canvas.Canvas) -> None:
+def draw_print_notes(c: canvas.Canvas, count: int) -> None:
     c.setFillColor(PAPER)
     c.rect(0, 0, W, H, fill=1, stroke=0)
     draw_mark(c, 48, H - 49)
@@ -173,7 +177,7 @@ def draw_print_notes(c: canvas.Canvas) -> None:
         ("建议规格", "A4 横向，100% 实际大小。单页打印可直接作为展示卡；双面装订建议选择短边翻转。"),
         ("纸张建议", "日常打印可用 100-120g 书写纸；做成桌面卡或礼品册时，建议使用 160-200g 哑光卡纸。"),
         ("装订与裁切", "保留页面白边用于装订或裁切。若采用活页夹，可在左侧预留打孔边；不建议勾选“适合页面”。"),
-        ("内容说明", "本册收录精选 100 位科学人物与科学纪念日，作为内容样稿。正式印刷前，请逐条完成日期、事实、图片与来源复核。"),
+        ("内容说明", f"本册收录精选 {count} 位科学人物与科学纪念日，作为内容样稿。正式印刷前，请逐条完成日期、事实、图片与来源复核。"),
     ]
     y = H - 135
     for index, (title, text) in enumerate(blocks, start=1):
@@ -189,7 +193,7 @@ def draw_print_notes(c: canvas.Canvas) -> None:
 
     c.setFillColor(INK)
     c.roundRect(57, 52, W - 114, 52, 6, fill=1, stroke=0)
-    draw_text(c, "科学家日历 · 精选 100 位人物 · 2026 扩充版", 77, 81, 12, white)
+    draw_text(c, f"科学家日历 · 精选 {count} 位人物 · 2026 扩充版", 77, 81, 12, white)
     draw_text(c, "网页与可下载版本将持续补充完整的资料来源与印刷资源。", 77, 62, 9, HexColor("#B6C0CC"))
     c.showPage()
 
@@ -275,19 +279,20 @@ def main() -> None:
     pdfmetrics.registerFont(UnicodeCIDFont("STSong-Light"))
     entries = load_scientists()
     quotes = load_quotes()
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
-    c = canvas.Canvas(str(OUTPUT), pagesize=(W, H), pageCompression=1)
-    c.setTitle("科学家日历 - 精选100位 A4打印版")
+    output = output_path(len(entries))
+    output.parent.mkdir(parents=True, exist_ok=True)
+    c = canvas.Canvas(str(output), pagesize=(W, H), pageCompression=1)
+    c.setTitle(f"科学家日历 - 精选{len(entries)}位 A4打印版")
     c.setAuthor("科学家日历")
-    draw_cover(c)
-    draw_print_notes(c)
+    draw_cover(c, len(entries))
+    draw_print_notes(c, len(entries))
     draw_overview(c, entries)
     total = len(entries) + 4
     for number, entry in enumerate(entries, start=4):
         draw_entry(c, entry, number, total, quotes)
     draw_back_cover(c)
     c.save()
-    print(OUTPUT)
+    print(output)
 
 
 if __name__ == "__main__":

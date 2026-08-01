@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useMemo, useState } from "react";
 import quotes from "./quotes.json";
@@ -32,7 +32,7 @@ const scientists: Scientist[] = [
   { id: "einstein", month: 3, day: 14, name: "阿尔伯特·爱因斯坦", latinName: "Albert Einstein", years: "1879–1955", field: "物理", country: "德国", color: "blue", relation: "诞辰", tagline: "重新定义时间、空间与重力", story: "1905 年，他接连发表多篇论文，推动了现代物理的转折。", contribution: "相对论与光电效应", fact: "GPS 的高精度定位需要修正相对论造成的时间差。" },
   { id: "curie", month: 11, day: 7, name: "玛丽·居里", latinName: "Marie Curie", years: "1867–1934", field: "物理", country: "波兰 / 法国", color: "violet", relation: "诞辰", tagline: "在微光里发现两种新元素", story: "她与皮埃尔·居里从沥青铀矿残渣中分离并研究放射性。", contribution: "放射性研究", fact: "她是首位获得诺贝尔奖的女性，也是首位两获诺奖的人。" },
   { id: "lamarr", month: 11, day: 9, name: "海蒂·拉玛", latinName: "Hedy Lamarr", years: "1914–2000", field: "计算机", country: "奥地利 / 美国", color: "coral", relation: "诞辰", tagline: "在银幕之外，构想通信的跳频", story: "她与乔治·安泰尔提出跳频通信构想，为现代无线通信的发展留下重要灵感。", contribution: "跳频通信构想", fact: "她同时是一位知名电影演员与发明者。" },
-  { id: "nobel", month: 12, day: 10, name: "诺贝尔奖日", latinName: "Nobel Prize Day", years: "1901–至今", field: "医学", country: "瑞典", color: "gold", relation: "颁奖日", tagline: "让突破被世界看见", story: "诺贝尔奖通常在 12 月 10 日颁发，纪念阿尔弗雷德·诺贝尔逝世日。", contribution: "跨学科科学奖项", fact: "和平奖在奥斯陆颁发，其他奖项在斯德哥尔摩。" },
+  { id: "nobel-prize-day", month: 12, day: 10, name: "诺贝尔奖日", latinName: "Nobel Prize Day", years: "1901–至今", field: "医学", country: "瑞典", color: "gold", relation: "颁奖日", tagline: "让突破被世界看见", story: "诺贝尔奖通常在 12 月 10 日颁发，纪念阿尔弗雷德·诺贝尔逝世日。", contribution: "跨学科科学奖项", fact: "和平奖在奥斯陆颁发，其他奖项在斯德哥尔摩。" },
   { id: "leonardo", month: 4, day: 15, name: "列奥纳多·达·芬奇", latinName: "Leonardo da Vinci", years: "1452–1519", field: "地球科学", country: "意大利", color: "coral", relation: "诞辰", tagline: "把观察变成了跨学科的笔记", story: "从人体解剖到水流、飞行与机械，他用图像记录对自然的好奇。", contribution: "科学观察与工程手稿", fact: "他的手稿常以镜像书写。" },
   { id: "nightingale", month: 5, day: 12, name: "弗洛伦斯·南丁格尔", latinName: "Florence Nightingale", years: "1820–1910", field: "医学", country: "英国", color: "green", relation: "诞辰", tagline: "用数据让医院变得更安全", story: "她将战地医院的死亡原因制成醒目的统计图，推动卫生改革。", contribution: "现代护理与卫生统计", fact: "她的极坐标图是数据可视化史上的经典案例。" },
   { id: "turing", month: 6, day: 23, name: "艾伦·图灵", latinName: "Alan Turing", years: "1912–1954", field: "计算机", country: "英国", color: "blue", relation: "诞辰", tagline: "在纸上发明一台通用计算机", story: "他的抽象计算模型告诉我们：哪些问题能被算法解决，哪些不能。", contribution: "图灵机与计算理论", fact: "图灵测试至今仍是人工智能讨论中的重要概念。" },
@@ -118,11 +118,31 @@ const scientists: Scientist[] = [
   { id: "arnold", month: 7, day: 25, name: "弗朗西斯·阿诺德", latinName: "Frances Arnold", years: "1956–", field: "化学", country: "美国", color: "green", relation: "诞辰", tagline: "让进化在实验室里改造酶", story: "她发展定向进化方法，利用变异与筛选设计更适合人类需要的酶。", contribution: "酶的定向进化", fact: "定向进化已用于药物、材料和可持续化学。" },
   { id: "ritchie", month: 9, day: 9, name: "丹尼斯·里奇", latinName: "Dennis Ritchie", years: "1941–2011", field: "计算机", country: "美国", color: "coral", relation: "诞辰", tagline: "用简洁的语言搭起软件世界", story: "他设计 C 语言并参与 Unix 系统开发，深刻影响现代操作系统与软件工程。", contribution: "C 语言与 Unix", fact: "C 语言至今仍是系统软件和嵌入式开发的重要工具。" },
   { id: "vaughan", month: 9, day: 20, name: "多萝西·沃恩", latinName: "Dorothy Vaughan", years: "1910–2008", field: "数学", country: "美国", color: "gold", relation: "诞辰", tagline: "从人工计算走向编程时代", story: "她领导 NASA 的西部地区计算组，并自学 FORTRAN 带领团队转向电子计算。", contribution: "航天计算与编程", fact: "她的团队参与了早期航天和气象计算任务。" },
-  { id: "nobel", month: 10, day: 21, name: "阿尔弗雷德·诺贝尔", latinName: "Alfred Nobel", years: "1833–1896", field: "化学", country: "瑞典", color: "gold", relation: "诞辰", tagline: "让科学成就拥有持续被纪念的制度", story: "他研究炸药与工业材料，并在遗嘱中设立诺贝尔奖，支持推动人类进步的工作。", contribution: "炸药化学与科学奖励", fact: "诺贝尔奖自 1901 年起颁发。" },
+  { id: "alfred-nobel", month: 10, day: 21, name: "阿尔弗雷德·诺贝尔", latinName: "Alfred Nobel", years: "1833–1896", field: "化学", country: "瑞典", color: "gold", relation: "诞辰", tagline: "让科学成就拥有持续被纪念的制度", story: "他研究炸药与工业材料，并在遗嘱中设立诺贝尔奖，支持推动人类进步的工作。", contribution: "炸药化学与科学奖励", fact: "诺贝尔奖自 1901 年起颁发。" },
   { id: "boole", month: 11, day: 2, name: "乔治·布尔", latinName: "George Boole", years: "1815–1864", field: "数学", country: "英国", color: "violet", relation: "诞辰", tagline: "把逻辑推理写成可以计算的代数", story: "布尔代数把命题逻辑形式化，后来成为数字电路和计算机逻辑的基础。", contribution: "布尔代数", fact: "现代程序中的真假判断仍能追溯到布尔逻辑。" },
   { id: "kepler", month: 12, day: 27, name: "约翰内斯·开普勒", latinName: "Johannes Kepler", years: "1571–1630", field: "天文", country: "德国", color: "blue", relation: "诞辰", tagline: "从行星轨道中读出宇宙的几何", story: "开普勒从观测数据中总结行星运动三定律，揭示行星轨道并非完美圆形。", contribution: "行星运动定律", fact: "他的定律为牛顿万有引力理论提供了重要线索。" },
   { id: "brahe", month: 12, day: 14, name: "第谷·布拉赫", latinName: "Tycho Brahe", years: "1546–1601", field: "天文", country: "丹麦", color: "gold", relation: "诞辰", tagline: "用肉眼观测积累一座星空档案馆", story: "他在望远镜出现前进行高精度天文观测，为开普勒建立行星运动定律提供数据。", contribution: "精密天文观测", fact: "他的观测记录包含超新星和彗星等重要天象。" },
   { id: "halley", month: 10, day: 8, name: "埃德蒙·哈雷", latinName: "Edmond Halley", years: "1656–1742", field: "天文", country: "英国", color: "blue", relation: "诞辰", tagline: "让彗星的回归成为可以预测的事件", story: "哈雷利用历史观测和牛顿力学预测一颗彗星将再次出现，展示科学如何连接时间与轨道。", contribution: "彗星轨道预测", fact: "哈雷彗星约每 76 年回归一次。" },
+  { id: "germain", month: 1, day: 13, name: "索菲·热尔曼", latinName: "Sophie Germain", years: "1776–1831", field: "数学", country: "法国", color: "violet", relation: "诞辰", tagline: "在看不见的阻力中坚持写下数学", story: "热尔曼研究数论和弹性理论，在女性难以进入学术机构的时代留下重要工作。", contribution: "数论与弹性理论", fact: "她曾用化名与数学家通信以绕开时代限制。" },
+  { id: "engelbart", month: 1, day: 30, name: "道格拉斯·恩格尔巴特", latinName: "Douglas Engelbart", years: "1925–2013", field: "计算机", country: "美国", color: "coral", relation: "诞辰", tagline: "让人机交互从命令行走向可操作的空间", story: "恩格尔巴特展示了鼠标、超文本和协同编辑等概念，影响了个人计算的未来形态。", contribution: "人机交互", fact: "1968 年的演示后来被称为“所有演示之母”。" },
+  { id: "segre", month: 2, day: 1, name: "埃米利奥·塞格雷", latinName: "Emilio Segrè", years: "1905–1989", field: "物理", country: "意大利 / 美国", color: "blue", relation: "诞辰", tagline: "在粒子轨迹中寻找反物质的证据", story: "塞格雷参与发现锝元素，并因反质子的发现获得诺贝尔物理学奖。", contribution: "反质子发现", fact: "锝是第一个人工制得的元素。" },
+  { id: "blackwell", month: 2, day: 3, name: "伊丽莎白·布莱克威尔", latinName: "Elizabeth Blackwell", years: "1821–1910", field: "医学", country: "英国 / 美国", color: "green", relation: "诞辰", tagline: "把女性进入医学职业变成现实", story: "布莱克威尔成为美国第一位获得医学学位的女性，并推动女性医学教育。", contribution: "医学教育", fact: "她创办的机构为女性医生提供训练和实践机会。" },
+  { id: "shockley", month: 2, day: 13, name: "威廉·肖克利", latinName: "William Shockley", years: "1910–1989", field: "物理", country: "英国 / 美国", color: "gold", relation: "诞辰", tagline: "让固体物理变成电子时代的开关", story: "肖克利参与晶体管研究，使半导体技术成为现代电子工业的基础。", contribution: "晶体管物理", fact: "晶体管改变了计算机、通信和消费电子的尺度。" },
+  { id: "mercator", month: 3, day: 5, name: "杰拉杜斯·墨卡托", latinName: "Gerardus Mercator", years: "1512–1594", field: "地球科学", country: "佛兰德", color: "gold", relation: "诞辰", tagline: "把球面世界摊开成航海者能读懂的地图", story: "墨卡托投影让等角航线能以直线呈现，深刻影响了航海与地图制作。", contribution: "地图投影", fact: "“atlas”作为地图集概念与他的作品密切相关。" },
+  { id: "fitch", month: 3, day: 10, name: "瓦尔·菲奇", latinName: "Val Logsdon Fitch", years: "1923–2015", field: "物理", country: "美国", color: "blue", relation: "诞辰", tagline: "在粒子的微小偏差中看见对称性破缺", story: "菲奇与克罗宁发现中性 K 介子中的 CP 破坏现象，改变了粒子物理对对称性的理解。", contribution: "CP 破坏发现", fact: "CP 破坏与宇宙中物质和反物质不对称问题有关。" },
+  { id: "behring", month: 3, day: 15, name: "埃米尔·冯·贝林", latinName: "Emil von Behring", years: "1854–1917", field: "医学", country: "德国", color: "green", relation: "诞辰", tagline: "让血清疗法成为抵抗传染病的武器", story: "贝林发展白喉抗毒素疗法，推动免疫学和传染病治疗进入新阶段。", contribution: "血清疗法", fact: "他获得首届诺贝尔生理学或医学奖。" },
+  { id: "fourier", month: 3, day: 21, name: "约瑟夫·傅里叶", latinName: "Joseph Fourier", years: "1768–1830", field: "数学", country: "法国", color: "coral", relation: "诞辰", tagline: "把复杂波形拆成可理解的频率", story: "傅里叶研究热传导，并提出把函数分解为三角级数的方法，影响了现代分析和信号处理。", contribution: "傅里叶分析", fact: "从音频压缩到医学成像，都能看到傅里叶方法的影子。" },
+  { id: "david-blackwell", month: 4, day: 24, name: "戴维·布莱克韦尔", latinName: "David Blackwell", years: "1919–2010", field: "数学", country: "美国", color: "violet", relation: "诞辰", tagline: "在概率、统计与决策之间建立清晰道路", story: "布莱克韦尔在统计、博弈论和动态规划方面贡献深远，是重要的数学家和教育者。", contribution: "统计决策理论", fact: "他是首位当选美国国家科学院院士的非裔美国人之一。" },
+  { id: "penzias", month: 4, day: 26, name: "阿诺·彭齐亚斯", latinName: "Arno Penzias", years: "1933–2024", field: "天文", country: "德国 / 美国", color: "blue", relation: "诞辰", tagline: "从天线噪声中听见宇宙早期的余温", story: "彭齐亚斯与威尔逊发现宇宙微波背景辐射，为大爆炸宇宙学提供关键证据。", contribution: "宇宙微波背景", fact: "他们最初以为噪声来自仪器和环境。" },
+  { id: "oort", month: 4, day: 28, name: "扬·奥尔特", latinName: "Jan Oort", years: "1900–1992", field: "天文", country: "荷兰", color: "gold", relation: "诞辰", tagline: "用银河旋转理解恒星的家园", story: "奥尔特研究银河系结构和旋转，并提出遥远彗星云的概念。", contribution: "银河系动力学", fact: "奥尔特云以他的名字命名。" },
+  { id: "bose", month: 5, day: 2, name: "萨特延德拉·玻色", latinName: "Satyendra Nath Bose", years: "1894–1974", field: "物理", country: "印度", color: "blue", relation: "诞辰", tagline: "让量子粒子拥有新的统计语言", story: "玻色提出光子的统计方法，启发爱因斯坦发展玻色-爱因斯坦统计。", contribution: "玻色-爱因斯坦统计", fact: "“玻色子”以他的名字命名。" },
+  { id: "huxley", month: 5, day: 4, name: "托马斯·亨利·赫胥黎", latinName: "Thomas Henry Huxley", years: "1825–1895", field: "生命科学", country: "英国", color: "green", relation: "诞辰", tagline: "把进化论带进公共辩论的现场", story: "赫胥黎研究比较解剖学，也积极为达尔文进化论进行公开辩护和科学传播。", contribution: "进化论传播", fact: "他被称为“达尔文的斗犬”。" },
+  { id: "higgs", month: 5, day: 29, name: "彼得·希格斯", latinName: "Peter Higgs", years: "1929–2024", field: "物理", country: "英国", color: "violet", relation: "诞辰", tagline: "让质量的来源成为可寻找的粒子", story: "希格斯机制解释基本粒子如何获得质量，希格斯玻色子的发现验证了标准模型的重要部分。", contribution: "希格斯机制", fact: "大型强子对撞机在 2012 年宣布发现类似希格斯玻色子的粒子。" },
+  { id: "charles-drew", month: 6, day: 3, name: "查尔斯·德鲁", latinName: "Charles R. Drew", years: "1904–1950", field: "医学", country: "美国", color: "coral", relation: "诞辰", tagline: "让血液保存和输血体系更加可靠", story: "德鲁改进血浆保存与血库组织方式，在战时和公共医疗中发挥重要作用。", contribution: "血库与输血医学", fact: "他的工作帮助建立现代血液储存和分配体系。" },
+  { id: "couch-adams", month: 6, day: 5, name: "约翰·柯西·亚当斯", latinName: "John Couch Adams", years: "1819–1892", field: "天文", country: "英国", color: "gold", relation: "诞辰", tagline: "用计算追踪尚未被看见的行星", story: "亚当斯通过天王星轨道异常推算海王星位置，是数学天文学的经典案例之一。", contribution: "海王星轨道预测", fact: "勒威耶也独立完成了类似计算。" },
+  { id: "kelvin", month: 6, day: 26, name: "威廉·汤姆森", latinName: "William Thomson, Lord Kelvin", years: "1824–1907", field: "物理", country: "英国", color: "blue", relation: "诞辰", tagline: "把温度和能量放进更精确的尺度", story: "开尔文在热力学、电磁学和海底电缆工程中都有重要贡献，推动精密测量成为现代科学语言。", contribution: "热力学与绝对温标", fact: "开尔文温标以他的封号命名。" },
+  { id: "wheeler", month: 7, day: 9, name: "约翰·惠勒", latinName: "John Archibald Wheeler", years: "1911–2008", field: "物理", country: "美国", color: "violet", relation: "诞辰", tagline: "给黑洞这个名字，也给宇宙更多问题", story: "惠勒研究广义相对论、量子理论和核物理，是 20 世纪理论物理的重要教师与思想者。", contribution: "黑洞与相对论研究", fact: "“black hole”一词因他的推广而广泛流行。" },
+  { id: "maria-mitchell", month: 8, day: 1, name: "玛丽亚·米切尔", latinName: "Maria Mitchell", years: "1818–1889", field: "天文", country: "美国", color: "green", relation: "诞辰", tagline: "在望远镜里为女性科学家打开天空", story: "米切尔发现彗星，并成为美国早期重要女性天文学家和科学教育者。", contribution: "彗星发现与天文教育", fact: "她是美国文理科学院首批女性成员之一。" },
 ];
 
 const fields: Array<Field | "全部"> = ["全部", "物理", "化学", "生命科学", "数学", "计算机", "天文", "医学", "地球科学"];
@@ -173,7 +193,7 @@ export default function Home() {
           <p className="eyebrow">THE DAILY SCIENCE NOTEBOOK · 2026</p>
           <h1 id="hero-title">每天，<br /><em>遇见一个</em><br />改变世界的念头。</h1>
           <p className="hero-text">一份写给好奇心的科学日历。从一位科学家、一项发现，走进人类理解世界的方式。</p>
-          <div className="hero-actions"><a className="button-primary" href="#today">阅读今日人物 <span>↓</span></a><a className="button-secondary" href="print/科学家日历_首批30位_A4打印版.pdf" download>获取 A4 打印版 <span>↓</span></a><a className="text-link" href="#calendar">查看月历 <span>→</span></a></div>
+          <div className="hero-actions"><a className="button-primary" href="#today">阅读今日人物 <span>↓</span></a><a className="button-secondary" href={`print/科学家日历_精选${scientists.length}位_A4打印版.pdf`} download>获取 A4 打印版 <span>↓</span></a><a className="text-link" href="#calendar">查看月历 <span>→</span></a></div>
         </div>
         <div className="orbit-art" aria-hidden="true">
           <div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="orbit orbit-three" />
@@ -215,7 +235,7 @@ export default function Home() {
 
       <section className="manifesto" id="about"><p className="eyebrow">WHY A SCIENCE CALENDAR</p><p>科学并非一串遥远的姓名与年份，<br />而是一代代人对世界的<strong>耐心注视</strong>。</p><span>收藏今天的好奇，明天继续提问。</span></section>
 
-      <footer><a className="brand" href="#top"><span className="brand-mark">∴</span> 科学家日历</a><p>精选 {scientists.length} 位人物档案 · 持续更新中</p><a className="footer-download" href="print/科学家日历_精选100位_A4打印版.pdf" download>下载 A4 打印版 ↓</a><a href="#top">回到顶部 ↑</a></footer>
+      <footer><a className="brand" href="#top"><span className="brand-mark">∴</span> 科学家日历</a><p>精选 {scientists.length} 位人物档案 · 持续更新中</p><a className="footer-download" href={`print/科学家日历_精选${scientists.length}位_A4打印版.pdf`} download>下载 A4 打印版 ↓</a><a href="#top">回到顶部 ↑</a></footer>
     </main>
   );
 }
