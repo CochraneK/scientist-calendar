@@ -76,6 +76,18 @@ OCCUPATION_LABELS = {
     "Q901": "科学家",
 }
 
+CURATED_AUTO_OVERRIDES: dict[str, dict[str, str]] = {
+    "auto-q211940": {
+        "relation": "嗅觉受体与嗅觉系统",
+        "field": "生命科学",
+        "color": "green",
+        "tagline": "从分子层面解释气味如何进入大脑",
+        "story": "理查德·阿克塞尔是哥伦比亚大学神经科学家；他与琳达·巴克发现嗅觉受体基因家族，并说明气味信号如何在嗅觉系统中组织，因而共同获得 2004 年诺贝尔生理学或医学奖。",
+        "contribution": "嗅觉受体与嗅觉系统组织",
+        "fact": "诺贝尔奖公告称，阿克塞尔与巴克的发现解释了气味分子如何被受体识别，以及嗅觉信息如何被送往大脑。",
+    }
+}
+
 
 def parse_inline_records() -> list[dict[str, Any]]:
     source = PAGE.read_text(encoding="utf-8")
@@ -129,6 +141,7 @@ def polish_base_record(record: dict[str, Any]) -> dict[str, Any]:
 
 def polish_generated_record(record: dict[str, Any]) -> dict[str, Any]:
     polished = dict(record)
+    polished.update(CURATED_AUTO_OVERRIDES.get(str(polished.get("id")), {}))
     relation = str(polished.get("relation", "")).strip()
     if relation in set(RELATION_BY_OCC.values()) or relation.endswith("纪念") or relation in {"诞辰", "生日", "出生"}:
         polished["relation"] = str(polished.get("contribution") or polished.get("field") or "科学贡献")[:26]
@@ -141,11 +154,17 @@ def polish_generated_record(record: dict[str, Any]) -> dict[str, Any]:
         contribution = str(polished.get("contribution", "科学工作"))
         identity = f"{country}的{field}人物" if country and country != "国际" else f"{field}人物"
         polished["story"] = f"{name}是{identity}；本页聚焦{contribution}，把这一天和具体的科学工作联系起来。"
+    story = str(polished.get("story", ""))
+    if "本页聚焦" in story or "把这一天和具体的科学工作联系起来" in story:
+        polished["story"] = "资料待补：当前仅保留姓名、日期与领域，不再使用模板句代替人物介绍；正式版需补入代表成果与可靠来源。"
 
     fact = str(polished.get("fact", ""))
     if "本条用于覆盖" in fact or not fact:
         latin = str(polished.get("latinName") or polished.get("name") or "该人物")
         polished["fact"] = f"{latin} 是继续查找其论文、传记和档案资料时较稳定的检索名。"
+    fact = str(polished.get("fact", ""))
+    if "继续查找其论文、传记和档案资料时较稳定的检索名" in fact and str(polished.get("id")) not in CURATED_AUTO_OVERRIDES:
+        polished["fact"] = "这条资料尚未完成事实复核；保留在全年日历中，作为后续补充代表成果的占位条目。"
 
     if polished.get("quoteSource") == "编者整理":
         polished.pop("quote", None)
@@ -327,12 +346,14 @@ def make_record(candidate: dict[str, str], detail: dict[str, str]) -> dict[str, 
     if contribution not in story_core:
         story_core = f"{story_core.rstrip('。')}，本页以{contribution}作为理解其工作的入口。"
     story_core = story_core.replace("，。", "。")
+    if not detail.get("desc"):
+        story_core = "资料待补：当前仅保留姓名、日期与领域，不再使用模板句代替人物介绍；正式版需补入代表成果与可靠来源。"
     fact = detail.get("desc")
     if fact:
         fact = f"百科条目将其概括为：{fact[:42]}。"
     else:
         fact = f"{zh_name}的英文条目名为 {en_name}，可据此继续查找其传记与原始资料。"
-    return {
+    record = {
         "id": f"auto-{candidate['qid'].lower()}",
         "month": month,
         "day": day,
@@ -350,6 +371,8 @@ def make_record(candidate: dict[str, str], detail: dict[str, str]) -> dict[str, 
         "quote": None,
         "quoteSource": None,
     }
+    record.update(CURATED_AUTO_OVERRIDES.get(record["id"], {}))
+    return record
 
 
 def enrich_quote(record: dict[str, Any], curated_quotes: dict[str, dict[str, str]]) -> dict[str, Any]:
