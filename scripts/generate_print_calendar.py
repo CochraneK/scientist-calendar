@@ -236,14 +236,16 @@ def draw_entry(c: canvas.Canvas, entry: dict[str, str], page: int, total: int, q
     draw_text(c, entry["name"], left, 383, name_size)
     draw_text(c, entry["latinName"] + " · " + entry["country"], left, 358, 10, MUTED)
     quotation = quotes.get(entry["id"])
-    quote_text = quotation["text"] if quotation else entry.get("quote", entry["tagline"])
-    quote_end = draw_wrapped(c, "“" + quote_text + "”", left, 315, 490, 18, 26, HexColor("#B85E4C"))
+    quote_text = quotation["text"] if quotation else entry.get("quote")
+    quote_source = quotation["source"] if quotation else entry.get("quoteSource")
+    has_sourced_quote = bool(quote_text and quote_source)
+    if has_sourced_quote:
+        quote_end = draw_wrapped(c, "“" + quote_text + "”", left, 315, 490, 18, 26, HexColor("#B85E4C"))
+    else:
+        quote_end = draw_wrapped(c, "阅读线索｜" + entry["tagline"], left, 315, 490, 15, 23, MUTED)
     divider_y = quote_end - 5
-    if quotation:
-        draw_text(c, "— " + quotation["source"], left, quote_end - 5, 8, MUTED)
-        divider_y = quote_end - 20
-    elif entry.get("quoteSource"):
-        draw_text(c, "— " + str(entry["quoteSource"]), left, quote_end - 5, 8, MUTED)
+    if has_sourced_quote:
+        draw_text(c, "— " + str(quote_source), left, quote_end - 5, 8, MUTED)
         divider_y = quote_end - 20
     c.setStrokeColor(LINE)
     c.setLineWidth(0.7)

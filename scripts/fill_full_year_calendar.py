@@ -2,23 +2,29 @@ from __future__ import annotations
 
 import calendar
 import json
+import os
 import re
 import time
 import unicodedata
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from pathlib import Path
 from typing import Any
 
 import requests
 from opencc import OpenCC
+from bs4 import BeautifulSoup
 
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGE = ROOT / "app" / "page.tsx"
 DATA = ROOT / "app" / "scientists.json"
+QUOTES = ROOT / "app" / "quotes.json"
 
 WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
 WIKIDATA_API = "https://www.wikidata.org/w/api.php"
+WIKIQUOTE_API = "https://en.wikiquote.org/w/api.php"
 HEADERS = {"User-Agent": "scientist-calendar/1.0 (Codex local generator)"}
+SKIP_WIKIQUOTE = os.environ.get("SCIENTIST_CALENDAR_SKIP_WIKIQUOTE") == "1"
 
 FIELDS = {
     "Q169470": ("物理", "blue", "在物质与能量之间寻找可验证的规律", "物理学研究"),
@@ -90,8 +96,64 @@ def parse_inline_records() -> list[dict[str, Any]]:
 def load_base_records() -> list[dict[str, Any]]:
     if DATA.exists():
         records = json.loads(DATA.read_text(encoding="utf-8"))
-        return [record for record in records if not str(record["id"]).startswith("auto-")]
+        return [polish_base_record(record) for record in records if not str(record["id"]).startswith("auto-")]
     return parse_inline_records()
+
+
+def load_existing_auto_records() -> list[dict[str, Any]]:
+    if not DATA.exists():
+        return []
+    records = json.loads(DATA.read_text(encoding="utf-8"))
+    return [polish_generated_record(record) for record in records if str(record["id"]).startswith("auto-")]
+
+
+def load_curated_quotes() -> dict[str, dict[str, str]]:
+    if not QUOTES.exists():
+        return {}
+    return json.loads(QUOTES.read_text(encoding="utf-8"))
+
+
+def polish_base_record(record: dict[str, Any]) -> dict[str, Any]:
+    polished = dict(record)
+    relation = str(polished.get("relation", "")).strip()
+    if relation in {"诞辰", "生日", "出生"}:
+        polished["relation"] = str(polished.get("contribution") or polished.get("field") or "科学贡献")[:26]
+    if polished.get("quoteSource") == "编者整理":
+        polished.pop("quote", None)
+        polished.pop("quoteSource", None)
+    if not quote_source_matches_record(polished):
+        polished.pop("quote", None)
+        polished.pop("quoteSource", None)
+    return polished
+
+
+def polish_generated_record(record: dict[str, Any]) -> dict[str, Any]:
+    polished = dict(record)
+    relation = str(polished.get("relation", "")).strip()
+    if relation in set(RELATION_BY_OCC.values()) or relation.endswith("纪念") or relation in {"诞辰", "生日", "出生"}:
+        polished["relation"] = str(polished.get("contribution") or polished.get("field") or "科学贡献")[:26]
+
+    story = str(polished.get("story", ""))
+    if "这一天用来记住" in story or "他/她" in story:
+        name = str(polished.get("name", "这位人物"))
+        field = str(polished.get("field", "科学"))
+        country = str(polished.get("country", ""))
+        contribution = str(polished.get("contribution", "科学工作"))
+        identity = f"{country}的{field}人物" if country and country != "国际" else f"{field}人物"
+        polished["story"] = f"{name}是{identity}；本页聚焦{contribution}，把这一天和具体的科学工作联系起来。"
+
+    fact = str(polished.get("fact", ""))
+    if "本条用于覆盖" in fact or not fact:
+        latin = str(polished.get("latinName") or polished.get("name") or "该人物")
+        polished["fact"] = f"{latin} 是继续查找其论文、传记和档案资料时较稳定的检索名。"
+
+    if polished.get("quoteSource") == "编者整理":
+        polished.pop("quote", None)
+        polished.pop("quoteSource", None)
+    if not quote_source_matches_record(polished):
+        polished.pop("quote", None)
+        polished.pop("quoteSource", None)
+    return polished
 
 
 def slugify(value: str) -> str:
@@ -105,6 +167,9 @@ def retry_get(url: str, *, params: dict[str, str], timeout: int = 120) -> reques
     for attempt in range(4):
         try:
             response = requests.get(url, params=params, headers=HEADERS, timeout=timeout)
+            if response.status_code == 429:
+                time.sleep(45 + attempt * 30)
+                raise RuntimeError(f"HTTP {response.status_code}: {response.text[:120]}")
             if response.status_code in {429, 500, 502, 503, 504}:
                 raise RuntimeError(f"HTTP {response.status_code}: {response.text[:120]}")
             response.raise_for_status()
@@ -144,8 +209,8 @@ def query_candidates() -> list[dict[str, str]]:
 
 def fetch_entities(qids: list[str]) -> dict[str, dict[str, Any]]:
     entities: dict[str, dict[str, Any]] = {}
-    for index in range(0, len(qids), 50):
-        batch = qids[index : index + 50]
+    for index in range(0, len(qids), 25):
+        batch = qids[index : index + 25]
         response = retry_get(
             WIKIDATA_API,
             params={
@@ -158,35 +223,33 @@ def fetch_entities(qids: list[str]) -> dict[str, dict[str, Any]]:
             timeout=60,
         )
         entities.update(response.json().get("entities", {}))
+        time.sleep(1.2)
     return entities
 
 
 def query_person_details(qids: list[str]) -> dict[str, dict[str, str]]:
-    values = " ".join(f"wd:{qid}" for qid in qids)
-    query = f"""SELECT ?person ?zhLabel ?enLabel ?countryZh ?countryEn ?dod WHERE {{
-  VALUES ?person {{ {values} }}
-  OPTIONAL {{ ?person rdfs:label ?zhLabel FILTER(LANG(?zhLabel) = "zh") }}
-  OPTIONAL {{ ?person rdfs:label ?enLabel FILTER(LANG(?enLabel) = "en") }}
-  OPTIONAL {{ ?person wdt:P570 ?dod. }}
-  OPTIONAL {{
-    ?person wdt:P27 ?country.
-    OPTIONAL {{ ?country rdfs:label ?countryZh FILTER(LANG(?countryZh) = "zh") }}
-    OPTIONAL {{ ?country rdfs:label ?countryEn FILTER(LANG(?countryEn) = "en") }}
-  }}
-}}"""
-    response = retry_get(WIKIDATA_SPARQL, params={"format": "json", "query": query}, timeout=180)
+    entities = fetch_entities(qids)
+    country_ids: list[str] = []
+    for entity in entities.values():
+        country_id = first_item_claim(entity, "P27")
+        if country_id:
+            country_ids.append(country_id)
+    country_entities = fetch_entities(sorted(set(country_ids))) if country_ids else {}
     details: dict[str, dict[str, str]] = {}
-    for row in response.json()["results"]["bindings"]:
-        qid = row["person"]["value"].rsplit("/", 1)[-1]
-        if qid in details:
-            continue
-        detail: dict[str, str] = {
-            "zh": simplify(row.get("zhLabel", {}).get("value", "")),
-            "en": row.get("enLabel", {}).get("value", ""),
-            "country": simplify(row.get("countryZh", row.get("countryEn", {})).get("value", "")),
-            "dod": row.get("dod", {}).get("value", ""),
+    for qid, entity in entities.items():
+        country_id = first_item_claim(entity, "P27")
+        country_entity = country_entities.get(country_id) if country_id else None
+        sitelinks = entity.get("sitelinks", {})
+        details[qid] = {
+            "zh": simplify(entity.get("labels", {}).get("zh", entity.get("labels", {}).get("en", {"value": qid})).get("value", qid)),
+            "en": entity.get("labels", {}).get("en", {"value": qid}).get("value", qid),
+            "desc": simplify(entity.get("descriptions", {}).get("zh", entity.get("descriptions", {}).get("en", {"value": ""})).get("value", "")),
+            "country": simplify((country_entity or {}).get("labels", {}).get("zh", (country_entity or {}).get("labels", {}).get("en", {"value": "国际"})).get("value", "国际")),
+            "year": claim_year(entity, "P569") or "",
+            "death": claim_year(entity, "P570") or "",
+            "enwiki": sitelinks.get("enwiki", {}).get("title", ""),
+            "zhwiki": sitelinks.get("zhwiki", {}).get("title", ""),
         }
-        details[qid] = detail
     return details
 
 
@@ -253,16 +316,22 @@ def make_record(candidate: dict[str, str], detail: dict[str, str]) -> dict[str, 
         country_name = "国际"
     month = int(candidate["month"])
     day = int(candidate["day"])
-    birth_year = str(int(candidate["year"]))
-    death_year = None
-    death_date = detail.get("dod") or ""
-    match = re.match(r"[+-](\d{4,6})", death_date)
-    if match:
-        death_year = str(int(match.group(1)))
+    birth_year = detail.get("year") or str(int(candidate["year"]))
+    death_year = detail.get("death") or ""
     years = f"{birth_year}–{death_year}" if death_year else f"{birth_year}–"
-    relation = RELATION_BY_OCC.get(occ_id, "科学纪念")
-    quote = QUOTE_BY_FIELD.get(field, "科学的价值，不在答案，而在追问。")
-    story_core = f"{zh_name}是{country_name}的{occ_name}，这一天用来记住他/她在{field}中的{contribution}。"
+    relation = detail.get("desc") or f"{occ_name} · {contribution}"
+    if len(relation) > 26:
+        relation = relation[:26]
+    identity = f"{country_name}的{occ_name}" if country_name != "国际" else occ_name
+    story_core = detail.get("desc") or f"{zh_name}通常被介绍为{identity}。"
+    if contribution not in story_core:
+        story_core = f"{story_core.rstrip('。')}，本页以{contribution}作为理解其工作的入口。"
+    story_core = story_core.replace("，。", "。")
+    fact = detail.get("desc")
+    if fact:
+        fact = f"百科条目将其概括为：{fact[:42]}。"
+    else:
+        fact = f"{zh_name}的英文条目名为 {en_name}，可据此继续查找其传记与原始资料。"
     return {
         "id": f"auto-{candidate['qid'].lower()}",
         "month": month,
@@ -277,48 +346,204 @@ def make_record(candidate: dict[str, str], detail: dict[str, str]) -> dict[str, 
         "tagline": tagline,
         "story": story_core,
         "contribution": contribution,
-        "fact": f"本条用于覆盖 {month} 月 {day} 日，并保留其在 {field} 领域的代表性。",
-        "quote": quote,
-        "quoteSource": "编者整理",
+        "fact": fact,
+        "quote": None,
+        "quoteSource": None,
     }
 
 
+def enrich_quote(record: dict[str, Any], curated_quotes: dict[str, dict[str, str]]) -> dict[str, Any]:
+    if record["id"] in curated_quotes:
+        return record
+    if record.get("quote") and record.get("quoteSource") and record.get("quoteSource") != "编者整理":
+        return record
+    quote = fetch_wikiquote_quote(str(record.get("latinName") or record.get("name") or ""))
+    enriched = dict(record)
+    if quote:
+        enriched["quote"] = quote["text"]
+        enriched["quoteSource"] = quote["source"]
+    else:
+        enriched.pop("quote", None)
+        enriched.pop("quoteSource", None)
+    return enriched
+
+
+def enrich_missing_quotes(records: list[dict[str, Any]], curated_quotes: dict[str, dict[str, str]]) -> list[dict[str, Any]]:
+    enriched_records = [dict(record) for record in records]
+    if SKIP_WIKIQUOTE:
+        return enriched_records
+    targets: list[tuple[int, str]] = []
+    for index, record in enumerate(enriched_records):
+        if record["id"] in curated_quotes:
+            continue
+        if record.get("quote") and record.get("quoteSource") and record.get("quoteSource") != "编者整理":
+            continue
+        record.pop("quote", None)
+        record.pop("quoteSource", None)
+        name = str(record.get("latinName") or record.get("name") or "").strip()
+        if name:
+            targets.append((index, name))
+
+    if not targets:
+        return enriched_records
+
+    with ThreadPoolExecutor(max_workers=10) as executor:
+        futures = {executor.submit(fetch_wikiquote_quote, name): index for index, name in targets}
+        for future in as_completed(futures):
+            index = futures[future]
+            try:
+                quote = future.result()
+            except Exception:
+                quote = None
+            if quote:
+                enriched_records[index]["quote"] = quote["text"]
+                enriched_records[index]["quoteSource"] = quote["source"]
+    return enriched_records
+
+
+def fetch_wikiquote_quote(name: str) -> dict[str, str] | None:
+    if not name:
+        return None
+    response = wikiquote_get(
+        {
+            "action": "query",
+            "list": "search",
+            "srsearch": name,
+            "format": "json",
+            "srlimit": "5",
+        }
+    )
+    if response is None:
+        return None
+    results = response.json().get("query", {}).get("search", [])
+    exact_titles = [result.get("title", "") for result in results if wikiquote_title_matches(name, result.get("title", ""))]
+    titles = []
+    if wikiquote_title_matches(name, name):
+        titles.append(name)
+    titles.extend(title for title in exact_titles if title not in titles)
+    for title in titles:
+        parse_response = wikiquote_get(
+            {
+                "action": "parse",
+                "page": title,
+                "prop": "text",
+                "format": "json",
+                "redirects": "1",
+            }
+        )
+        if parse_response is None:
+            continue
+        parse = parse_response.json()
+        html = parse.get("parse", {}).get("text", {}).get("*", "")
+        if not html:
+            continue
+        soup = BeautifulSoup(html, "html.parser")
+        for li in soup.select("li"):
+            text = " ".join(li.get_text(" ", strip=True).split())
+            if not text:
+                continue
+            if text.startswith(("Repeated", "From ", "See ", "Category:", "Retrieved")):
+                continue
+            cleaned = clean_quote_text(text)
+            if len(cleaned) < 20:
+                continue
+            return {"text": cleaned, "source": f"Wikiquote · {title}"}
+    return None
+
+
+def quote_source_matches_record(record: dict[str, Any]) -> bool:
+    source = str(record.get("quoteSource") or "")
+    if not source or not source.startswith("Wikiquote"):
+        return True
+    title = source.split("·", 1)[-1].strip()
+    name = str(record.get("latinName") or record.get("name") or "")
+    return wikiquote_title_matches(name, title)
+
+
+def wikiquote_title_matches(name: str, title: str) -> bool:
+    name_key = normalize_title(name)
+    title_key = normalize_title(title)
+    if not name_key or not title_key:
+        return False
+    return title_key == name_key
+
+
+def normalize_title(value: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii").lower()).strip()
+
+
+def wikiquote_get(params: dict[str, str]) -> requests.Response | None:
+    try:
+        response = requests.get(WIKIQUOTE_API, params=params, headers=HEADERS, timeout=8)
+        if response.status_code != 200:
+            return None
+        return response
+    except Exception:
+        return None
+
+
+def clean_quote_text(text: str) -> str:
+    text = re.sub(r"\[[^\]]*\]", "", text)
+    for marker in [
+        "Repeated throughout his life",
+        "Repeated throughout her life",
+        "commonly quoted as",
+        "What he exclaimed",
+        "What she exclaimed",
+        "as quoted by",
+        "Said to be",
+        "From ",
+        "see: Quote Investigator",
+    ]:
+        if marker in text:
+            text = text.split(marker, 1)[0].strip(" ,;:")
+    text = re.sub(r"\s+", " ", text).strip()
+    return text[:180]
+
+
 def main() -> None:
-    base = load_base_records()
+    curated_quotes = load_curated_quotes()
+    base = [polish_base_record(record) for record in load_base_records()]
     covered = {(int(item["month"]), int(item["day"])) for item in base}
     missing = [(m, d) for m in range(1, 13) for d in range(1, calendar.monthrange(2026, m)[1] + 1) if (m, d) not in covered]
-    if not missing:
-        DATA.write_text(json.dumps(sorted(base, key=lambda item: (item["month"], item["day"], item["name"])), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        print(f"Already full year: {len(base)} records")
-        return
 
-    candidates = query_candidates()
-    by_date: dict[tuple[int, int], list[dict[str, str]]] = {}
-    for candidate in candidates:
-        key = (int(candidate["month"]), int(candidate["day"]))
-        if key in missing:
-            by_date.setdefault(key, []).append(candidate)
+    existing_by_date = {(int(record["month"]), int(record["day"])): record for record in load_existing_auto_records()}
+    if missing and all(key in existing_by_date for key in missing):
+        additions = [existing_by_date[key] for key in missing]
+        source_note = "existing full-year dataset"
+    else:
+        try:
+            candidates = query_candidates()
+            by_date: dict[tuple[int, int], list[dict[str, str]]] = {}
+            for candidate in candidates:
+                key = (int(candidate["month"]), int(candidate["day"]))
+                if key in missing:
+                    by_date.setdefault(key, []).append(candidate)
 
-    chosen: list[dict[str, str]] = []
-    used_qids = set()
-    for key in missing:
-        options = sorted(by_date.get(key, []), key=lambda item: int(item.get("sitelinks", 0)), reverse=True)
-        if not options:
-            raise RuntimeError(f"No Wikidata candidate for {key[0]:02d}-{key[1]:02d}")
-        candidate = next((item for item in options if item["qid"] not in used_qids), options[0])
-        used_qids.add(candidate["qid"])
-        chosen.append(candidate)
+            chosen: list[dict[str, str]] = []
+            used_qids = set()
+            for key in missing:
+                options = sorted(by_date.get(key, []), key=lambda item: int(item.get("sitelinks", 0)), reverse=True)
+                if not options:
+                    raise RuntimeError(f"No Wikidata candidate for {key[0]:02d}-{key[1]:02d}")
+                candidate = next((item for item in options if item["qid"] not in used_qids), options[0])
+                used_qids.add(candidate["qid"])
+                chosen.append(candidate)
 
-    details = query_person_details([item["qid"] for item in chosen])
+            details = query_person_details([item["qid"] for item in chosen])
+            additions = [make_record(candidate, details.get(candidate["qid"], {})) for candidate in chosen]
+            source_note = "Wikidata"
+        except Exception as error:  # noqa: BLE001 - use the existing full-year dataset if Wikidata is rate-limited
+            additions = [existing_by_date[key] for key in missing if key in existing_by_date]
+            if len(additions) != len(missing):
+                raise RuntimeError(f"Could not rebuild all missing dates after Wikidata failure: {error}") from error
+            source_note = "existing full-year dataset"
 
-    additions: list[dict[str, Any]] = []
-    for candidate in chosen:
-        additions.append(make_record(candidate, details.get(candidate["qid"], {})))
-
-    combined = sorted(base + additions, key=lambda item: (int(item["month"]), int(item["day"]), item["name"]))
+    combined = enrich_missing_quotes(base + additions, curated_quotes)
+    combined = sorted(combined, key=lambda item: (int(item["month"]), int(item["day"]), item["name"]))
     DATA.write_text(json.dumps(combined, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     unique_dates = {(int(item["month"]), int(item["day"])) for item in combined}
-    print(f"Wrote {len(combined)} records covering {len(unique_dates)} dates")
+    print(f"Wrote {len(combined)} records covering {len(unique_dates)} dates using {source_note}")
 
 
 if __name__ == "__main__":
