@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 import quotes from "./quotes.json";
@@ -36,10 +36,15 @@ function formatDate(month: number, day: number) {
 }
 
 export default function Home() {
+  const now = useMemo(() => {
+    const d = new Date();
+    return { month: d.getMonth() + 1, day: d.getDate() };
+  }, []);
+  const todayScientist = scientists.find((s) => s.month === now.month && s.day === now.day);
   const [activeField, setActiveField] = useState<Field | "全部">("全部");
   const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState("einstein");
-  const [calendarMonth, setCalendarMonth] = useState(7);
+  const [selectedId, setSelectedId] = useState(todayScientist?.id ?? "einstein");
+  const [calendarMonth, setCalendarMonth] = useState(todayScientist?.month ?? 7);
 
   const selected = scientists.find((scientist) => scientist.id === selectedId) ?? scientists[0];
   const selectedQuote = quotes[selected.id as keyof typeof quotes] ?? (selected.quote && selected.quoteSource ? { text: selected.quote, source: selected.quoteSource } : undefined);
@@ -53,6 +58,12 @@ export default function Home() {
   const monthDays = new Date(2026, calendarMonth, 0).getDate();
   const firstWeekday = new Date(2026, calendarMonth - 1, 1).getDay();
   const monthEntries = scientists.filter((scientist) => scientist.month === calendarMonth);
+  const monthEntriesByDay = new Map<number, Scientist[]>();
+  for (const entry of monthEntries) {
+    const list = monthEntriesByDay.get(entry.day) ?? [];
+    list.push(entry);
+    monthEntriesByDay.set(entry.day, list);
+  }
   const coveredDays = new Set(scientists.map((scientist) => `${scientist.month}-${scientist.day}`)).size;
   const coveragePercent = Math.min(100, (coveredDays / 365) * 100);
 
@@ -103,7 +114,7 @@ export default function Home() {
 
       <section className="calendar-section" id="calendar" aria-labelledby="calendar-title">
         <header className="section-heading"><div><p className="eyebrow">SCIENCE DATES · 2026</p><h2 id="calendar-title">月历</h2></div><div className="month-switcher"><button type="button" aria-label="上一个月" onClick={() => setCalendarMonth((month) => month === 1 ? 12 : month - 1)}>←</button><span>{monthNames[calendarMonth - 1]} 2026</span><button type="button" aria-label="下一个月" onClick={() => setCalendarMonth((month) => month === 12 ? 1 : month + 1)}>→</button></div></header>
-        <div className="calendar-layout"><div className="calendar-grid" role="grid" aria-label={`${calendarMonth} 月日历`}><div className="weekdays">{weekdayNames.map((day) => <span key={day}>{day}</span>)}</div><div className="dates">{Array.from({ length: firstWeekday }, (_, index) => <span className="blank-day" key={`blank-${index}`} />)}{Array.from({ length: monthDays }, (_, index) => { const day = index + 1; const entry = monthEntries.find((scientist) => scientist.day === day); return <button className={`date-cell ${entry ? `has-entry ${entry.id === selected.id ? "selected" : ""}` : ""}`} type="button" key={day} onClick={() => entry && selectScientist(entry)} disabled={!entry} aria-label={entry ? `${day} 日：${entry.name}` : `${day} 日没有收录人物`}><span>{day}</span>{entry && <i className={`dot ${entry.color}`} />}</button>; })}</div></div>
+        <div className="calendar-layout"><div className="calendar-grid" role="grid" aria-label={`${calendarMonth} 月日历`}><div className="weekdays">{weekdayNames.map((day) => <span key={day}>{day}</span>)}</div><div className="dates">{Array.from({ length: firstWeekday }, (_, index) => <span className="blank-day" key={`blank-${index}`} />)}{Array.from({ length: monthDays }, (_, index) => { const day = index + 1; const dayEntries = monthEntriesByDay.get(day) ?? []; return <button className={`date-cell ${dayEntries.length ? `has-entry ${dayEntries.some((e) => e.id === selected.id) ? "selected" : ""}` : ""}`} type="button" key={day} onClick={() => dayEntries.length && selectScientist(dayEntries[0])} disabled={!dayEntries.length} aria-label={dayEntries.length ? `${day} 日：${dayEntries.map((e) => e.name).join("、")}` : `${day} 日没有收录人物`}><span>{day}</span>{dayEntries.length > 0 && <span className="dots" aria-hidden="true">{dayEntries.map((entry) => <i key={entry.id} className={`dot ${entry.color}`} />)}</span>}</button>; })}</div></div>
           <aside className="calendar-notes"><p className="eyebrow">THIS MONTH</p><h3>{monthEntries.length ? `${monthEntries.length} 个科学瞬间` : "正在整理中"}</h3>{monthEntries.length ? monthEntries.map((entry) => <button className="month-entry" type="button" key={entry.id} onClick={() => selectScientist(entry)}><span>{String(entry.day).padStart(2, "0")}</span><div><strong>{entry.name}</strong><small>{entry.relation} · {entry.field}</small></div><b>↗</b></button>) : <p>这一页将留给新的好奇心。</p>}<p className="calendar-tip">带有彩色圆点的日期，收录了一则科学人物或科学史纪念。</p></aside></div>
       </section>
 

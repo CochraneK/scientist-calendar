@@ -88,6 +88,16 @@ CURATED_AUTO_OVERRIDES: dict[str, dict[str, str]] = {
     }
 }
 
+# Hand-edited, source-oriented content is kept in split JSON packs so the
+# yearly generator can be rerun without falling back to generic biographies.
+for _content_file in sorted((ROOT / "app").glob("curated_content*.json")):
+    try:
+        _content_payload = json.loads(_content_file.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        _content_payload = {}
+    if isinstance(_content_payload, dict):
+        CURATED_AUTO_OVERRIDES.update(_content_payload)
+
 
 def parse_inline_records() -> list[dict[str, Any]]:
     source = PAGE.read_text(encoding="utf-8")
