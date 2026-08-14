@@ -73,6 +73,14 @@ export default function Home() {
     document.getElementById("today")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  function cycleDayScientist(day: number) {
+    const dayEntries = monthEntriesByDay.get(day) ?? [];
+    if (!dayEntries.length) return;
+    const currentIndex = dayEntries.findIndex((e) => e.id === selected.id);
+    const next = dayEntries[(currentIndex + 1) % dayEntries.length];
+    selectScientist(next);
+  }
+
   return (
     <main>
       <nav className="site-nav" aria-label="主导航">
@@ -114,8 +122,8 @@ export default function Home() {
 
       <section className="calendar-section" id="calendar" aria-labelledby="calendar-title">
         <header className="section-heading"><div><p className="eyebrow">SCIENCE DATES · 2026</p><h2 id="calendar-title">月历</h2></div><div className="month-switcher"><button type="button" aria-label="上一个月" onClick={() => setCalendarMonth((month) => month === 1 ? 12 : month - 1)}>←</button><span>{monthNames[calendarMonth - 1]} 2026</span><button type="button" aria-label="下一个月" onClick={() => setCalendarMonth((month) => month === 12 ? 1 : month + 1)}>→</button></div></header>
-        <div className="calendar-layout"><div className="calendar-grid" role="grid" aria-label={`${calendarMonth} 月日历`}><div className="weekdays">{weekdayNames.map((day) => <span key={day}>{day}</span>)}</div><div className="dates">{Array.from({ length: firstWeekday }, (_, index) => <span className="blank-day" key={`blank-${index}`} />)}{Array.from({ length: monthDays }, (_, index) => { const day = index + 1; const dayEntries = monthEntriesByDay.get(day) ?? []; return <button className={`date-cell ${dayEntries.length ? `has-entry ${dayEntries.some((e) => e.id === selected.id) ? "selected" : ""}` : ""}`} type="button" key={day} onClick={() => dayEntries.length && selectScientist(dayEntries[0])} disabled={!dayEntries.length} aria-label={dayEntries.length ? `${day} 日：${dayEntries.map((e) => e.name).join("、")}` : `${day} 日没有收录人物`}><span>{day}</span>{dayEntries.length > 0 && <span className="dots" aria-hidden="true">{dayEntries.map((entry) => <i key={entry.id} className={`dot ${entry.color}`} />)}</span>}</button>; })}</div></div>
-          <aside className="calendar-notes"><p className="eyebrow">THIS MONTH</p><h3>{monthEntries.length ? `${monthEntries.length} 个科学瞬间` : "正在整理中"}</h3>{monthEntries.length ? monthEntries.map((entry) => <button className="month-entry" type="button" key={entry.id} onClick={() => selectScientist(entry)}><span>{String(entry.day).padStart(2, "0")}</span><div><strong>{entry.name}</strong><small>{entry.relation} · {entry.field}</small></div><b>↗</b></button>) : <p>这一页将留给新的好奇心。</p>}<p className="calendar-tip">带有彩色圆点的日期，收录了一则科学人物或科学史纪念。</p></aside></div>
+        <div className="calendar-layout"><div className="calendar-grid" role="grid" aria-label={`${calendarMonth} 月日历`}><div className="weekdays">{weekdayNames.map((day) => <span key={day}>{day}</span>)}</div><div className="dates">{Array.from({ length: firstWeekday }, (_, index) => <span className="blank-day" key={`blank-${index}`} />)}{Array.from({ length: monthDays }, (_, index) => { const day = index + 1; const dayEntries = monthEntriesByDay.get(day) ?? []; return <button className={`date-cell ${dayEntries.length ? `has-entry ${dayEntries.some((e) => e.id === selected.id) ? "selected" : ""}` : ""}`} type="button" key={day} onClick={() => dayEntries.length && (dayEntries.length > 1 ? cycleDayScientist(day) : selectScientist(dayEntries[0]))} disabled={!dayEntries.length} title={dayEntries.length ? `${day} 日：${dayEntries.map((e) => e.name).join("、")}${dayEntries.length > 1 ? "（点击切换）" : ""}` : undefined} aria-label={dayEntries.length ? `${day} 日：${dayEntries.map((e) => e.name).join("、")}` : `${day} 日没有收录人物`}><span>{day}</span>{dayEntries.length > 0 && <span className="dots" aria-hidden="true">{dayEntries.map((entry) => <i key={entry.id} className={`dot ${entry.color}${entry.id === selected.id ? " active" : ""}`} />)}</span>}</button>; })}</div></div>
+          <aside className="calendar-notes"><p className="eyebrow">THIS MONTH</p><h3>{monthEntries.length ? `${monthEntries.length} 个科学瞬间` : "正在整理中"}</h3>{monthEntries.length ? monthEntries.map((entry) => <button className="month-entry" type="button" key={entry.id} onClick={() => selectScientist(entry)}><span>{String(entry.day).padStart(2, "0")}</span><div><strong>{entry.name}</strong><small>{entry.relation} · {entry.field}</small></div><b>↗</b></button>) : <p>这一页将留给新的好奇心。</p>}<p className="calendar-tip">带有彩色圆点的日期收录了科学人物；同一天多位人物时，点击日期可切换查看，圆点高亮为当前人物。</p></aside></div>
       </section>
 
       <section className="explore-section" id="explore" aria-labelledby="explore-title">
