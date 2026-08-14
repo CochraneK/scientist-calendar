@@ -123,35 +123,64 @@ def draw_cover(c: canvas.Canvas, count: int) -> None:
 
 
 def draw_overview(c: canvas.Canvas, entries: list[dict[str, str]]) -> None:
-    c.setFillColor(PAPER)
-    c.rect(0, 0, W, H, fill=1, stroke=0)
-    draw_mark(c, 47, H - 47)
-    draw_text(c, "全年科学纪念日总览", 75, H - 53, 26)
-    draw_text(c, f"{len(entries)} SCIENCE NOTES", 76, H - 72, 8, MUTED, "latin")
     grouped = {month: [] for month in range(1, 13)}
     for entry in entries:
         grouped[int(entry["month"])].append(entry)
-    col_w, row_h = (W - 84) / 3, 105
-    for month in range(1, 13):
-        index = month - 1
-        col, row = index % 3, index // 3
-        x, y = 42 + col * col_w, H - 128 - row * row_h
-        c.setStrokeColor(LINE)
-        c.setLineWidth(0.6)
-        c.line(x, y, x + col_w - 17, y)
-        draw_text(c, f"{month:02d}", x, y - 22, 17, INK, "latin")
-        draw_text(c, "月", x + 27, y - 20, 11, MUTED)
-        item_y = y - 43
-        for entry in grouped[month]:
-            accent = ACCENTS.get(entry["color"], ACCENTS["blue"])
-            c.setFillColor(accent)
-            c.circle(x + 4, item_y + 3, 3, fill=1, stroke=0)
-            draw_text(c, f"{int(entry['day']):02d}", x + 14, item_y, 8, MUTED, "latin")
-            draw_text(c, entry["name"], x + 37, item_y, 10)
-            item_y -= 18
-    draw_text(c, "带色点的日期收录了科学人物或科学史纪念。", 42, 29, 9, MUTED)
-    draw_text(c, f"科学家日历 · {len(entries)} 个好奇心的起点", W - 230, 29, 9, MUTED)
-    c.showPage()
+
+    # Two pages, 6 months each; each month box wraps entries into N columns.
+    for page_start in (1, 7):
+        c.setFillColor(PAPER)
+        c.rect(0, 0, W, H, fill=1, stroke=0)
+        draw_mark(c, 47, H - 47)
+        draw_text(c, "全年科学纪念日总览", 75, H - 53, 26)
+        draw_text(c, f"{len(entries)} SCIENCE NOTES · {page_start}-{page_start + 5} 月", 76, H - 72, 8, MUTED, "latin")
+
+        col_w = (W - 84) / 3
+        box_w = col_w - 17
+        top = H - 128
+        bottom = 46
+        row_h = (top - bottom) / 2
+        header_h = 38          # clear space below the month title line
+        list_h = row_h - header_h - 4
+        item_h = 15
+        per_col = max(1, int(list_h // item_h))
+
+        for offset in range(6):
+            month = page_start + offset
+            index = offset
+            col, row = index % 3, index // 3
+            x = 42 + col * col_w
+            y_top = top - row * row_h
+            c.setStrokeColor(LINE)
+            c.setLineWidth(0.6)
+            c.line(x, y_top, x + box_w, y_top)
+            draw_text(c, f"{month:02d}", x, y_top - 22, 17, INK, "latin")
+            draw_text(c, "月", x + 27, y_top - 20, 11, MUTED)
+            entries_m = grouped[month]
+            count = len(entries_m)
+            # "N 人" drawn at far right of header, above the item area
+            draw_text(c, f"{count} 人", x + box_w - 40, y_top - 20, 9, MUTED)
+
+            # reserve a right margin so the count label never collides
+            ncol = max(1, (count + per_col - 1) // per_col)
+            inner_col_w = (box_w - 8) / ncol
+            for i, entry in enumerate(entries_m):
+                cc = i // per_col
+                rr = i % per_col
+                ex = x + 4 + cc * inner_col_w
+                ey = y_top - header_h - rr * item_h
+                accent = ACCENTS.get(entry["color"], ACCENTS["blue"])
+                c.setFillColor(accent)
+                c.circle(ex, ey + 3, 2.5, fill=1, stroke=0)
+                draw_text(c, f"{int(entry['day']):02d}", ex + 6, ey, 7, MUTED, "latin")
+                name = entry["name"][:5] if len(entry["name"]) > 6 else entry["name"]
+                draw_text(c, name, ex + 17, ey, 6)
+
+        draw_text(c, "带色点的日期收录了科学人物或科学史纪念。", 42, 29, 9, MUTED)
+        draw_text(c, f"科学家日历 · {len(entries)} 个好奇心的起点", W - 230, 29, 9, MUTED)
+        c.showPage()
+
+
 
 
 def draw_print_notes(c: canvas.Canvas, count: int) -> None:
@@ -219,20 +248,38 @@ def draw_entry(c: canvas.Canvas, entry: dict[str, str], page: int, total: int, q
     draw_text(c, "DAILY SCIENCE NOTEBOOK", 65, H - 67, 7, HexColor("#B6C0CC"), "latin")
     draw_text(c, f"{int(entry['month']):02d}.{int(entry['day']):02d}", W - 176, H - 58, 21, INK, "latin")
 
+    # Lineart avatar (ink-saving) if available, else monogram circle
+    lineart = ROOT / "public" / "avatars" / "lineart" / f"{entry['id']}.png"
+    cx, cy, r = 132, 290, 87
     c.setFillColor(accent)
-    c.circle(132, 290, 87, fill=1, stroke=0)
+    c.circle(cx, cy, r, fill=1, stroke=0)
+    if lineart.exists():
+        try:
+            img = ImageReader(str(lineart))
+            # clip to circle via roundRect background: draw image inside circle using saveState/clip
+            from reportlab.pdfgen import canvas as _c
+            c.saveState()
+            p = c.beginPath()
+            p.circle(cx, cy, r - 2)
+            c.clipPath(p, stroke=0, fill=0)
+            c.drawImage(img, cx - r, cy - r, r * 2, r * 2, preserveAspectRatio=True, mask='auto')
+            c.restoreState()
+        except Exception:
+            draw_centered(c, entry["name"][0], cx, cy - 32, 95)
+    else:
+        draw_centered(c, entry["name"][0], cx, cy - 32, 95)
     c.setStrokeColor(INK)
     c.setLineWidth(0.85)
-    c.circle(132, 290, 87, fill=1, stroke=1)
-    draw_centered(c, entry["name"][0], 132, 258, 95)
-    draw_centered(c, entry["field"], 132, 186, 10, INK)
+    c.circle(cx, cy, r, fill=0, stroke=1)
+    draw_centered(c, entry["field"], cx, cy - 104, 10, INK)
     c.setStrokeColor(LINE)
     c.line(45, 151, 219, 151)
-    draw_centered(c, entry["relation"], 132, 133, 9, MUTED)
+    draw_centered(c, entry["relation"], cx, cy - 157, 9, MUTED)
 
     left = 273
     draw_text(c, entry["relation"] + " · " + entry["years"], left, 430, 10, MUTED)
-    name_size = 40 if len(entry["name"]) <= 7 else 34
+    name_len = len(entry["name"])
+    name_size = 40 if name_len <= 5 else (34 if name_len <= 7 else (28 if name_len <= 9 else (23 if name_len <= 11 else 19)))
     draw_text(c, entry["name"], left, 383, name_size)
     draw_text(c, entry["latinName"] + " · " + entry["country"], left, 358, 10, MUTED)
     quotation = quotes.get(entry["id"])
@@ -257,7 +304,7 @@ def draw_entry(c: canvas.Canvas, entry: dict[str, str], page: int, total: int, q
     c.roundRect(left, meta_y - 32, 235, 66, 5, fill=1, stroke=0)
     c.roundRect(left + 255, meta_y - 32, 265, 66, 5, fill=1, stroke=0)
     draw_text(c, "核心贡献", left + 14, meta_y + 14, 8, MUTED)
-    draw_text(c, entry["contribution"], left + 14, meta_y - 7, 12)
+    draw_wrapped(c, entry["contribution"], left + 14, meta_y - 7, 205, 11, 15, INK)
     draw_text(c, "你知道吗", left + 269, meta_y + 14, 8, MUTED)
     draw_wrapped(c, entry["fact"], left + 269, meta_y - 6, 238, 9, 13, INK)
 
