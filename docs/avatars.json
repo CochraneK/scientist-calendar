@@ -1,0 +1,1866 @@
+{
+  "auto-q8739": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q347930": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q370987": {
+    "photo": true,
+    "line": true
+  },
+  "newton": {
+    "photo": true,
+    "line": true
+  },
+  "braille": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q122392": {
+    "photo": true,
+    "line": true
+  },
+  "zinkernagel": {
+    "photo": true,
+    "line": true
+  },
+  "walker-john": {
+    "photo": true,
+    "line": true
+  },
+  "hawking": {
+    "photo": true,
+    "line": true
+  },
+  "wallace": {
+    "photo": true,
+    "line": true
+  },
+  "steklov": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q170267": {
+    "photo": true,
+    "line": true
+  },
+  "wilson-rw": {
+    "photo": true,
+    "line": true
+  },
+  "knuth": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q125249": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q123975": {
+    "photo": true,
+    "line": true
+  },
+  "wien": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q49325": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q84430": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q445596": {
+    "photo": true,
+    "line": true
+  },
+  "kariko": {
+    "photo": false,
+    "line": false
+  },
+  "ehrenfest": {
+    "photo": false,
+    "line": false
+  },
+  "watt": {
+    "photo": true,
+    "line": true
+  },
+  "ampere": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q452029": {
+    "photo": true,
+    "line": true
+  },
+  "landau": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q192315": {
+    "photo": true,
+    "line": true
+  },
+  "hilbert": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q76359": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q543206": {
+    "photo": false,
+    "line": false
+  },
+  "lagrange": {
+    "photo": true,
+    "line": true
+  },
+  "boyle": {
+    "photo": true,
+    "line": true
+  },
+  "dobzhansky": {
+    "photo": false,
+    "line": false
+  },
+  "kusch": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q273223": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q1886068": {
+    "photo": true,
+    "line": true
+  },
+  "lewin": {
+    "photo": false,
+    "line": false
+  },
+  "engelbart": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q553809": {
+    "photo": true,
+    "line": true
+  },
+  "segre": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q552983": {
+    "photo": true,
+    "line": true
+  },
+  "blackwell": {
+    "photo": true,
+    "line": true
+  },
+  "thompson": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q193650": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q80323": {
+    "photo": true,
+    "line": true
+  },
+  "hardy-weinberg": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q57963": {
+    "photo": true,
+    "line": true
+  },
+  "lamport": {
+    "photo": true,
+    "line": true
+  },
+  "mendeleev": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q231402": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q312961": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q159592": {
+    "photo": true,
+    "line": true
+  },
+  "darwin": {
+    "photo": true,
+    "line": true
+  },
+  "dana": {
+    "photo": false,
+    "line": false
+  },
+  "shockley": {
+    "photo": true,
+    "line": true
+  },
+  "dirichlet": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q115462": {
+    "photo": true,
+    "line": true
+  },
+  "galileo": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q48246": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q216723": {
+    "photo": true,
+    "line": true
+  },
+  "volta": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q311187": {
+    "photo": true,
+    "line": true
+  },
+  "copernicus": {
+    "photo": true,
+    "line": true
+  },
+  "arrhenius": {
+    "photo": true,
+    "line": true
+  },
+  "pickering": {
+    "photo": true,
+    "line": true
+  },
+  "doudna": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q179572": {
+    "photo": true,
+    "line": true
+  },
+  "boltzmann": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q190501": {
+    "photo": true,
+    "line": true
+  },
+  "hertz": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q76509": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q201452": {
+    "photo": true,
+    "line": true
+  },
+  "noddack": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q154353": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q295644": {
+    "photo": true,
+    "line": true
+  },
+  "guth": {
+    "photo": true,
+    "line": true
+  },
+  "pauling": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q1187542": {
+    "photo": true,
+    "line": true
+  },
+  "oparin": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q368087": {
+    "photo": true,
+    "line": true
+  },
+  "cantor": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q295678": {
+    "photo": true,
+    "line": true
+  },
+  "gamow": {
+    "photo": true,
+    "line": true
+  },
+  "mercator": {
+    "photo": true,
+    "line": true
+  },
+  "margulis": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q43948": {
+    "photo": true,
+    "line": true
+  },
+  "miller": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q14278": {
+    "photo": true,
+    "line": true
+  },
+  "hahn": {
+    "photo": true,
+    "line": true
+  },
+  "gagarin": {
+    "photo": true,
+    "line": true
+  },
+  "fitch": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q104154": {
+    "photo": true,
+    "line": true
+  },
+  "kirchhoff": {
+    "photo": true,
+    "line": true
+  },
+  "vernadsky": {
+    "photo": true,
+    "line": true
+  },
+  "lowell": {
+    "photo": false,
+    "line": false
+  },
+  "priestley": {
+    "photo": true,
+    "line": true
+  },
+  "ehrlich": {
+    "photo": true,
+    "line": true
+  },
+  "einstein": {
+    "photo": true,
+    "line": false
+  },
+  "behring": {
+    "photo": true,
+    "line": true
+  },
+  "ohm": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q115470": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q371890": {
+    "photo": true,
+    "line": true
+  },
+  "joliot-curie": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q77126": {
+    "photo": true,
+    "line": true
+  },
+  "fourier": {
+    "photo": true,
+    "line": true
+  },
+  "millikan": {
+    "photo": true,
+    "line": true
+  },
+  "noether": {
+    "photo": true,
+    "line": true
+  },
+  "vonbraun": {
+    "photo": true,
+    "line": true
+  },
+  "laplace": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q84412": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q178412": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q4517": {
+    "photo": true,
+    "line": true
+  },
+  "erdos": {
+    "photo": true,
+    "line": true
+  },
+  "roentgen": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q271532": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q156482": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q192685": {
+    "photo": true,
+    "line": true
+  },
+  "bunsen": {
+    "photo": true,
+    "line": true
+  },
+  "descartes": {
+    "photo": true,
+    "line": true
+  },
+  "harvey": {
+    "photo": true,
+    "line": true
+  },
+  "germain": {
+    "photo": true,
+    "line": true
+  },
+  "merian": {
+    "photo": true,
+    "line": true
+  },
+  "goodall": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q77026": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q60116": {
+    "photo": true,
+    "line": true
+  },
+  "lister": {
+    "photo": true,
+    "line": true
+  },
+  "watson": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q1229851": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q77055": {
+    "photo": true,
+    "line": true
+  },
+  "seebeck": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q157056": {
+    "photo": true,
+    "line": true
+  },
+  "wiles": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q223963": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q295684": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q39599": {
+    "photo": true,
+    "line": true
+  },
+  "leonardo": {
+    "photo": true,
+    "line": true
+  },
+  "euler": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q310326": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q196472": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q310487": {
+    "photo": true,
+    "line": true
+  },
+  "seaborg": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q76881": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q133009": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q39837": {
+    "photo": true,
+    "line": true
+  },
+  "levi-montalcini": {
+    "photo": false,
+    "line": false
+  },
+  "planck": {
+    "photo": false,
+    "line": false
+  },
+  "david-blackwell": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q728331": {
+    "photo": true,
+    "line": true
+  },
+  "penzias": {
+    "photo": false,
+    "line": false
+  },
+  "morse": {
+    "photo": true,
+    "line": true
+  },
+  "goedel": {
+    "photo": true,
+    "line": true
+  },
+  "oort": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q81082": {
+    "photo": true,
+    "line": true
+  },
+  "shannon": {
+    "photo": false,
+    "line": false
+  },
+  "gauss": {
+    "photo": true,
+    "line": true
+  },
+  "cajal": {
+    "photo": true,
+    "line": true
+  },
+  "teilhard": {
+    "photo": true,
+    "line": true
+  },
+  "bose": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q71027": {
+    "photo": true,
+    "line": true
+  },
+  "huxley": {
+    "photo": true,
+    "line": true
+  },
+  "richtshofen": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q57378": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q313059": {
+    "photo": true,
+    "line": true
+  },
+  "freud": {
+    "photo": true,
+    "line": true
+  },
+  "land": {
+    "photo": true,
+    "line": true
+  },
+  "attenborough": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q223309": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q708484": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q234909": {
+    "photo": true,
+    "line": true
+  },
+  "feynman": {
+    "photo": true,
+    "line": true
+  },
+  "dijkstra": {
+    "photo": true,
+    "line": true
+  },
+  "hodgkin": {
+    "photo": true,
+    "line": true
+  },
+  "liebig": {
+    "photo": true,
+    "line": true
+  },
+  "nightingale": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q102034": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q57592": {
+    "photo": true,
+    "line": true
+  },
+  "pierrecerie": {
+    "photo": true,
+    "line": true
+  },
+  "hughes-david": {
+    "photo": true,
+    "line": true
+  },
+  "jenner": {
+    "photo": true,
+    "line": true
+  },
+  "kay": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q310757": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q41322": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q314667": {
+    "photo": true,
+    "line": true
+  },
+  "anning": {
+    "photo": true,
+    "line": true
+  },
+  "brown-herbert": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q1043": {
+    "photo": true,
+    "line": true
+  },
+  "bardeen": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q35900": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q57361": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q200397": {
+    "photo": true,
+    "line": true
+  },
+  "strickland": {
+    "photo": true,
+    "line": true
+  },
+  "carson": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q122972": {
+    "photo": true,
+    "line": true
+  },
+  "higgs": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q54945": {
+    "photo": true,
+    "line": true
+  },
+  "wuchienShiung": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q323320": {
+    "photo": true,
+    "line": true
+  },
+  "page-robert": {
+    "photo": true,
+    "line": true
+  },
+  "charles-drew": {
+    "photo": true,
+    "line": true
+  },
+  "hutton": {
+    "photo": true,
+    "line": true
+  },
+  "furchgott": {
+    "photo": true,
+    "line": true
+  },
+  "couch-adams": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q109731": {
+    "photo": false,
+    "line": false
+  },
+  "apgar": {
+    "photo": true,
+    "line": true
+  },
+  "crick": {
+    "photo": true,
+    "line": true
+  },
+  "bernerslee": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q76431": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q350190": {
+    "photo": true,
+    "line": true
+  },
+  "wilson": {
+    "photo": true,
+    "line": true
+  },
+  "cousteau": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q77104": {
+    "photo": true,
+    "line": true
+  },
+  "nash": {
+    "photo": true,
+    "line": true
+  },
+  "maxwell": {
+    "photo": true,
+    "line": true
+  },
+  "landsteiner": {
+    "photo": true,
+    "line": true
+  },
+  "coulomb": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q298439": {
+    "photo": true,
+    "line": true
+  },
+  "friedmann": {
+    "photo": false,
+    "line": false
+  },
+  "mcclintock": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q218311": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q189006": {
+    "photo": true,
+    "line": true
+  },
+  "pascal": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q233976": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q190772": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q45176": {
+    "photo": true,
+    "line": true
+  },
+  "cerf": {
+    "photo": true,
+    "line": true
+  },
+  "turing": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q183397": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q78503": {
+    "photo": true,
+    "line": true
+  },
+  "messier": {
+    "photo": true,
+    "line": true
+  },
+  "kelvin": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q57568": {
+    "photo": true,
+    "line": true
+  },
+  "goeppert": {
+    "photo": true,
+    "line": true
+  },
+  "hale": {
+    "photo": true,
+    "line": true
+  },
+  "berg": {
+    "photo": true,
+    "line": true
+  },
+  "leibniz": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q211940": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q76912": {
+    "photo": true,
+    "line": true
+  },
+  "leavitt": {
+    "photo": true,
+    "line": true
+  },
+  "mayr": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q273201": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q156480": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q150630": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q123811": {
+    "photo": true,
+    "line": true
+  },
+  "lecun": {
+    "photo": true,
+    "line": true
+  },
+  "wheeler": {
+    "photo": true,
+    "line": true
+  },
+  "tesla": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q168419": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q208230": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q155013": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q57992": {
+    "photo": true,
+    "line": true
+  },
+  "bell": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q14280": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q12998": {
+    "photo": true,
+    "line": true
+  },
+  "tao": {
+    "photo": true,
+    "line": true
+  },
+  "lorentz": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q68490": {
+    "photo": true,
+    "line": true
+  },
+  "yalow": {
+    "photo": true,
+    "line": true
+  },
+  "mendel": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q152441": {
+    "photo": true,
+    "line": true
+  },
+  "waksman": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q75845": {
+    "photo": true,
+    "line": true
+  },
+  "rubin": {
+    "photo": true,
+    "line": true
+  },
+  "chance": {
+    "photo": true,
+    "line": true
+  },
+  "arnold": {
+    "photo": true,
+    "line": true
+  },
+  "franklin": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q210898": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q76604": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q46830": {
+    "photo": true,
+    "line": true
+  },
+  "rabi": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q103844": {
+    "photo": true,
+    "line": true
+  },
+  "wohler": {
+    "photo": true,
+    "line": true
+  },
+  "maria-mitchell": {
+    "photo": true,
+    "line": true
+  },
+  "lamarck": {
+    "photo": true,
+    "line": true
+  },
+  "tyndall": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q62829": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q11887": {
+    "photo": true,
+    "line": true
+  },
+  "hippocrates": {
+    "photo": true,
+    "line": true
+  },
+  "armstrong": {
+    "photo": true,
+    "line": true
+  },
+  "abel": {
+    "photo": true,
+    "line": true
+  },
+  "fleming": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q104651": {
+    "photo": true,
+    "line": true
+  },
+  "dirac": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q46120": {
+    "photo": true,
+    "line": true
+  },
+  "avogadro": {
+    "photo": true,
+    "line": true
+  },
+  "minsky": {
+    "photo": true,
+    "line": true
+  },
+  "paul-wolfgang": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q107609": {
+    "photo": true,
+    "line": true
+  },
+  "chargaff": {
+    "photo": false,
+    "line": false
+  },
+  "schrodinger": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q187258": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q77082": {
+    "photo": true,
+    "line": true
+  },
+  "broglie": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q311022": {
+    "photo": true,
+    "line": true
+  },
+  "hamilton": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q461620": {
+    "photo": true,
+    "line": true
+  },
+  "meyer-lothar": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q151911": {
+    "photo": true,
+    "line": true
+  },
+  "fermat": {
+    "photo": true,
+    "line": true
+  },
+  "cauchy": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q233943": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q106208": {
+    "photo": true,
+    "line": true
+  },
+  "codd": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q58068": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q237470": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q57191": {
+    "photo": true,
+    "line": true
+  },
+  "johnson": {
+    "photo": true,
+    "line": true
+  },
+  "lavoisier": {
+    "photo": true,
+    "line": true
+  },
+  "sabin": {
+    "photo": true,
+    "line": true
+  },
+  "kamen": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q273238": {
+    "photo": true,
+    "line": true
+  },
+  "hounsfield": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q319829": {
+    "photo": true,
+    "line": true
+  },
+  "rutherford": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q77232": {
+    "photo": true,
+    "line": true
+  },
+  "helmholtz": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q8778": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q577522": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q78482": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q80917": {
+    "photo": true,
+    "line": true
+  },
+  "mccarthy": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q108602": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q153194": {
+    "photo": true,
+    "line": true
+  },
+  "dalton": {
+    "photo": true,
+    "line": true
+  },
+  "kekule": {
+    "photo": true,
+    "line": true
+  },
+  "barton": {
+    "photo": true,
+    "line": true
+  },
+  "ritchie": {
+    "photo": false,
+    "line": false
+  },
+  "compton": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q315545": {
+    "photo": true,
+    "line": true
+  },
+  "joliot-curie-irene": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q310005": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q6694": {
+    "photo": true,
+    "line": true
+  },
+  "gellmann": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q180468": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q41239": {
+    "photo": true,
+    "line": true
+  },
+  "riemann": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q187966": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q246517": {
+    "photo": true,
+    "line": true
+  },
+  "vaughan": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q233965": {
+    "photo": true,
+    "line": true
+  },
+  "faraday": {
+    "photo": true,
+    "line": true
+  },
+  "shull": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q137106": {
+    "photo": true,
+    "line": true
+  },
+  "werner": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q160187": {
+    "photo": true,
+    "line": true
+  },
+  "pavlov": {
+    "photo": true,
+    "line": true
+  },
+  "proust": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q155375": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q190766": {
+    "photo": true,
+    "line": true
+  },
+  "moissan": {
+    "photo": true,
+    "line": true
+  },
+  "fermi": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q202136": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q233205": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q234590": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q2057791": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q184530": {
+    "photo": true,
+    "line": true
+  },
+  "goddard": {
+    "photo": true,
+    "line": true
+  },
+  "dedekind": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q186481": {
+    "photo": true,
+    "line": true
+  },
+  "bohr": {
+    "photo": true,
+    "line": true
+  },
+  "hertzsprung": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q185914": {
+    "photo": true,
+    "line": true
+  },
+  "cavendish": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q362209": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q75828": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q351377": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q76432": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q707716": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q106559": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q123225": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q154014": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q206455": {
+    "photo": true,
+    "line": true
+  },
+  "chandrasekhar": {
+    "photo": false,
+    "line": false
+  },
+  "chadwick": {
+    "photo": true,
+    "line": true
+  },
+  "alfred-nobel": {
+    "photo": true,
+    "line": true
+  },
+  "jansky": {
+    "photo": false,
+    "line": false
+  },
+  "bloch": {
+    "photo": true,
+    "line": true
+  },
+  "leeuwenhoek": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q273159": {
+    "photo": true,
+    "line": true
+  },
+  "galois": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q78972": {
+    "photo": true,
+    "line": true
+  },
+  "grigorov": {
+    "photo": true,
+    "line": true
+  },
+  "salk": {
+    "photo": true,
+    "line": true
+  },
+  "chern": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q234701": {
+    "photo": true,
+    "line": true
+  },
+  "domagk": {
+    "photo": true,
+    "line": true
+  },
+  "weierstrass": {
+    "photo": true,
+    "line": true
+  },
+  "wegener": {
+    "photo": true,
+    "line": true
+  },
+  "boole": {
+    "photo": true,
+    "line": true
+  },
+  "shapley": {
+    "photo": true,
+    "line": true
+  },
+  "rothman": {
+    "photo": true,
+    "line": true
+  },
+  "bath": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q319225": {
+    "photo": true,
+    "line": true
+  },
+  "englert": {
+    "photo": true,
+    "line": true
+  },
+  "lorenz": {
+    "photo": true,
+    "line": true
+  },
+  "curie": {
+    "photo": true,
+    "line": true
+  },
+  "meitner": {
+    "photo": true,
+    "line": true
+  },
+  "halley": {
+    "photo": true,
+    "line": true
+  },
+  "sagan": {
+    "photo": true,
+    "line": true
+  },
+  "lamarr": {
+    "photo": true,
+    "line": true
+  },
+  "fischer-ernst": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q312248": {
+    "photo": true,
+    "line": true
+  },
+  "rayleigh": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q230612": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q180350": {
+    "photo": true,
+    "line": true
+  },
+  "lyell": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q14277": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q153232": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q57335": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q295724": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q58720": {
+    "photo": true,
+    "line": true
+  },
+  "hubble": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q710057": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q104607": {
+    "photo": true,
+    "line": true
+  },
+  "moseley": {
+    "photo": true,
+    "line": true
+  },
+  "van-der-waals": {
+    "photo": true,
+    "line": true
+  },
+  "lee-tsung-dao": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q57171": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q366051": {
+    "photo": true,
+    "line": true
+  },
+  "wiener": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q213504": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q156286": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q84284": {
+    "photo": true,
+    "line": true
+  },
+  "bose-jagadish": {
+    "photo": true,
+    "line": true
+  },
+  "lobachevsky": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q315197": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q245000": {
+    "photo": true,
+    "line": true
+  },
+  "backus": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q78483": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q258385": {
+    "photo": true,
+    "line": true
+  },
+  "heisenberg": {
+    "photo": true,
+    "line": true
+  },
+  "hinton": {
+    "photo": true,
+    "line": true
+  },
+  "gay-lussac": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q192948": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q81130": {
+    "photo": true,
+    "line": true
+  },
+  "haber": {
+    "photo": true,
+    "line": true
+  },
+  "hopper": {
+    "photo": true,
+    "line": true
+  },
+  "lovelace": {
+    "photo": true,
+    "line": true
+  },
+  "nobel-prize-day": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q37193": {
+    "photo": true,
+    "line": true
+  },
+  "born": {
+    "photo": true,
+    "line": true
+  },
+  "werner-alfred": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q461624": {
+    "photo": true,
+    "line": true
+  },
+  "brahe": {
+    "photo": true,
+    "line": true
+  },
+  "becquerel": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q106454": {
+    "photo": true,
+    "line": true
+  },
+  "davy": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q159542": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q295691": {
+    "photo": true,
+    "line": true
+  },
+  "thomson": {
+    "photo": true,
+    "line": true
+  },
+  "scheele": {
+    "photo": true,
+    "line": true
+  },
+  "michelson": {
+    "photo": false,
+    "line": false
+  },
+  "auto-q312806": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q83598": {
+    "photo": true,
+    "line": true
+  },
+  "ramanujan": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q309876": {
+    "photo": true,
+    "line": true
+  },
+  "joule": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q76602": {
+    "photo": true,
+    "line": true
+  },
+  "babbage": {
+    "photo": true,
+    "line": true
+  },
+  "kepler": {
+    "photo": true,
+    "line": true
+  },
+  "pasteur": {
+    "photo": true,
+    "line": true
+  },
+  "eddington": {
+    "photo": true,
+    "line": true
+  },
+  "torvalds": {
+    "photo": true,
+    "line": true
+  },
+  "vonneumann": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q104592": {
+    "photo": true,
+    "line": true
+  },
+  "tuyouyou": {
+    "photo": true,
+    "line": true
+  },
+  "auto-q232302": {
+    "photo": true,
+    "line": true
+  }
+}
