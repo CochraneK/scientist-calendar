@@ -1,1866 +1,1400 @@
 {
   "auto-q8739": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q347930": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q370987": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "newton": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "braille": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q122392": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "zinkernagel": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "walker-john": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "hawking": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "wallace": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "steklov": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q170267": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "wilson-rw": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "knuth": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q125249": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q123975": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "wien": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q49325": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q84430": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q445596": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "kariko": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "ehrenfest": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "watt": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "ampere": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q452029": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "landau": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q192315": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "hilbert": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q76359": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q543206": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "lagrange": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "boyle": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "dobzhansky": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "kusch": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q273223": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q1886068": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "lewin": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "engelbart": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q553809": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "segre": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q552983": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "blackwell": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "thompson": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q193650": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q80323": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "hardy-weinberg": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q57963": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "lamport": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "mendeleev": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q231402": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q312961": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q159592": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "darwin": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "dana": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "shockley": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "dirichlet": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q115462": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "galileo": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q48246": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q216723": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "volta": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q311187": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "copernicus": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "arrhenius": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "pickering": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "doudna": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q179572": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "boltzmann": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q190501": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "hertz": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q76509": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q201452": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "noddack": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q154353": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q295644": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "guth": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "pauling": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q1187542": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "oparin": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q368087": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "cantor": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q295678": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "gamow": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "mercator": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "margulis": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q43948": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "miller": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q14278": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "hahn": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "gagarin": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "fitch": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q104154": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "kirchhoff": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "vernadsky": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "lowell": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "priestley": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "ehrlich": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "einstein": {
-    "photo": true,
-    "line": false
+    "photo": true
   },
   "behring": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "ohm": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q115470": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q371890": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "joliot-curie": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q77126": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "fourier": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "millikan": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "noether": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "vonbraun": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "laplace": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q84412": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q178412": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q4517": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "erdos": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "roentgen": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q271532": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q156482": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q192685": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "bunsen": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "descartes": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "harvey": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "germain": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "merian": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "goodall": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q77026": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q60116": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "lister": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "watson": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q1229851": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q77055": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "seebeck": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q157056": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "wiles": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q223963": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q295684": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q39599": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "leonardo": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "euler": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q310326": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q196472": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q310487": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "seaborg": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q76881": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q133009": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q39837": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "levi-montalcini": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "planck": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "david-blackwell": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q728331": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "penzias": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "morse": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "goedel": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "oort": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q81082": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "shannon": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "gauss": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "cajal": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "teilhard": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "bose": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q71027": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "huxley": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "richtshofen": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q57378": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q313059": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "freud": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "land": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "attenborough": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q223309": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q708484": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q234909": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "feynman": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "dijkstra": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "hodgkin": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "liebig": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "nightingale": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q102034": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q57592": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "pierrecerie": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "hughes-david": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "jenner": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "kay": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q310757": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q41322": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q314667": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "anning": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "brown-herbert": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q1043": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "bardeen": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q35900": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q57361": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q200397": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "strickland": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "carson": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q122972": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "higgs": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q54945": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "wuchienShiung": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q323320": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "page-robert": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "charles-drew": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "hutton": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "furchgott": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "couch-adams": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q109731": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "apgar": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "crick": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "bernerslee": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q76431": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q350190": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "wilson": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "cousteau": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q77104": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "nash": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "maxwell": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "landsteiner": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "coulomb": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q298439": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "friedmann": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "mcclintock": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q218311": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q189006": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "pascal": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q233976": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q190772": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q45176": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "cerf": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "turing": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q183397": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q78503": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "messier": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "kelvin": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q57568": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "goeppert": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "hale": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "berg": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "leibniz": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q211940": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q76912": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "leavitt": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "mayr": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q273201": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q156480": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q150630": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q123811": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "lecun": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "wheeler": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "tesla": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q168419": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q208230": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q155013": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q57992": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "bell": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q14280": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q12998": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "tao": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "lorentz": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q68490": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "yalow": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "mendel": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q152441": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "waksman": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q75845": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "rubin": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "chance": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "arnold": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "franklin": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q210898": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q76604": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q46830": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "rabi": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q103844": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "wohler": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "maria-mitchell": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "lamarck": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "tyndall": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q62829": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q11887": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "hippocrates": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "armstrong": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "abel": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "fleming": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q104651": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "dirac": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q46120": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "avogadro": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "minsky": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "paul-wolfgang": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q107609": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "chargaff": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "schrodinger": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q187258": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q77082": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "broglie": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q311022": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "hamilton": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q461620": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "meyer-lothar": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q151911": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "fermat": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "cauchy": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q233943": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q106208": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "codd": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q58068": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q237470": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q57191": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "johnson": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "lavoisier": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "sabin": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "kamen": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q273238": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "hounsfield": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q319829": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "rutherford": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q77232": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "helmholtz": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q8778": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q577522": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q78482": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q80917": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "mccarthy": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q108602": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q153194": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "dalton": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "kekule": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "barton": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "ritchie": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "compton": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q315545": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "joliot-curie-irene": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q310005": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q6694": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "gellmann": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q180468": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q41239": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "riemann": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q187966": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q246517": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "vaughan": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q233965": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "faraday": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "shull": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q137106": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "werner": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q160187": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "pavlov": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "proust": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q155375": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q190766": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "moissan": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "fermi": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q202136": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q233205": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q234590": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q2057791": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q184530": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "goddard": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "dedekind": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q186481": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "bohr": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "hertzsprung": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q185914": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "cavendish": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q362209": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q75828": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q351377": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q76432": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q707716": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q106559": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q123225": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q154014": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q206455": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "chandrasekhar": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "chadwick": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "alfred-nobel": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "jansky": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "bloch": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "leeuwenhoek": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q273159": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "galois": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q78972": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "grigorov": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "salk": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "chern": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q234701": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "domagk": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "weierstrass": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "wegener": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "boole": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "shapley": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "rothman": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "bath": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q319225": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "englert": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "lorenz": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "curie": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "meitner": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "halley": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "sagan": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "lamarr": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "fischer-ernst": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q312248": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "rayleigh": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q230612": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q180350": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "lyell": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q14277": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q153232": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q57335": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q295724": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q58720": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "hubble": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q710057": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q104607": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "moseley": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "van-der-waals": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "lee-tsung-dao": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q57171": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q366051": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "wiener": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q213504": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q156286": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q84284": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "bose-jagadish": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "lobachevsky": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q315197": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q245000": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "backus": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q78483": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q258385": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "heisenberg": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "hinton": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "gay-lussac": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q192948": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q81130": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "haber": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "hopper": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "lovelace": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "nobel-prize-day": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q37193": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "born": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "werner-alfred": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q461624": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "brahe": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "becquerel": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q106454": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "davy": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q159542": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q295691": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "thomson": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "scheele": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "michelson": {
-    "photo": false,
-    "line": false
+    "photo": false
   },
   "auto-q312806": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q83598": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "ramanujan": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q309876": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "joule": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q76602": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "babbage": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "kepler": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "pasteur": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "eddington": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "torvalds": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "vonneumann": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q104592": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "tuyouyou": {
-    "photo": true,
-    "line": true
+    "photo": true
   },
   "auto-q232302": {
-    "photo": true,
-    "line": true
+    "photo": true
   }
 }

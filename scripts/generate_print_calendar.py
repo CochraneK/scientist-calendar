@@ -248,26 +248,11 @@ def draw_entry(c: canvas.Canvas, entry: dict[str, str], page: int, total: int, q
     draw_text(c, "DAILY SCIENCE NOTEBOOK", 65, H - 67, 7, HexColor("#B6C0CC"), "latin")
     draw_text(c, f"{int(entry['month']):02d}.{int(entry['day']):02d}", W - 176, H - 58, 21, INK, "latin")
 
-    # Lineart avatar (ink-saving) if available, else monogram circle
-    lineart = ROOT / "public" / "avatars" / "lineart" / f"{entry['id']}.png"
+    # Monogram circle (ink-saving print default)
     cx, cy, r = 132, 290, 87
     c.setFillColor(accent)
     c.circle(cx, cy, r, fill=1, stroke=0)
-    if lineart.exists():
-        try:
-            img = ImageReader(str(lineart))
-            # clip to circle via roundRect background: draw image inside circle using saveState/clip
-            from reportlab.pdfgen import canvas as _c
-            c.saveState()
-            p = c.beginPath()
-            p.circle(cx, cy, r - 2)
-            c.clipPath(p, stroke=0, fill=0)
-            c.drawImage(img, cx - r, cy - r, r * 2, r * 2, preserveAspectRatio=True, mask='auto')
-            c.restoreState()
-        except Exception:
-            draw_centered(c, entry["name"][0], cx, cy - 32, 95)
-    else:
-        draw_centered(c, entry["name"][0], cx, cy - 32, 95)
+    draw_centered(c, entry["name"][0], cx, cy - 32, 95)
     c.setStrokeColor(INK)
     c.setLineWidth(0.85)
     c.circle(cx, cy, r, fill=0, stroke=1)

@@ -38,7 +38,7 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .quote-block p { margin: 8px 0 5px; color: #263a51; font: 16px/1.55 Georgia, "Noto Serif SC", "Songti SC", serif; }
 .quote-block cite { color: #737f8d; font: normal 10px/1.5 Arial, "Microsoft YaHei", sans-serif; }
 
-/* --- Avatar modes: photo & lineart --- */
-.portrait-image { position: absolute; inset: 54px 22px 54px; width: calc(100% - 44px); height: calc(100% - 108px); object-fit: cover; object-position: center 20%; border: 1px solid rgba(21,38,61,.44); background: #fffdf8; }.portrait-image.mode-line { object-fit: contain; background: #fff; padding: 8px; }
+/* --- Avatar modes: photo --- */
+.portrait-image { position: absolute; inset: 54px 22px 54px; width: calc(100% - 44px); height: calc(100% - 108px); object-fit: cover; object-position: center 20%; border: 1px solid rgba(21,38,61,.44); background: #fffdf8; }
 .portrait-switch { position: absolute; left: 12px; bottom: 12px; z-index: 2; display: flex; gap: 4px; }.portrait-switch button { padding: 4px 8px; border: 1px solid rgba(21,38,61,.4); border-radius: 999px; background: rgba(255,253,248,.85); cursor: pointer; font: 11px Arial, "Microsoft YaHei", sans-serif; color: var(--ink); }.portrait-switch button:hover, .portrait-switch button.active { background: var(--ink); color: #fff; }
 .archive-photo { object-fit: cover; object-position: center 20%; background: #fffdf8; }

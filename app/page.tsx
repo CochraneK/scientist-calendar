@@ -26,16 +26,15 @@ type Scientist = {
   quoteSource?: string;
 };
 
-type AvatarMode = "letter" | "photo" | "line";
+type AvatarMode = "letter" | "photo";
 
 const scientists = scientistsData as Scientist[];
-const avatars = avatarsData as Record<string, { photo: boolean; line: boolean }>;
+const avatars = avatarsData as Record<string, { photo: boolean }>;
 
 function avatarFor(scientist: Scientist, mode: AvatarMode): string | null {
   const info = avatars[scientist.id];
   if (!info) return null;
   if (mode === "photo" && (info.photo || scientist.id === "einstein")) return `avatars/${scientist.id}.jpg`;
-  if (mode === "line" && info.line) return `avatars/lineart/${scientist.id}.png`;
   return null;
 }
 
@@ -129,7 +128,7 @@ export default function Home() {
         <article className={`feature-card tone-${selected.color}`}>
           <div className="portrait-panel"><span className="portrait-number">{String(selected.month).padStart(2, "0")}.{String(selected.day).padStart(2, "0")}</span>{(() => { const src = avatarFor(selected, avatarMode); if (src) return <img className={`portrait-image mode-${avatarMode}`} src={src} alt={`${selected.name}的肖像`} loading="lazy" />; if (selected.id === "einstein" && avatarMode === "letter") return <img className="portrait-illustration" src="art/einstein-archive.webp" alt="阿尔伯特·爱因斯坦的复古科学插画肖像" />; return <div className={`portrait-abstract tone-${selected.color}`} aria-hidden="true"><i /><b>{selected.name.slice(0, 1)}</b><em>{selected.latinName}</em></div>; })()}<span className="portrait-field">{selected.field}</span>
             <div className="portrait-switch" role="group" aria-label="头像模式">
-              {(["letter", "photo", "line"] as AvatarMode[]).map((m) => <button key={m} type="button" className={avatarMode === m ? "active" : ""} onClick={() => setAvatarMode(m)}>{m === "letter" ? "单字" : m === "photo" ? "照片" : "线稿"}</button>)}
+              {(["letter", "photo"] as AvatarMode[]).map((m) => <button key={m} type="button" className={avatarMode === m ? "active" : ""} onClick={() => setAvatarMode(m)}>{m === "letter" ? "单字" : "照片"}</button>)}
             </div>
           </div>
           <div className="feature-copy"><p className="feature-relation">{selected.relation} · {selected.years}</p><h3>{selected.name}</h3><p className="latin-name">{selected.latinName} · {selected.country}</p><p className="feature-tagline">阅读线索｜{selected.tagline}</p>{selectedQuote && <blockquote className="quote-block"><span>今日引语</span><p>“{selectedQuote.text}”</p><cite>— {selectedQuote.source}</cite></blockquote>}<p className="feature-story">{selected.story}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selected.fact}</strong></div></div><button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button></div>
