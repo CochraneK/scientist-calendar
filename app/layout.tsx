@@ -13,8 +13,8 @@ export async function generateMetadata(): Promise<Metadata> {
     title,
     description,
     metadataBase: new URL(`${protocol}://${host}`),
-    openGraph: { title, description, images: ["/og.png"], type: "website", locale: "zh_CN" },
-    twitter: { card: "summary_large_image", title, description, images: ["/og.png"] },
+    openGraph: { title, description, images: ["/og.jpg"], type: "website", locale: "zh_CN" },
+    twitter: { card: "summary_large_image", title, description, images: ["/og.jpg"] },
   };
 }
 
