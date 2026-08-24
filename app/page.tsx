@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useSyncExternalStore } from "react";
 import quotes from "./quotes.json";
 import scientistsData from "./scientists.json";
 import avatarsData from "../public/avatars.json";
@@ -27,14 +27,41 @@ type Scientist = {
 };
 
 type AvatarMode = "letter" | "photo";
+type DateParts = { month: number; day: number };
 
 const scientists = scientistsData as Scientist[];
 const avatars = avatarsData as Record<string, { photo: boolean }>;
+const einsteinIllustration = "art/einstein-archive.webp";
+
+const datePartsCache = new Map<string, DateParts>();
+
+function dateParts(month: number, day: number): DateParts {
+  const key = `${month}-${day}`;
+  const cached = datePartsCache.get(key);
+  if (cached) return cached;
+  const value = { month, day };
+  datePartsCache.set(key, value);
+  return value;
+}
+
+function subscribeNoop() {
+  return () => {};
+}
+
+function getLocalDate(): DateParts {
+  const d = new Date();
+  return dateParts(d.getMonth() + 1, d.getDate());
+}
+
+function getUTCDate(): DateParts {
+  const d = new Date();
+  return dateParts(d.getUTCMonth() + 1, d.getUTCDate());
+}
 
 function avatarFor(scientist: Scientist, mode: AvatarMode): string | null {
-  const info = avatars[scientist.id];
-  if (!info) return null;
-  if (mode === "photo" && (info.photo || scientist.id === "einstein")) return `avatars/${scientist.id}.jpg`;
+  if (mode !== "photo") return null;
+  if (avatars[scientist.id]?.photo) return `avatars/${scientist.id}.jpg`;
+  if (scientist.id === "einstein") return einsteinIllustration;
   return null;
 }
 
@@ -46,11 +73,7 @@ function formatDate(month: number, day: number) {
   return `${month} 月 ${day} 日`;
 }
 
-export default function Home() {
-  const now = useMemo(() => {
-    const d = new Date();
-    return { month: d.getMonth() + 1, day: d.getDate() };
-  }, []);
+function Calendar({ now }: { now: DateParts }) {
   const todayScientist = scientists.find((s) => s.month === now.month && s.day === now.day);
   const [activeField, setActiveField] = useState<Field | "全部">("全部");
   const [query, setQuery] = useState("");
@@ -126,7 +149,7 @@ export default function Home() {
       <section className="today-section" id="today" aria-labelledby="today-title">
         <header className="section-heading"><div><p className="eyebrow">TODAY&apos;S NOTE · {formatDate(selected.month, selected.day)}</p><h2 id="today-title">今日人物</h2></div><p className="section-aside">第 {String(selected.month).padStart(2, "0")}.{String(selected.day).padStart(2, "0")} 页 / 365</p></header>
         <article className={`feature-card tone-${selected.color}`}>
-          <div className="portrait-panel"><span className="portrait-number">{String(selected.month).padStart(2, "0")}.{String(selected.day).padStart(2, "0")}</span>{(() => { const src = avatarFor(selected, avatarMode); if (src) return <img className={`portrait-image mode-${avatarMode}`} src={src} alt={`${selected.name}的肖像`} loading="lazy" />; if (selected.id === "einstein" && avatarMode === "letter") return <img className="portrait-illustration" src="art/einstein-archive.webp" alt="阿尔伯特·爱因斯坦的复古科学插画肖像" />; return <div className={`portrait-abstract tone-${selected.color}`} aria-hidden="true"><i /><b>{selected.name.slice(0, 1)}</b><em>{selected.latinName}</em></div>; })()}<span className="portrait-field">{selected.field}</span>
+          <div className="portrait-panel"><span className="portrait-number">{String(selected.month).padStart(2, "0")}.{String(selected.day).padStart(2, "0")}</span>{(() => { const src = avatarFor(selected, avatarMode); if (src) return <img className={`portrait-image mode-${avatarMode}`} src={src} alt={`${selected.name}的肖像`} loading="lazy" />; if (selected.id === "einstein") return <img className="portrait-illustration" src={einsteinIllustration} alt="阿尔伯特·爱因斯坦的复古科学插画肖像" />; return <div className={`portrait-abstract tone-${selected.color}`} aria-hidden="true"><i /><b>{selected.name.slice(0, 1)}</b><em>{selected.latinName}</em></div>; })()}<span className="portrait-field">{selected.field}</span>
             <div className="portrait-switch" role="group" aria-label="头像模式">
               {(["letter", "photo"] as AvatarMode[]).map((m) => <button key={m} type="button" className={avatarMode === m ? "active" : ""} onClick={() => setAvatarMode(m)}>{m === "letter" ? "单字" : "照片"}</button>)}
             </div>
@@ -146,7 +169,7 @@ export default function Home() {
         <header className="section-heading explore-heading"><div><p className="eyebrow">THE ARCHIVE · {scientists.length} STARTING POINTS</p><h2 id="explore-title">从好奇出发</h2></div><label className="search-box"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索人物、领域或贡献" aria-label="搜索科学家档案" /></label></header>
         <div className="field-filters" aria-label="按科学领域筛选">{fields.map((field) => <button key={field} type="button" className={field === activeField ? "active" : ""} onClick={() => setActiveField(field)}>{field}</button>)}</div>
         <div className="archive-toolbar" aria-live="polite"><p>当前显示 <strong>{filtered.length}</strong> / {scientists.length} 位人物{activeField !== "全部" ? ` · ${activeField}` : ""}{query.trim() ? ` · “${query.trim()}”` : ""}</p>{(activeField !== "全部" || query) && <button type="button" onClick={() => { setActiveField("全部"); setQuery(""); }}>清除筛选</button>}</div>
-        <div className="archive-grid">{filtered.map((scientist, index) => <button className={`archive-card tone-${scientist.color}`} type="button" key={scientist.id} onClick={() => selectScientist(scientist)}><span className="archive-date">{String(scientist.month).padStart(2, "0")}.{String(scientist.day).padStart(2, "0")}</span>{(() => { const src = avatarMode !== "letter" ? avatarFor(scientist, avatarMode) : null; if (src) return <img className="archive-art archive-photo" src={src} alt="" loading="lazy" />; return <span className="archive-art" aria-hidden="true"><i /><b>{scientist.name.slice(0, 1)}</b><em>{scientist.field}</em></span>; })()}<span className="archive-field">{scientist.field}</span><h3>{scientist.name}</h3><p>{scientist.tagline}</p><span className="archive-open">阅读档案 <b>↗</b></span><i className="archive-index">{String(index + 1).padStart(2, "0")}</i></button>)}</div>
+        <div className="archive-grid">{filtered.map((scientist, index) => <button className={`archive-card tone-${scientist.color}`} type="button" key={scientist.id} onClick={() => selectScientist(scientist)}><span className="archive-date">{String(scientist.month).padStart(2, "0")}.{String(scientist.day).padStart(2, "0")}</span>{(() => { const src = avatarFor(scientist, avatarMode); if (src) return <img className="archive-art archive-photo" src={src} alt="" loading="lazy" />; return <span className="archive-art" aria-hidden="true"><i /><b>{scientist.name.slice(0, 1)}</b><em>{scientist.field}</em></span>; })()}<span className="archive-field">{scientist.field}</span><h3>{scientist.name}</h3><p>{scientist.tagline}</p><span className="archive-open">阅读档案 <b>↗</b></span><i className="archive-index">{String(index + 1).padStart(2, "0")}</i></button>)}</div>
         {!filtered.length && <p className="empty-state">没有找到匹配的人物。换个关键词试试。</p>}
       </section>
 
@@ -155,4 +178,11 @@ export default function Home() {
       <footer><a className="brand" href="#top"><span className="brand-mark">∴</span> 科学家日历</a><p>精选 {scientists.length} 位人物档案 · 持续更新中</p><a className="footer-download" href={`print/科学家日历_精选${scientists.length}位_A4打印版.pdf`} download>下载 A4 打印版 ↓</a><a href="#top">回到顶部 ↑</a></footer>
     </main>
   );
+}
+
+export default function Home() {
+  // 服务端按 UTC 日期渲染，客户端水合后切换为本地日期；
+  // 以日期为 key 让整页状态随之重新初始化，避免水合不一致，也无需在 effect 中 setState。
+  const now = useSyncExternalStore(subscribeNoop, getLocalDate, getUTCDate);
+  return <Calendar key={`${now.month}-${now.day}`} now={now} />;
 }
