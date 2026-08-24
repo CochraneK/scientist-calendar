@@ -98,7 +98,7 @@ def draw_mark(c: canvas.Canvas, x: float, y: float, size: float = 18) -> None:
 
 
 def draw_cover(c: canvas.Canvas, count: int) -> None:
-    image = ROOT / "public" / "og.png"
+    image = ROOT / "public" / "og.jpg"
     c.setFillColor(INK)
     c.rect(0, 0, W, H, fill=1, stroke=0)
     if image.exists():
@@ -312,8 +312,9 @@ def main() -> None:
     draw_cover(c, len(entries))
     draw_print_notes(c, len(entries))
     draw_overview(c, entries)
+    # 封面 1 页 + 说明 1 页 + 总览 2 页 = 4 页，人物页从第 5 页开始。
     total = len(entries) + 4
-    for number, entry in enumerate(entries, start=4):
+    for number, entry in enumerate(entries, start=5):
         draw_entry(c, entry, number, total, quotes)
     draw_back_cover(c)
     c.save()
