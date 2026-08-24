@@ -1,98 +1,61 @@
-# vinext-starter
+# 科学家日历 · Scientist Calendar
 
-A clean full-stack starter running on
-[vinext](https://github.com/cloudflare/vinext), with optional Cloudflare D1 and
-Drizzle support.
+一年 365 天，每天认识一位科学家。共 466 位精选人物档案：每一天有一位人物、一项发现、一个改变世界的念头。
 
-## Prerequisites
+- 在线版（GitHub Pages）：<https://cochranek.github.io/scientist-calendar/>
+- 打印版：A4 横版 PDF，471 页（站点导航中可直接下载）
 
-- Node.js `>=22.13.0`
+## 功能
 
-## Quick Start
+- 今日人物：按当天日期自动展示对应科学家
+- 档案浏览：466 张档案卡，按领域筛选、支持搜索
+- 头像模式：单字 / 照片切换；肖像来自 Wikimedia Commons，无肖像的人物回落为单字头像
+- 打印版：封面 + 打印说明 + 2 页总览 + 466 页人物页（页码 5–470）
+
+## 目录结构
+
+| 路径 | 说明 |
+| --- | --- |
+| `app/` | 主应用（vinext + React 19），`page.tsx` 同时供静态站复用 |
+| `app/scientists.json` | 466 位科学家档案（日期、领域、生卒年、贡献、轶事） |
+| `app/quotes.json` | 人物语录，按 id 索引 |
+| `static/` | Vite 静态站（base `/scientist-calendar/`），构建输出到 `docs/` |
+| `static/extras/` | 构建后复制进 `docs/` 的附加文件（如 `backup-candidates.md`） |
+| `docs/` | 静态站构建产物，GitHub Pages 直接从这里发布 |
+| `public/` | 共享资源：`avatars/` 肖像、`avatars.json` 头像清单、`art/` 插画、`print/` 打印 PDF |
+| `scripts/` | 数据与 PDF 脚本 |
+| `tests/` | `node --test` 测试 |
+| `tmp/` | 一次性工作脚本（不入库） |
+
+## 开发
 
 ```bash
 npm install
-npm run dev
-npm run build
+npm run dev           # 主应用: http://localhost:3000
+npm run build         # 构建主应用
+npm run build:pages   # 构建静态站到 docs/（自动复制 extras）
+npm test              # build + 测试（SSR 渲染与数据集一致性）
+npm run lint
 ```
 
-This starter does not use `wrangler.jsonc`.
+静态站以 `../public` 为公共资源目录；本地预览需带上 `/scientist-calendar/` 路径前缀。
 
-## Included Shape
+## 打印版 PDF
 
-- edit site code under `app/`
-- `.openai/hosting.json` declares optional Sites D1 and R2 bindings
-- `vite.config.ts` simulates declared bindings for local development
-- `db/schema.ts` starts intentionally empty
-- `examples/d1/` contains an optional D1 example surface
-- `drizzle.config.ts` supports local migration generation when needed
-
-## Workspace Auth Headers
-
-OpenAI workspace sites can read the current user's email from
-`oai-authenticated-user-email`.
-
-SIWC-authenticated workspace sites may also receive
-`oai-authenticated-user-full-name` when the user's SIWC profile has a non-empty
-`name` claim. The full-name value is percent-encoded UTF-8 and is accompanied by
-`oai-authenticated-user-full-name-encoding: percent-encoded-utf-8`.
-
-Treat the full name as optional and fall back to email when it is absent:
-
-```tsx
-import { headers } from "next/headers";
-
-export default async function Home() {
-  const requestHeaders = await headers();
-  const email = requestHeaders.get("oai-authenticated-user-email");
-  const encodedFullName = requestHeaders.get("oai-authenticated-user-full-name");
-  const fullName =
-    encodedFullName &&
-    requestHeaders.get("oai-authenticated-user-full-name-encoding") ===
-      "percent-encoded-utf-8"
-      ? decodeURIComponent(encodedFullName)
-      : null;
-
-  const displayName = fullName ?? email;
-  // ...
-}
+```bash
+python -X utf8 scripts/generate_print_calendar.py
+# 产物: output/pdf/科学家日历_精选466位_A4打印版.pdf
 ```
 
-## Optional Dispatch-Owned ChatGPT Sign-In
+依赖 Python 3 + reportlab，使用其内置中文字体（`UnicodeCIDFont`），无需额外安装字体。生成后覆盖复制到 `public/print/`，再运行 `npm run build:pages` 同步到 `docs/print/`。
 
-Import the ready-to-use helpers from `app/chatgpt-auth.ts` when the site needs
-optional or required ChatGPT sign-in:
+## 数据维护
 
-- Use `getChatGPTUser()` for optional signed-in UI.
-- Use `requireChatGPTUser(returnTo)` for server-rendered pages that should send
-  anonymous visitors through Sign in with ChatGPT.
-- Use `chatGPTSignInPath(returnTo)` and `chatGPTSignOutPath(returnTo)` for
-  browser links or actions.
-- Pass a same-origin relative `returnTo` path for the destination after sign-in
-  or sign-out. The helper validates and safely encodes it.
-- Mark protected pages with `export const dynamic = "force-dynamic"` because
-  they depend on per-request identity headers.
+- 一致性测试在 `tests/rendered-html.test.mjs`：id 唯一、365 天全覆盖、头像清单与语录引用完整
+- 扩充候选池：`static/extras/backup-candidates.md`（随站点发布）
 
-Dispatch owns `/signin-with-chatgpt`, `/signout-with-chatgpt`, `/callback`, the
-OAuth cookies, and identity header injection. Do not implement app routes for
-those reserved paths. Routes that do not import and call the helper remain
-anonymous-compatible.
+## 发布
 
-SIWC establishes identity only; it does not prove workspace membership. Use the
-Sites hosting platform's access policy controls for workspace-wide restrictions,
-or enforce explicit server-side membership or allowlist checks.
-
-Use SIWC for account pages, user-specific dashboards, saved records, and write
-actions tied to the current ChatGPT user. Leave public content anonymous.
-
-## Useful Commands
-
-- `npm run dev`: start local development
-- `npm run build`: verify the vinext build output
-- `npm test`: build the starter and verify its rendered loading skeleton
-- `npm run db:generate`: generate Drizzle migrations after schema changes
-
-## Learn More
-
-- [vinext Documentation](https://github.com/cloudflare/vinext)
-- [Drizzle D1 Guide](https://orm.drizzle.team/docs/get-started/d1-new)
+```bash
+git push github main   # GitHub Pages 自动从 docs/ 目录发布
+```
