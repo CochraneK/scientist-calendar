@@ -285,16 +285,46 @@ def draw_entry(c: canvas.Canvas, entry: dict[str, str], page: int, total: int, q
     c.setStrokeColor(LINE)
     c.setLineWidth(0.7)
     c.line(left, divider_y, W - 48, divider_y)
-    body_end = draw_wrapped(c, entry["story"], left, divider_y - 30, 490, 12, 20, INK)
+    # ---------- 底部「核心贡献 / 你知道吗」卡片：固定底部、高度随内容动态，绝不浮空或遮挡故事 ----------
+    contrib_w, fact_w = 205, 238
+    pad_top, pad_bottom, label_gap = 16, 10, 22
+    card_bottom_fixed = 224                      # 卡片底边固定在原底部区域（高于页脚线 42）
+    max_box_h = card_bottom_fixed - (42 + 8)      # 卡片顶不越过页脚线之上 8
 
-    meta_y = min(body_end - 12, 190)
+    def fit_lines(text: str, width: float, size: float, leading: float) -> list[str]:
+        lines = wrap_lines(c, text or "—", width, size)
+        room = max_box_h - pad_top - pad_bottom - label_gap
+        max_lines = max(1, int(room // leading) + 1)
+        if len(lines) > max_lines:                  # 内容过长则截断末行，避免溢出卡片
+            lines = lines[:max_lines]
+            lines[-1] = lines[-1][:max(1, len(lines[-1]) - 1)] + "…"
+        return lines
+
+    contrib_lines = fit_lines(entry["contribution"], contrib_w, 11, 15)
+    fact_lines = fit_lines(entry["fact"], fact_w, 9, 13)
+    box_h = min(max_box_h, max(label_gap + (len(contrib_lines) - 1) * 15,
+                                label_gap + (len(fact_lines) - 1) * 13) + pad_top + pad_bottom)
+    card_top = card_bottom_fixed - box_h           # 底边固定，顶随高度上移
+
+    # 故事只画在分隔线之下、卡片之上；空间不足则截断，绝不进入卡片区域
+    story_top = divider_y - 30
+    story_floor = card_top - 20
+    max_story_lines = max(1, int((story_top - story_floor) // 20))
+    story_lines = wrap_lines(c, entry["story"], 490, 12)
+    if len(story_lines) > max_story_lines:
+        kept = story_lines[:max_story_lines - 1]
+        kept.append(story_lines[max_story_lines - 1][:max(1, len(story_lines[max_story_lines - 1]) - 1)] + "…")
+        draw_wrapped(c, "".join(kept), left, story_top, 490, 12, 20, INK)
+    else:
+        draw_wrapped(c, entry["story"], left, story_top, 490, 12, 20, INK)
+
     c.setFillColor(HexColor("#F0EBE1"))
-    c.roundRect(left, meta_y - 32, 235, 66, 5, fill=1, stroke=0)
-    c.roundRect(left + 255, meta_y - 32, 265, 66, 5, fill=1, stroke=0)
-    draw_text(c, "核心贡献", left + 14, meta_y + 14, 8, MUTED)
-    draw_wrapped(c, entry["contribution"], left + 14, meta_y - 7, 205, 11, 15, INK)
-    draw_text(c, "你知道吗", left + 269, meta_y + 14, 8, MUTED)
-    draw_wrapped(c, entry["fact"], left + 269, meta_y - 6, 238, 9, 13, INK)
+    c.roundRect(left, card_top, 235, box_h, 5, fill=1, stroke=0)
+    c.roundRect(left + 255, card_top, 265, box_h, 5, fill=1, stroke=0)
+    draw_text(c, "核心贡献", left + 14, card_top + box_h - pad_top, 8, MUTED)
+    draw_wrapped(c, " ".join(contrib_lines), left + 14, card_top + box_h - pad_top - label_gap + 6, contrib_w, 11, 15, INK)
+    draw_text(c, "你知道吗", left + 269, card_top + box_h - pad_top, 8, MUTED)
+    draw_wrapped(c, " ".join(fact_lines), left + 269, card_top + box_h - pad_top - label_gap + 7, fact_w, 9, 13, INK)
 
     c.setStrokeColor(LINE)
     c.line(43, 42, W - 43, 42)
