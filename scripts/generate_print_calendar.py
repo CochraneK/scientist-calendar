@@ -270,31 +270,34 @@ def draw_entry(c: canvas.Canvas, entry: dict[str, str], page: int, total: int, q
     name_size = 40 if name_len <= 5 else (34 if name_len <= 7 else (28 if name_len <= 9 else (23 if name_len <= 11 else 19)))
     draw_text(c, entry["name"], left, 383, name_size)
     draw_text(c, entry["latinName"] + " · " + entry["country"], left, 358, 10, MUTED)
-    # ---------- 布局：固定卡片 + 受约束的引语/故事，全部在卡片顶(224)之上 ----------
-    # 卡片为固定矩形：底 224，顶 64，高 160。卡片圆角填充会覆盖其内部任何矢量，
-    # 因此上方的引语/故事/分隔线/来源的基线都必须 >= CONTENT_FLOOR(230)，
-    # 才能保证字形下沿 (size 12 下沿 227.6) 仍高于卡片顶 224，不会被遮。
-    CARD_BOTTOM = 224
-    CARD_TOP = 64
-    BOX_H = CARD_BOTTOM - CARD_TOP  # 160
-    CONTENT_FLOOR = 230              # 卡片顶 + 6px 安全
+    # ---------- 布局：卡片顶边固定(y=224) + 高度自适应；引语/故事约束在其上 ----------
+    # 卡片顶边(roundRect 顶部)恒为 y=224。卡片圆角填充会覆盖其内部任何矢量，
+    # 因此引语/故事/分隔线/来源的基线都必须 >= CONTENT_FLOOR(230)，
+    # 保证字形下沿 (size 12 下沿 227.6) 高于卡片顶 224，不会被遮。
+    # 卡片高度随「核心贡献/你知道吗」实际行数自适应：短内容=矮卡片，不空旷。
+    CARD_TOP_EDGE = 224           # 卡片顶边（y-up）固定
+    MIN_BOX_H = 46                # 1+1 行时的最小高度
+    MAX_BOX_H = 174               # 卡片底 = 224-174 = 50，不越过页脚线之上 8
+    CONTENT_FLOOR = 230           # 卡片顶 + 6px 安全
 
     contrib_w, fact_w = 205, 238
     pad_top, pad_bottom, label_gap = 16, 10, 22
-    room = BOX_H - pad_top - pad_bottom - label_gap  # 134
+    max_room = MAX_BOX_H - pad_top - pad_bottom - label_gap  # 148
 
-    def fit_lines(text: str, width: float, size: float, leading: float) -> list[str]:
+    def fit_to_max(text, width, size, lead):
         lines = wrap_lines(c, text or "—", width, size)
-        max_lines = max(1, int(room // leading) + 1)
-        if len(lines) > max_lines:
-            lines = lines[:max_lines]
+        cap = max(1, int(max_room // lead) + 1)
+        if len(lines) > cap:
+            lines = lines[:cap]
             lines[-1] = lines[-1][:max(1, len(lines[-1]) - 1)] + "…"
         return lines
 
-    contrib_lines = fit_lines(entry["contribution"], contrib_w, 11, 15)
-    fact_lines = fit_lines(entry["fact"], fact_w, 9, 13)
-    box_h = BOX_H
-    card_top = CARD_TOP
+    contrib_lines = fit_to_max(entry["contribution"], contrib_w, 11, 15)
+    fact_lines = fit_to_max(entry["fact"], fact_w, 9, 13)
+    # 高度 = 刚好包住两列中较高者（含上下内边距），夹在 [MIN, MAX]
+    content_h = pad_top + pad_bottom + label_gap + max((len(contrib_lines) - 1) * 15, (len(fact_lines) - 1) * 13)
+    box_h = max(MIN_BOX_H, min(MAX_BOX_H, content_h))
+    card_top = CARD_TOP_EDGE - box_h   # 底边向上浮动；短内容 → 矮卡片
 
     # ---------- 引语：限制行数，使最后一行的基线 >= CONTENT_FLOOR ----------
     quotation = quotes.get(entry["id"])
@@ -356,13 +359,13 @@ def draw_entry(c: canvas.Canvas, entry: dict[str, str], page: int, total: int, q
     contrib_start_y = card_top + box_h - pad_top - label_gap + 6
     for idx, line in enumerate(contrib_lines):
         y_line = contrib_start_y - idx * 15
-        if y_line < card_top + pad_bottom:
+        if y_line < card_top + 4:
             break
         draw_text(c, line, left + 14, y_line, 11, INK)
     fact_start_y = card_top + box_h - pad_top - label_gap + 7
     for idx, line in enumerate(fact_lines):
         y_line = fact_start_y - idx * 13
-        if y_line < card_top + pad_bottom:
+        if y_line < card_top + 4:
             break
         draw_text(c, line, left + 269, y_line, 9, INK)
 
