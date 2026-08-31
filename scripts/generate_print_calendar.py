@@ -299,7 +299,12 @@ def draw_entry(c: canvas.Canvas, entry: dict[str, str], page: int, total: int, q
     box_h = max(MIN_BOX_H, min(MAX_BOX_H, content_h))
     card_top = CARD_TOP_EDGE - box_h   # 底边向上浮动；短内容 → 矮卡片
 
-    # ---------- 引语：限制行数，使最后一行的基线 >= CONTENT_FLOOR ----------
+    # ---------- 引语 + 来源 + 分隔线 + 故事：严格自上而下流水布局，绝不越过地板(230) ----------
+    # 关键修复：来源必须画在「分隔线之上」、故事必须画在「分隔线之下」。
+    # 旧逻辑用 quote_end 分别推算 src_y 与 divider_y，导致多行来源时来源落到故事行上造成压字。
+    # 新逻辑：来源 = quote_end 之下 → 分隔线 = 来源之下 → 故事 = 分隔线之下，顺序固定，物理上不可能互压。
+    FLOOR = CONTENT_FLOOR  # 230
+    Q_START = 333          # 引语起点（上移给来源/故事留空间，仍低于姓名行 y=383，不撞）
     quotation = quotes.get(entry["id"])
     quote_text = quotation["text"] if quotation else entry.get("quote")
     quote_source = quotation["source"] if quotation else entry.get("quoteSource")
@@ -310,42 +315,43 @@ def draw_entry(c: canvas.Canvas, entry: dict[str, str], page: int, total: int, q
     quote_prefix = "“" if has_sourced_quote else "阅读线索｜"
     quote_suffix = "”" if has_sourced_quote else ""
     quote_full = quote_prefix + (quote_text or entry.get("tagline", "")) + quote_suffix
-    # 末行基线 >= CONTENT_FLOOR => n <= (315 - CONTENT_FLOOR)/lead + 1
-    max_q_lines = max(1, (315 - CONTENT_FLOOR) // quote_lead + 1)
-    if has_sourced_quote:
-        # 来源文字写在 quote_end 之下，强制 n<=3 以避免来源被推回与末行重叠
-        max_q_lines = min(max_q_lines, 3)
+
+    # 行数上限：给「来源(8) + 来源→分隔(12) + 分隔→故事(30) + 至少 0 故事」预留空间，避免互相压字
+    room = Q_START - FLOOR
+    need_source = 26 if has_sourced_quote else 0
+    max_q_lines = max(1, (room - need_source) // quote_lead)
+    max_q_lines = min(max_q_lines, 2 if has_sourced_quote else 3)
     q_lines = wrap_lines(c, quote_full, 490, quote_size)
     if len(q_lines) > max_q_lines:
         q_lines = q_lines[:max_q_lines]
         q_lines[-1] = q_lines[-1][:max(1, len(q_lines[-1]) - 1)] + "…"
-    quote_end = draw_wrapped(c, "".join(q_lines), left, 315, 490, quote_size, quote_lead, quote_color)
+    quote_end = draw_wrapped(c, "".join(q_lines), left, Q_START, 490, quote_size, quote_lead, quote_color)
+
     if has_sourced_quote:
-        src_y = max(quote_end - 5, CONTENT_FLOOR)
+        src_y = quote_end - 6
         draw_text(c, "— " + str(quote_source), left, src_y, 8, MUTED)
-        divider_y = max(quote_end - 20, CONTENT_FLOOR + 5)
+        divider_y = src_y - 12
     else:
-        divider_y = max(quote_end - 5, CONTENT_FLOOR + 5)
+        divider_y = quote_end - 6
+    divider_y = max(divider_y, FLOOR + 6)
     c.setStrokeColor(LINE)
     c.setLineWidth(0.7)
     c.line(left, divider_y, W - 48, divider_y)
 
-    # ---------- 故事：在分隔线与 CONTENT_FLOOR 之间，最后一行基线 >= CONTENT_FLOOR ----------
-    # 直接在固定 y 上逐行绘制（不再 join+rewrap），避免重新换行产生多余行穿入卡片
-    story_top = max(divider_y - 30, CONTENT_FLOOR + 20)
-    available = story_top - CONTENT_FLOOR
-    max_story_lines = max(0, available // 20 + 1)
+    # ---------- 故事：从分隔线下方开始，逐行向下，底线不低于地板 ----------
+    story_top = max(divider_y - 30, FLOOR + 22)
+    max_story_lines = max(0, (story_top - FLOOR) // 20 + 1)
     if max_story_lines > 0:
         story_lines = wrap_lines(c, entry["story"], 490, 12)
         if len(story_lines) > max_story_lines:
             kept = story_lines[:max_story_lines - 1]
-            src_line = story_lines[max_story_lines - 1]
-            kept.append(src_line[:max(1, len(src_line) - 1)] + "…")
+            last = story_lines[max_story_lines - 1]
+            kept.append(last[:max(1, len(last) - 1)] + "…")
         else:
             kept = story_lines
         for idx, line in enumerate(kept):
             y_line = story_top - idx * 20
-            if y_line < CONTENT_FLOOR:
+            if y_line < FLOOR:
                 break
             draw_text(c, line, left, y_line, 12, INK)
 
