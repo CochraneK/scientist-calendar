@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import json
 from pathlib import Path
 
@@ -15,6 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "app" / "scientists.json"
 QUOTES = ROOT / "app" / "quotes.json"
 OUTPUT_DIR = ROOT / "output" / "pdf"
+# 版次年份随生成时间走，避免每年都要手改硬编码。
+EDITION_YEAR = datetime.date.today().year
 W, H = landscape(A4)
 
 INK = HexColor("#15263D")
@@ -118,7 +121,7 @@ def draw_cover(c: canvas.Canvas, count: int) -> None:
     c.drawString(61, 54, "每天认识一位科学家，一项发现，与一个改变世界的念头。")
     c.setFillColor(Color(1, 1, 1, alpha=0.64))
     c.setFont("Helvetica", 9)
-    c.drawRightString(W - 45, 34, "PRINT EDITION · 2026")
+    c.drawRightString(W - 45, 34, f"PRINT EDITION · {EDITION_YEAR}")
     c.showPage()
 
 
@@ -210,7 +213,7 @@ def draw_print_notes(c: canvas.Canvas, count: int) -> None:
 
     c.setFillColor(INK)
     c.roundRect(57, 52, W - 114, 52, 6, fill=1, stroke=0)
-    draw_text(c, f"科学家日历 · 精选 {count} 位人物 · 2026 扩充版", 77, 81, 12, white)
+    draw_text(c, f"科学家日历 · 精选 {count} 位人物 · {EDITION_YEAR} 版", 77, 81, 12, white)
     draw_text(c, "网页与可下载版本将持续补充完整的资料来源与印刷资源。", 77, 62, 9, HexColor("#B6C0CC"))
     c.showPage()
 
@@ -231,7 +234,7 @@ def draw_back_cover(c: canvas.Canvas) -> None:
     draw_text(c, "科学家日历", 70, 195, 18, HexColor("#F0D88D"))
     draw_text(c, "每天认识一位科学家", 70, 170, 11, HexColor("#B6C0CC"))
     draw_text(c, "cochranek.github.io/scientist-calendar", 70, 72, 10, HexColor("#B6C0CC"), "latin")
-    draw_text(c, "PRINT EDITION · 2026", W - 190, 42, 8, HexColor("#B6C0CC"), "latin")
+    draw_text(c, f"PRINT EDITION · {EDITION_YEAR}", W - 190, 42, 8, HexColor("#B6C0CC"), "latin")
     c.showPage()
 
 

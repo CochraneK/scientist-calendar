@@ -23,8 +23,18 @@ async function render() {
   );
 }
 
+// 中文行文里不该出现的半角标点（前后都是中日韩字符时即为排版错误）。
+const HALFWIDTH_IN_CJK = /[一-鿿][,;:?!]|[一-鿿]\(/;
+
+async function loadJson(relativePath) {
+  return JSON.parse(await readFile(new URL(relativePath, import.meta.url), "utf8"));
+}
+
 test("server-renders the calendar page", async () => {
-  const response = await render();
+  const [response, scientists] = await Promise.all([
+    render(),
+    loadJson("../app/scientists.json"),
+  ]);
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
 
@@ -33,14 +43,17 @@ test("server-renders the calendar page", async () => {
   assert.match(html, /今日人物/);
   assert.match(html, /位人物档案/);
   assert.match(html, /从好奇出发/);
-  assert.match(html, /print\/科学家日历_精选466位_A4打印版\.pdf/);
+
+  // 打印版链接由数据推导，这里同样按数据推导，避免增删人物后测试失效。
+  const pdfName = `print/科学家日历_精选${scientists.length}位_A4打印版.pdf`;
+  assert.ok(html.includes(pdfName), `页面未出现打印版链接：${pdfName}`);
 });
 
 test("calendar dataset stays consistent", async () => {
   const [scientists, manifest, quotes] = await Promise.all([
-    readFile(new URL("../app/scientists.json", import.meta.url), "utf8").then(JSON.parse),
-    readFile(new URL("../public/avatars.json", import.meta.url), "utf8").then(JSON.parse),
-    readFile(new URL("../app/quotes.json", import.meta.url), "utf8").then(JSON.parse),
+    loadJson("../app/scientists.json"),
+    loadJson("../public/avatars.json"),
+    loadJson("../app/quotes.json"),
   ]);
 
   const ids = new Set(scientists.map((entry) => entry.id));
@@ -61,5 +74,35 @@ test("calendar dataset stays consistent", async () => {
 
   for (const id of Object.keys(quotes)) {
     assert.ok(ids.has(id), `quotes.json references unknown scientist: ${id}`);
+  }
+});
+
+test("prose uses full-width punctuation", async () => {
+  const [scientists, quotes] = await Promise.all([
+    loadJson("../app/scientists.json"),
+    loadJson("../app/quotes.json"),
+  ]);
+
+  const textFields = ["name", "country", "relation", "tagline", "story", "contribution", "fact"];
+  for (const entry of scientists) {
+    for (const field of textFields) {
+      const value = entry[field];
+      if (typeof value !== "string") continue;
+      assert.ok(
+        !HALFWIDTH_IN_CJK.test(value),
+        `${entry.id}/${field} 中文语境出现半角标点：${value}`,
+      );
+    }
+  }
+
+  for (const [id, payload] of Object.entries(quotes)) {
+    for (const field of ["text", "source"]) {
+      const value = payload[field];
+      if (typeof value !== "string") continue;
+      assert.ok(
+        !HALFWIDTH_IN_CJK.test(value),
+        `quotes[${id}]/${field} 中文语境出现半角标点：${value}`,
+      );
+    }
   }
 });

@@ -1310,9 +1310,6 @@
   "lovelace": {
     "photo": true
   },
-  "nobel-prize-day": {
-    "photo": false
-  },
   "auto-q37193": {
     "photo": true
   },
@@ -1396,5 +1393,8 @@
   },
   "auto-q232302": {
     "photo": true
+  },
+  "jacobi": {
+    "photo": false
   }
 }

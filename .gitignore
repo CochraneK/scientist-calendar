@@ -45,3 +45,6 @@ next-env.d.ts
 /.dev/
 /output/
 /tmp/
+
+# internal agent memory (not for public repo)
+.workbuddy/

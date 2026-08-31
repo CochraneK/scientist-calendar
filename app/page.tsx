@@ -27,7 +27,7 @@ type Scientist = {
 };
 
 type AvatarMode = "letter" | "photo";
-type DateParts = { month: number; day: number };
+type DateParts = { year: number; month: number; day: number };
 
 const scientists = scientistsData as Scientist[];
 const avatars = avatarsData as Record<string, { photo: boolean }>;
@@ -35,11 +35,11 @@ const einsteinIllustration = "art/einstein-archive.webp";
 
 const datePartsCache = new Map<string, DateParts>();
 
-function dateParts(month: number, day: number): DateParts {
-  const key = `${month}-${day}`;
+function dateParts(year: number, month: number, day: number): DateParts {
+  const key = `${year}-${month}-${day}`;
   const cached = datePartsCache.get(key);
   if (cached) return cached;
-  const value = { month, day };
+  const value = { year, month, day };
   datePartsCache.set(key, value);
   return value;
 }
@@ -50,12 +50,12 @@ function subscribeNoop() {
 
 function getLocalDate(): DateParts {
   const d = new Date();
-  return dateParts(d.getMonth() + 1, d.getDate());
+  return dateParts(d.getFullYear(), d.getMonth() + 1, d.getDate());
 }
 
 function getUTCDate(): DateParts {
   const d = new Date();
-  return dateParts(d.getUTCMonth() + 1, d.getUTCDate());
+  return dateParts(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate());
 }
 
 function avatarFor(scientist: Scientist, mode: AvatarMode): string | null {
@@ -90,8 +90,8 @@ function Calendar({ now }: { now: DateParts }) {
     return inField && inSearch;
   }), [activeField, query]);
 
-  const monthDays = new Date(2026, calendarMonth, 0).getDate();
-  const firstWeekday = new Date(2026, calendarMonth - 1, 1).getDay();
+  const monthDays = new Date(now.year, calendarMonth, 0).getDate();
+  const firstWeekday = new Date(now.year, calendarMonth - 1, 1).getDay();
   const monthEntries = scientists.filter((scientist) => scientist.month === calendarMonth);
   const monthEntriesByDay = new Map<number, Scientist[]>();
   for (const entry of monthEntries) {
@@ -126,7 +126,7 @@ function Calendar({ now }: { now: DateParts }) {
 
       <section className="hero" id="top" aria-labelledby="hero-title">
         <div className="hero-copy">
-          <p className="eyebrow">THE DAILY SCIENCE NOTEBOOK · 2026</p>
+          <p className="eyebrow">THE DAILY SCIENCE NOTEBOOK · {now.year}</p>
           <h1 id="hero-title">每天，<br /><em>遇见一个</em><br />改变世界的念头。</h1>
           <p className="hero-text">一份写给好奇心的科学日历。从一位科学家、一项发现，走进人类理解世界的方式。</p>
           <div className="hero-actions"><a className="button-primary" href="#today">阅读今日人物 <span>↓</span></a><a className="button-secondary" href={`print/科学家日历_精选${scientists.length}位_A4打印版.pdf`} download>获取 A4 打印版 <span>↓</span></a><a className="text-link" href="#calendar">查看月历 <span>→</span></a></div>
@@ -160,7 +160,7 @@ function Calendar({ now }: { now: DateParts }) {
       </section>
 
       <section className="calendar-section" id="calendar" aria-labelledby="calendar-title">
-        <header className="section-heading"><div><p className="eyebrow">SCIENCE DATES · 2026</p><h2 id="calendar-title">月历</h2></div><div className="month-switcher"><button type="button" aria-label="上一个月" onClick={() => setCalendarMonth((month) => month === 1 ? 12 : month - 1)}>←</button><span>{monthNames[calendarMonth - 1]} 2026</span><button type="button" aria-label="下一个月" onClick={() => setCalendarMonth((month) => month === 12 ? 1 : month + 1)}>→</button></div></header>
+        <header className="section-heading"><div><p className="eyebrow">SCIENCE DATES · {now.year}</p><h2 id="calendar-title">月历</h2></div><div className="month-switcher"><button type="button" aria-label="上一个月" onClick={() => setCalendarMonth((month) => month === 1 ? 12 : month - 1)}>←</button><span>{monthNames[calendarMonth - 1]} {now.year}</span><button type="button" aria-label="下一个月" onClick={() => setCalendarMonth((month) => month === 12 ? 1 : month + 1)}>→</button></div></header>
         <div className="calendar-layout"><div className="calendar-grid" role="grid" aria-label={`${calendarMonth} 月日历`}><div className="weekdays">{weekdayNames.map((day) => <span key={day}>{day}</span>)}</div><div className="dates">{Array.from({ length: firstWeekday }, (_, index) => <span className="blank-day" key={`blank-${index}`} />)}{Array.from({ length: monthDays }, (_, index) => { const day = index + 1; const dayEntries = monthEntriesByDay.get(day) ?? []; return <button className={`date-cell ${dayEntries.length ? `has-entry ${dayEntries.some((e) => e.id === selected.id) ? "selected" : ""}` : ""}`} type="button" key={day} onClick={() => dayEntries.length && (dayEntries.length > 1 ? cycleDayScientist(day) : selectScientist(dayEntries[0]))} disabled={!dayEntries.length} title={dayEntries.length ? `${day} 日：${dayEntries.map((e) => e.name).join("、")}${dayEntries.length > 1 ? "（点击切换）" : ""}` : undefined} aria-label={dayEntries.length ? `${day} 日：${dayEntries.map((e) => e.name).join("、")}` : `${day} 日没有收录人物`}><span>{day}</span>{dayEntries.length > 0 && <span className="dots" aria-hidden="true">{dayEntries.map((entry) => <i key={entry.id} className={`dot ${entry.color}${entry.id === selected.id ? " active" : ""}`} />)}</span>}</button>; })}</div></div>
           <aside className="calendar-notes"><p className="eyebrow">THIS MONTH</p><h3>{monthEntries.length ? `${monthEntries.length} 个科学瞬间` : "正在整理中"}</h3>{monthEntries.length ? monthEntries.map((entry) => <button className="month-entry" type="button" key={entry.id} onClick={() => selectScientist(entry)}><span>{String(entry.day).padStart(2, "0")}</span><div><strong>{entry.name}</strong><small>{entry.relation} · {entry.field}</small></div><b>↗</b></button>) : <p>这一页将留给新的好奇心。</p>}<p className="calendar-tip">带有彩色圆点的日期收录了科学人物；同一天多位人物时，点击日期可切换查看，圆点高亮为当前人物。</p></aside></div>
       </section>
@@ -184,5 +184,5 @@ export default function Home() {
   // 服务端按 UTC 日期渲染，客户端水合后切换为本地日期；
   // 以日期为 key 让整页状态随之重新初始化，避免水合不一致，也无需在 effect 中 setState。
   const now = useSyncExternalStore(subscribeNoop, getLocalDate, getUTCDate);
-  return <Calendar key={`${now.month}-${now.day}`} now={now} />;
+  return <Calendar key={`${now.year}-${now.month}-${now.day}`} now={now} />;
 }
