@@ -270,61 +270,101 @@ def draw_entry(c: canvas.Canvas, entry: dict[str, str], page: int, total: int, q
     name_size = 40 if name_len <= 5 else (34 if name_len <= 7 else (28 if name_len <= 9 else (23 if name_len <= 11 else 19)))
     draw_text(c, entry["name"], left, 383, name_size)
     draw_text(c, entry["latinName"] + " · " + entry["country"], left, 358, 10, MUTED)
-    quotation = quotes.get(entry["id"])
-    quote_text = quotation["text"] if quotation else entry.get("quote")
-    quote_source = quotation["source"] if quotation else entry.get("quoteSource")
-    has_sourced_quote = bool(quote_text and quote_source)
-    if has_sourced_quote:
-        quote_end = draw_wrapped(c, "“" + quote_text + "”", left, 315, 490, 18, 26, HexColor("#B85E4C"))
-    else:
-        quote_end = draw_wrapped(c, "阅读线索｜" + entry["tagline"], left, 315, 490, 15, 23, MUTED)
-    divider_y = quote_end - 5
-    if has_sourced_quote:
-        draw_text(c, "— " + str(quote_source), left, quote_end - 5, 8, MUTED)
-        divider_y = quote_end - 20
-    c.setStrokeColor(LINE)
-    c.setLineWidth(0.7)
-    c.line(left, divider_y, W - 48, divider_y)
-    # ---------- 底部「核心贡献 / 你知道吗」卡片：固定底部、高度随内容动态，绝不浮空或遮挡故事 ----------
+    # ---------- 布局：固定卡片 + 受约束的引语/故事，全部在卡片顶(224)之上 ----------
+    # 卡片为固定矩形：底 224，顶 64，高 160。卡片圆角填充会覆盖其内部任何矢量，
+    # 因此上方的引语/故事/分隔线/来源的基线都必须 >= CONTENT_FLOOR(230)，
+    # 才能保证字形下沿 (size 12 下沿 227.6) 仍高于卡片顶 224，不会被遮。
+    CARD_BOTTOM = 224
+    CARD_TOP = 64
+    BOX_H = CARD_BOTTOM - CARD_TOP  # 160
+    CONTENT_FLOOR = 230              # 卡片顶 + 6px 安全
+
     contrib_w, fact_w = 205, 238
     pad_top, pad_bottom, label_gap = 16, 10, 22
-    card_bottom_fixed = 224                      # 卡片底边固定在原底部区域（高于页脚线 42）
-    max_box_h = card_bottom_fixed - (42 + 8)      # 卡片顶不越过页脚线之上 8
+    room = BOX_H - pad_top - pad_bottom - label_gap  # 134
 
     def fit_lines(text: str, width: float, size: float, leading: float) -> list[str]:
         lines = wrap_lines(c, text or "—", width, size)
-        room = max_box_h - pad_top - pad_bottom - label_gap
         max_lines = max(1, int(room // leading) + 1)
-        if len(lines) > max_lines:                  # 内容过长则截断末行，避免溢出卡片
+        if len(lines) > max_lines:
             lines = lines[:max_lines]
             lines[-1] = lines[-1][:max(1, len(lines[-1]) - 1)] + "…"
         return lines
 
     contrib_lines = fit_lines(entry["contribution"], contrib_w, 11, 15)
     fact_lines = fit_lines(entry["fact"], fact_w, 9, 13)
-    box_h = min(max_box_h, max(label_gap + (len(contrib_lines) - 1) * 15,
-                                label_gap + (len(fact_lines) - 1) * 13) + pad_top + pad_bottom)
-    card_top = card_bottom_fixed - box_h           # 底边固定，顶随高度上移
+    box_h = BOX_H
+    card_top = CARD_TOP
 
-    # 故事只画在分隔线之下、卡片之上；空间不足则截断，绝不进入卡片区域
-    story_top = divider_y - 30
-    story_floor = card_top - 20
-    max_story_lines = max(1, int((story_top - story_floor) // 20))
-    story_lines = wrap_lines(c, entry["story"], 490, 12)
-    if len(story_lines) > max_story_lines:
-        kept = story_lines[:max_story_lines - 1]
-        kept.append(story_lines[max_story_lines - 1][:max(1, len(story_lines[max_story_lines - 1]) - 1)] + "…")
-        draw_wrapped(c, "".join(kept), left, story_top, 490, 12, 20, INK)
+    # ---------- 引语：限制行数，使最后一行的基线 >= CONTENT_FLOOR ----------
+    quotation = quotes.get(entry["id"])
+    quote_text = quotation["text"] if quotation else entry.get("quote")
+    quote_source = quotation["source"] if quotation else entry.get("quoteSource")
+    has_sourced_quote = bool(quote_text and quote_source)
+    quote_size = 18 if has_sourced_quote else 15
+    quote_lead = 26 if has_sourced_quote else 23
+    quote_color = HexColor("#B85E4C") if has_sourced_quote else MUTED
+    quote_prefix = "“" if has_sourced_quote else "阅读线索｜"
+    quote_suffix = "”" if has_sourced_quote else ""
+    quote_full = quote_prefix + (quote_text or entry.get("tagline", "")) + quote_suffix
+    # 末行基线 >= CONTENT_FLOOR => n <= (315 - CONTENT_FLOOR)/lead + 1
+    max_q_lines = max(1, (315 - CONTENT_FLOOR) // quote_lead + 1)
+    if has_sourced_quote:
+        # 来源文字写在 quote_end 之下，强制 n<=3 以避免来源被推回与末行重叠
+        max_q_lines = min(max_q_lines, 3)
+    q_lines = wrap_lines(c, quote_full, 490, quote_size)
+    if len(q_lines) > max_q_lines:
+        q_lines = q_lines[:max_q_lines]
+        q_lines[-1] = q_lines[-1][:max(1, len(q_lines[-1]) - 1)] + "…"
+    quote_end = draw_wrapped(c, "".join(q_lines), left, 315, 490, quote_size, quote_lead, quote_color)
+    if has_sourced_quote:
+        src_y = max(quote_end - 5, CONTENT_FLOOR)
+        draw_text(c, "— " + str(quote_source), left, src_y, 8, MUTED)
+        divider_y = max(quote_end - 20, CONTENT_FLOOR + 5)
     else:
-        draw_wrapped(c, entry["story"], left, story_top, 490, 12, 20, INK)
+        divider_y = max(quote_end - 5, CONTENT_FLOOR + 5)
+    c.setStrokeColor(LINE)
+    c.setLineWidth(0.7)
+    c.line(left, divider_y, W - 48, divider_y)
 
+    # ---------- 故事：在分隔线与 CONTENT_FLOOR 之间，最后一行基线 >= CONTENT_FLOOR ----------
+    # 直接在固定 y 上逐行绘制（不再 join+rewrap），避免重新换行产生多余行穿入卡片
+    story_top = max(divider_y - 30, CONTENT_FLOOR + 20)
+    available = story_top - CONTENT_FLOOR
+    max_story_lines = max(0, available // 20 + 1)
+    if max_story_lines > 0:
+        story_lines = wrap_lines(c, entry["story"], 490, 12)
+        if len(story_lines) > max_story_lines:
+            kept = story_lines[:max_story_lines - 1]
+            src_line = story_lines[max_story_lines - 1]
+            kept.append(src_line[:max(1, len(src_line) - 1)] + "…")
+        else:
+            kept = story_lines
+        for idx, line in enumerate(kept):
+            y_line = story_top - idx * 20
+            if y_line < CONTENT_FLOOR:
+                break
+            draw_text(c, line, left, y_line, 12, INK)
+
+    # ---------- 卡片（最后画，确保任何越界都被覆盖也不影响已画的卡片） ----------
     c.setFillColor(HexColor("#F0EBE1"))
     c.roundRect(left, card_top, 235, box_h, 5, fill=1, stroke=0)
     c.roundRect(left + 255, card_top, 265, box_h, 5, fill=1, stroke=0)
+    # 卡片内文字：直接逐行绘制（不 join+rewrap），行高分别 15/13，底线不低于 card_top+pad_bottom
     draw_text(c, "核心贡献", left + 14, card_top + box_h - pad_top, 8, MUTED)
-    draw_wrapped(c, " ".join(contrib_lines), left + 14, card_top + box_h - pad_top - label_gap + 6, contrib_w, 11, 15, INK)
     draw_text(c, "你知道吗", left + 269, card_top + box_h - pad_top, 8, MUTED)
-    draw_wrapped(c, " ".join(fact_lines), left + 269, card_top + box_h - pad_top - label_gap + 7, fact_w, 9, 13, INK)
+    contrib_start_y = card_top + box_h - pad_top - label_gap + 6
+    for idx, line in enumerate(contrib_lines):
+        y_line = contrib_start_y - idx * 15
+        if y_line < card_top + pad_bottom:
+            break
+        draw_text(c, line, left + 14, y_line, 11, INK)
+    fact_start_y = card_top + box_h - pad_top - label_gap + 7
+    for idx, line in enumerate(fact_lines):
+        y_line = fact_start_y - idx * 13
+        if y_line < card_top + pad_bottom:
+            break
+        draw_text(c, line, left + 269, y_line, 9, INK)
 
     c.setStrokeColor(LINE)
     c.line(43, 42, W - 43, 42)
