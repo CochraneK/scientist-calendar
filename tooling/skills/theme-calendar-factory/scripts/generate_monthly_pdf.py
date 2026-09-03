@@ -4,7 +4,7 @@
 用法：
   python generate_monthly_pdf.py --config theme.json [--out output/pdf/月度版.pdf]
 
-版面：纵向 A4 + 三栏 best-fit 流式排版；某月条目过多时自动续页（页眉标注「续」）。
+版面：纵向 A4 + 三栏先列后行流式排版；某月条目过多时自动续页（页眉标注「续」）。
 本文件已内建本项目踩过的坑（见 SKILL.md），改字段映射即可换主题，不必改代码。
 """
 from __future__ import annotations
@@ -58,10 +58,30 @@ def _fix_dot(text, face):
     return text.replace("\u00b7", _CN_DOT) if face == "cn" else text
 
 
+# 句子结尾标点：没有结尾标点则补句号（中文语境优先）。
+_TERMINAL = "。！？.!?…」』）\"'»●"
+_PLACEHOLDER = "—"
+
+
+def ensure_terminal_punct(text: str) -> str:
+    t = (text or "").strip()
+    if not t:
+        return _PLACEHOLDER
+    if t[-1] in _TERMINAL:
+        return t
+    return t + "。"
+
+
 def draw_text(c, text, x, y, size, color=INK, face="cn"):
     c.setFillColor(color)
     c.setFont(font(face), size)
     c.drawString(x, y, _fix_dot(text, face))
+
+
+def draw_right(c, text, x, y, size, color=INK, face="cn"):
+    c.setFillColor(color)
+    c.setFont(font(face), size)
+    c.drawRightString(x, y, _fix_dot(text, face))
 
 
 def wrap_lines(c, text, width, size, face="cn", cap=None):
@@ -99,10 +119,15 @@ class Theme:
     def quote_of(self, entry: dict, quotes: dict) -> str:
         q = quotes.get(self.get(entry, "id"))
         if isinstance(q, dict) and q.get("text"):
-            return q["text"]
-        if isinstance(q, str) and q.strip():
-            return q
-        return self.get(entry, "tagline", "—")
+            text = q["text"]
+        elif isinstance(q, str) and q.strip():
+            text = q
+        else:
+            text = self.get(entry, "tagline", "—")
+        text = (text or "").strip()
+        if not text:
+            return _PLACEHOLDER
+        return ensure_terminal_punct(text)
 
 
 def block_height(c, entry, theme, quotes, col_w):
@@ -118,18 +143,22 @@ def block_height(c, entry, theme, quotes, col_w):
 
 
 def pack_month(c, entries, theme, quotes, col_w):
-    """best-fit 平衡分栏，超限续页。返回 [( [col0..colN], [col_x...] ), ...]"""
+    """先列后行：先填满第 0 栏(从上到下)，再填第 1 栏，再填第 2 栏；三栏满仍剩则续页。
+    阅读顺序 = col0 上→下、col1 上→下、col2 上→下，与排序序一致(非横向散排)。"""
     col_x = [MARGIN + i * (col_w + COL_GAP) for i in range(N_COLS)]
     pages, cols = [], [[] for _ in range(N_COLS)]
     col_y = [CONTENT_TOP] * N_COLS
+    ci = 0
     for entry in entries:
         h, _ = block_height(c, entry, theme, quotes, col_w)
-        ci = max(range(N_COLS), key=lambda i: col_y[i])
-        if col_y[ci] - h < CONTENT_BOTTOM:
-            pages.append((cols, col_x[:]))
-            cols = [[] for _ in range(N_COLS)]
-            col_y = [CONTENT_TOP] * N_COLS
-            ci = max(range(N_COLS), key=lambda i: col_y[i])
+        while col_y[ci] - h < CONTENT_BOTTOM:
+            if ci < N_COLS - 1:
+                ci += 1
+            else:
+                pages.append((cols, col_x[:]))
+                cols = [[] for _ in range(N_COLS)]
+                col_y = [CONTENT_TOP] * N_COLS
+                ci = 0
         cols[ci].append(entry)
         col_y[ci] -= h
     if any(cols):
@@ -149,7 +178,7 @@ def draw_header(c, month, count, theme, continuation=False):
     draw_text(c, sub, MARGIN + 60, H - 76, 10, MUTED)
     # 坑：标题含中文，必须用中文字体。用 Helvetica(latin) 会把汉字渲成豆腐块(III…)。
     title = theme.cfg.get("theme", {}).get("name", "主题日历")
-    draw_text(c, f"{title} · 月度版", W - MARGIN, H - 76, 8, MUTED)
+    draw_right(c, f"{title} · 月度版", W - MARGIN, H - 76, 8, MUTED)
     c.setStrokeColor(LINE)
     c.setLineWidth(0.8)
     c.line(MARGIN, HEADER_LINE, W - MARGIN, HEADER_LINE)
@@ -191,7 +220,7 @@ def draw_footer(c, page_no, total):
     c.setLineWidth(0.6)
     c.line(MARGIN, 30, W - MARGIN, 30)
     draw_text(c, f"第 {page_no:02d} 页 / 共 {total:02d} 页", MARGIN, 18, 8, MUTED)
-    draw_text(c, "每天认识一位", W - MARGIN, 18, 8, MUTED)
+    draw_right(c, "每天认识一位科学家", W - MARGIN, 18, 8, MUTED)
 
 
 def draw_cover(c, theme):

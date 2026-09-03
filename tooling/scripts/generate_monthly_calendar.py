@@ -68,6 +68,12 @@ def draw_text(c, text, x, y, size, color=INK, face="cn"):
     c.drawString(x, y, _fix_dot(text, face))
 
 
+def draw_right(c, text, x, y, size, color=INK, face="cn"):
+    c.setFillColor(color)
+    c.setFont(font(face), size)
+    c.drawRightString(x, y, _fix_dot(text, face))
+
+
 def wrap_lines(c, text, width, size, face="cn", cap=None):
     c.setFont(font(face), size)
     text = _fix_dot(text, face)
@@ -87,11 +93,29 @@ def wrap_lines(c, text, width, size, face="cn", cap=None):
     return lines
 
 
+# 句子结尾标点：没有结尾标点则补句号（中文语境优先）。
+_TERMINAL = "。！？.!?…」』）\"'»●"
+_PLACEHOLDER = "—"
+
+
+def ensure_terminal_punct(text: str) -> str:
+    t = (text or "").strip()
+    if not t:
+        return _PLACEHOLDER
+    if t[-1] in _TERMINAL:
+        return t
+    return t + "。"
+
+
 def quote_of(entry, quotes) -> str:
     q = quotes.get(entry["id"])
     if q and q.get("text"):
-        return q["text"]
-    return entry.get("tagline", "—")
+        text = q["text"].strip()
+    else:
+        text = (entry.get("tagline") or "").strip()
+    if not text:
+        return _PLACEHOLDER
+    return ensure_terminal_punct(text)
 
 
 # ---------- 区块几何 ----------
@@ -124,21 +148,27 @@ def block_quote_height(c, entry, quotes, col_w):
 
 
 def pack_month(c, entries, quotes, col_w):
-    """把一个月的条目用 best-fit 平衡分配到 N_COLS 栏；超限则续页。
+    """把一个月的条目按「先列后行」顺序分配到 N_COLS 栏：
+    先填满第 0 栏(从上到下)，再填第 1 栏，再填第 2 栏；三栏都满仍剩条目则续页。
+    阅读顺序即 col0 上→下、col1 上→下、col2 上→下，与排序顺序一致(非横向散排)。
     返回 list[page]，每页 = [col0_entries, col1_entries, col2_entries]。
     """
     col_x = [MARGIN + i * (col_w + COL_GAP) for i in range(N_COLS)]
     pages = []
     cols = [[] for _ in range(N_COLS)]
     col_y = [CONTENT_TOP] * N_COLS
+    ci = 0  # 当前填充栏
     for entry in entries:
         h, _ = block_quote_height(c, entry, quotes, col_w)
-        ci = max(range(N_COLS), key=lambda i: col_y[i])
-        if col_y[ci] - h < CONTENT_BOTTOM:
-            pages.append((cols, col_x[:]))
-            cols = [[] for _ in range(N_COLS)]
-            col_y = [CONTENT_TOP] * N_COLS
-            ci = max(range(N_COLS), key=lambda i: col_y[i])
+        # 当前栏放不下 → 尝试下一栏；所有栏都满 → 续页(回到第 0 栏)
+        while col_y[ci] - h < CONTENT_BOTTOM:
+            if ci < N_COLS - 1:
+                ci += 1
+            else:
+                pages.append((cols, col_x[:]))
+                cols = [[] for _ in range(N_COLS)]
+                col_y = [CONTENT_TOP] * N_COLS
+                ci = 0
         cols[ci].append(entry)
         col_y[ci] -= h
     if any(cols):
@@ -161,7 +191,7 @@ def draw_header(c, month, count, continuation=False):
         sub += " · 续"
     draw_text(c, sub, MARGIN + 60, H - 76, 10, MUTED)
     # 注意：这行含中文，必须用中文字体。用 Helvetica(latin) 会把汉字渲染成豆腐块(III…)。
-    draw_text(c, f"科学家日历 · 月度生日版 · {EDITION_YEAR}", W - MARGIN, H - 76, 8, MUTED)
+    draw_right(c, f"科学家日历 · 月度生日版 · {EDITION_YEAR}", W - MARGIN, H - 76, 8, MUTED)
     c.setStrokeColor(LINE)
     c.setLineWidth(0.8)
     c.line(MARGIN, HEADER_LINE, W - MARGIN, HEADER_LINE)
@@ -208,7 +238,7 @@ def draw_footer(c, page_no, total):
     c.setLineWidth(0.6)
     c.line(MARGIN, 30, W - MARGIN, 30)
     draw_text(c, f"第 {page_no:02d} 页 / 共 {total:02d} 页", MARGIN, 18, 8, MUTED)
-    draw_text(c, "每天认识一位科学家", W - MARGIN, 18, 8, MUTED)
+    draw_right(c, "每天认识一位科学家", W - MARGIN, 18, 8, MUTED)
 
 
 def draw_cover(c):
