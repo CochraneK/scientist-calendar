@@ -60,19 +60,32 @@ def api_get(params: dict) -> dict:
 
 
 def julian_to_gregorian(year: int, month: int, day: int):
-    """把儒略历日期换算为格里历（proleptic，适用于 1582 年前后的全部年份）。"""
-    jd = datetime.date(year, month, day).toordinal() + 1_721_425
-    # 儒略日 -> 格里历（算法参考 Fliegel–Van Flandern 逆变换）
-    alpha = int((jd - 1_867_216.25) / 36524.25)
-    a = jd + 1 + alpha - (alpha // 4)
-    b = a + 1524
-    c = int((b - 122.1) / 365.25)
-    d = int(365.25 * c)
-    e = int((b - d) / 30.6001)
-    day = int(b - d - int(30.6001 * e))
-    month = e - 1 if e < 14 else e - 13
-    year = c - 4716 if month > 2 else c - 4715
-    return year, month, day
+    """把儒略历日期换算为格里历（proleptic，适用于 1582 年前后的全部年份）。
+
+    坑（原先这里是静默失效的恒等变换）：
+      不能用 datetime.date(y, m, d).toordinal() 求儒略日 —— datetime 用的是
+      「前置格里历」(proleptic Gregorian)，会把输入的儒略历日期当成格里历，
+      于是变成「格里历 -> JDN -> 格里历」的恒等运算，换算永远不生效，
+      导致一批 9~13 天偏移的历史人物被误报为日期错误。
+      儒略历日期必须先用儒略历专用公式算 JDN，再用 Fliegel–Van Flandern
+      逆变换转回格里历。
+    """
+    # 1) 儒略历日期 -> 儒略日 JDN（儒略历专用公式）
+    a = (14 - month) // 12
+    y = year + 4800 - a
+    m = month + 12 * a - 3
+    jd = day + (153 * m + 2) // 5 + 365 * y + y // 4 - 32083
+    # 2) 儒略日 -> 格里历（Fliegel–Van Flandern 逆变换，格里历版）
+    b = jd + 32044
+    c = (4 * b + 3) // 146097
+    d = b - (146097 * c) // 4
+    e = (4 * d + 3) // 1461
+    f = d - (1461 * e) // 4
+    g = (5 * f + 2) // 153
+    day_out = f - (153 * g + 2) // 5 + 1
+    month_out = g + 3 - 12 * (g // 10)
+    year_out = 100 * c + e - 4800 + g // 10
+    return year_out, month_out, day_out
 
 
 def parse_claim(value: dict):
@@ -218,6 +231,8 @@ def main() -> int:
 
     date_issues: list[str] = []
     year_issues: list[str] = []
+    calendar_issues: list[str] = []
+    qid_issues: list[str] = []
     no_data: list[str] = []
 
     for entry in scientists:
@@ -236,30 +251,98 @@ def main() -> int:
         label = f"{entry['name']}（{entry['id']} / {qid}）"
         dataset_month, dataset_day = entry["month"], entry["day"]
 
-        # 1) 日期：只要任一非 deprecated 声明与档案一致即通过
-        candidates = {
+        # ---- 先算好年份与 QID 可信度，日期比对要用 ----
+        birth_years = {year for _, year, _, _, _ in births}
+        death_years = {year for _, year, _, _, _ in deaths}
+        dataset_years = parse_dataset_years(entry.get("years", ""))
+        d_birth = int(dataset_years[0]) if dataset_years and dataset_years[0] else None
+        d_death = (
+            int(dataset_years[1])
+            if dataset_years and len(dataset_years) > 1 and dataset_years[1]
+            else None
+        )
+        # QID 存疑：生/卒年相差 >2 年，几乎不可能是同一人（多半挂到同名或他人条目）。
+        # 一旦 QID 存疑，日期比对就是在跟"另一个人"比，结果无意义 → 并入 QID 清单。
+        qid_suspect = bool(
+            (d_birth is not None and birth_years and all(abs(y - d_birth) > 2 for y in birth_years))
+            or (d_death is not None and death_years and all(abs(y - d_death) > 2 for y in death_years))
+        )
+
+        # 1) 日期：任一非 deprecated 声明与档案一致即通过。
+        #    重要：Wikidata 很多条目把"旧历(儒略历)日期"直接存为格里历串而不带历法限定符，
+        #    因此除直接比对，还要比对"该日期按儒略→格里换算后"是否等于档案日期。
+        raw_candidates = {
             (month, day)
             for _, year, month, day, _ in births
             if month and day
         }
-        if candidates and (dataset_month, dataset_day) not in candidates:
-            shown = "、".join(f"{m}月{d}日" for m, d in sorted(candidates))
-            date_issues.append(f"{label}: 档案 {dataset_month}月{dataset_day}日，Wikidata 记录 {shown}")
+        candidates = set(raw_candidates)
+        calendar_notes = []
+        calendar_hit = False
+        for _, year, month, day, _ in births:
+            if not (month and day):
+                continue
+            try:
+                gy, gm, gd = julian_to_gregorian(year, month, day)
+            except ValueError:
+                continue
+            if (gm, gd) not in candidates:
+                candidates.add((gm, gd))
+            if (gm, gd) == (dataset_month, dataset_day) and (month, day) not in raw_candidates:
+                calendar_hit = True
+                calendar_notes.append(
+                    f"{label}: 档案 {dataset_month}月{dataset_day}日(格里) = Wikidata "
+                    f"{month}月{day}日(儒略) —— 历法差异非错误"
+                )
+        # 2) 反向：档案存的是旧历(儒略历)，Wikidata 存的是换算后的格里历。
+        #    例：开普勒 档案 1571年12月27日(儒略) = 1572年1月6日(格里)，
+        #    连"生年 1571 vs 1572"的差异也是历法造成的，所以命中后要豁免年份比对。
+        if not calendar_hit and d_birth is not None:
+            try:
+                fy, fm, fd = julian_to_gregorian(d_birth, dataset_month, dataset_day)
+            except ValueError:
+                fy = fm = fd = None
+            if fm and (fm, fd) in raw_candidates:
+                calendar_hit = True
+                calendar_issues.append(
+                    f"{label}: 档案 {d_birth}年{dataset_month}月{dataset_day}日(儒略) = "
+                    f"{fy}年{fm}月{fd}日(格里)，Wikidata 采用格里历 —— 历法差异非错误"
+                )
+        if candidates and (dataset_month, dataset_day) not in candidates and not calendar_hit:
+            shown = "、".join(f"{m}月{d}日" for m, d in sorted(raw_candidates))
+            msg = f"{label}: 档案 {dataset_month}月{dataset_day}日，Wikidata 记录 {shown}"
+            if qid_suspect:
+                # 跟"另一个人"比日期没有意义，并入 QID 清单
+                qid_issues.append(msg + " —— 随 QID 存疑，需先核对 QID")
+            else:
+                date_issues.append(msg)
+        # 命中「换算后一致」的，归入历法差异清单（信息，不算错误）
+        calendar_issues.extend(calendar_notes)
 
-        # 2) 年份
-        birth_years = {year for _, year, _, _, _ in births}
-        death_years = {year for _, year, _, _, _ in deaths}
-        dataset_years = parse_dataset_years(entry.get("years", ""))
-        if dataset_years:
+        # 3) 年份：历法差异造成的跨年（如开普勒 1571→1572）不视为错误
+        if not calendar_hit and dataset_years:
             d_birth, d_death = dataset_years
+            # 年份相差 >2 年几乎不可能是同一人 —— 多半是 QID 挂到了同名/他人条目，
             if birth_years and d_birth not in birth_years:
-                year_issues.append(
-                    f"{label}: 档案生年 {d_birth}，Wikidata {'、'.join(map(str, sorted(birth_years)))}"
-                )
+                if all(abs(y - d_birth) > 2 for y in birth_years):
+                    qid_issues.append(
+                        f"{label}: 档案生年 {d_birth}，Wikidata "
+                        f"{'、'.join(map(str, sorted(birth_years)))} —— QID 可能指向他人，请核对"
+                    )
+                else:
+                    year_issues.append(
+                        f"{label}: 档案生年 {d_birth}，Wikidata {'、'.join(map(str, sorted(birth_years)))}"
+                    )
             if d_death is not None and death_years and d_death not in death_years:
-                year_issues.append(
-                    f"{label}: 档案卒年 {d_death}，Wikidata {'、'.join(map(str, sorted(death_years)))}"
-                )
+                if all(abs(y - d_death) > 2 for y in death_years):
+                    qid_issues.append(
+                        f"{label}: 档案卒年 {d_death}，Wikidata "
+                        f"{'、'.join(map(str, sorted(death_years)))} —— QID 可能指向他人，请核对"
+                    )
+                else:
+                    year_issues.append(
+                        f"{label}: 档案卒年 {d_death}，Wikidata {'、'.join(map(str, sorted(death_years)))}"
+                    )
 
     print()
     if no_data:
@@ -278,6 +361,22 @@ def main() -> int:
             print("  -", line)
     else:
         print("✓ 生卒年份全部与 Wikidata 一致")
+    print()
+    # 以下两类均为"信息"，不算数据错误：历法差异是 Wikidata 存旧历所致，
+    # QID 存疑是校验锚点挂错人所致，都需要改脚本/改 QID，而不是改数据。
+    if calendar_issues:
+        print(f"ℹ 历法差异（儒略历→格里历，档案正确，非错误）{len(calendar_issues)} 条：")
+        for line in calendar_issues:
+            print("  -", line)
+        print()
+    if qid_issues:
+        print(f"⚠ QID 疑似指向他人（需核对 QID，不建议盲改数据）{len(qid_issues)} 条：")
+        for line in qid_issues:
+            print("  -", line)
+        print()
+    real_errors = len(date_issues) + len(year_issues)
+    print(f"== 汇总：真实数据错误 {real_errors} 条；"
+          f"历法差异 {len(calendar_issues)} 条；QID 存疑 {len(qid_issues)} 条 ==")
     return 0
 
 

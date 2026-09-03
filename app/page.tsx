@@ -129,7 +129,7 @@ function Calendar({ now }: { now: DateParts }) {
           <p className="eyebrow">THE DAILY SCIENCE NOTEBOOK · {now.year}</p>
           <h1 id="hero-title">每天，<br /><em>遇见一个</em><br />改变世界的念头。</h1>
           <p className="hero-text">一份写给好奇心的科学日历。从一位科学家、一项发现，走进人类理解世界的方式。</p>
-          <div className="hero-actions"><a className="button-primary" href="#today">阅读今日人物 <span>↓</span></a><a className="button-secondary" href={`print/科学家日历_精选${scientists.length}位_A4打印版.pdf`} download>获取 A4 打印版 <span>↓</span></a><a className="text-link" href="#calendar">查看月历 <span>→</span></a></div>
+          <div className="hero-actions"><a className="button-primary" href="#today">阅读今日人物 <span>↓</span></a><a className="button-secondary" href={`print/科学家日历_精选${scientists.length}位_A4打印版.pdf`} download>获取 A4 打印版 <span>↓</span></a><a className="button-secondary" href="print/科学家日历_月度生日版_A4.pdf" download>月度生日版（生日·名字·名言）<span>↓</span></a><a className="text-link" href="#calendar">查看月历 <span>→</span></a></div>
         </div>
         <div className="orbit-art" aria-hidden="true">
           <div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="orbit orbit-three" />
