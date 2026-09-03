@@ -127,6 +127,14 @@ page.get_drawings()      # -> 填充矩形（可据此定位卡片/色块）
     - **修法**：凡含中文的行一律不要带 `"latin"`；只有纯数字/英文（如 `"DAILY NOTEBOOK"`、日期 `12.31`）才用 `"latin"`。
     - **永久回归护栏**：`verify_pdf_layout.py` 已内置 `--check-tofu`（默认开），用 `re.findall(r"I{3,}", page_text)` 抓豆腐块，
       每次生成 PDF 后跑一遍，豆腐块必须为 0 才发版。科学家日历的月度版就曾带着这个 bug 发版，靠 smoke-test 才抓出。
+17. **中文名姓/分隔用的 `·`（U+00B7 MIDDLE DOT）在 STSong-Light 下整段丢失**。
+    数据里「名·姓」（如 `阿尔伯特·爱因斯坦`）以及副标题/页脚分隔「 · 」都依赖 U+00B7。
+    但 STSong-Light(Adobe-GB1 CID 字体) 没有 U+00B7 的字形，reportlab 画到该字符会把**之后的整段文字一起丢掉**
+    （月度版变成「阿尔伯特爱因斯坦」名姓粘连，精选版更狠——把姓截掉只剩名）。
+    - **根因**：CID 字体 CMap 未含 U+00B7，reportlab 遇不可映射字符直接省略后续内容。
+    - **修法**：`draw_text`/`draw_centered`/`wrap_lines` 在 `face="cn"` 时把 `U+00B7` 替换为 `U+30FB`（片假名中点，CID 字体有字形、视觉等价）；
+      拉丁 face（Helvetica）保留 U+00B7（WinAnsi 含 0xB7，正常渲染）。
+    - **验证**：重生成后用 PyMuPDF 抽 `阿尔伯特·爱因斯坦`，确认中间点码位存在（extract 回映射成 0xb7 也属正常）。
 
 ## 六、发布到 GitHub Pages
 
