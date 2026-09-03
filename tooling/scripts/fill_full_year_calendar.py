@@ -15,7 +15,7 @@ from opencc import OpenCC
 from bs4 import BeautifulSoup
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 PAGE = ROOT / "app" / "page.tsx"
 DATA = ROOT / "app" / "data" / "scientists.json"
 QUOTES = ROOT / "app" / "data" / "quotes.json"

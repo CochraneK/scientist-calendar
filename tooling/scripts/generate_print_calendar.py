@@ -12,7 +12,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / "app" / "data" / "scientists.json"
 QUOTES = ROOT / "app" / "data" / "quotes.json"
 OUTPUT_DIR = ROOT / "output" / "pdf"
@@ -53,20 +53,30 @@ def font(name: str = "cn") -> str:
     return "STSong-Light" if name == "cn" else "Helvetica"
 
 
+# STSong-Light(Adobe-GB1 CID 字体)不含 U+00B7(MIDDLE DOT)字形，画到 · 会整段丢失；
+# 数据里名姓用 U+00B7 分隔，画中文(face="cn")时统一替换为 U+30FB(片假名中点，CID 可渲染)。
+_CN_DOT = "\u30fb"
+
+
+def _fix_dot(text: str, face: str) -> str:
+    return text.replace("\u00b7", _CN_DOT) if face == "cn" else text
+
+
 def draw_text(c: canvas.Canvas, text: str, x: float, y: float, size: float, color=INK, face="cn") -> None:
     c.setFillColor(color)
     c.setFont(font(face), size)
-    c.drawString(x, y, text)
+    c.drawString(x, y, _fix_dot(text, face))
 
 
 def draw_centered(c: canvas.Canvas, text: str, x: float, y: float, size: float, color=INK, face="cn") -> None:
     c.setFillColor(color)
     c.setFont(font(face), size)
-    c.drawCentredString(x, y, text)
+    c.drawCentredString(x, y, _fix_dot(text, face))
 
 
 def wrap_lines(c: canvas.Canvas, text: str, width: float, size: float, face="cn") -> list[str]:
     c.setFont(font(face), size)
+    text = _fix_dot(text, face)
     lines, current = [], ""
     for char in text:
         if c.stringWidth(current + char, font(face), size) <= width:
