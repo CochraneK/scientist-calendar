@@ -150,7 +150,8 @@ def draw_header(c, month, count, continuation=False):
     if continuation:
         sub += " · 续"
     draw_text(c, sub, MARGIN + 60, H - 76, 10, MUTED)
-    draw_text(c, f"科学家日历 · 月度生日版 · {EDITION_YEAR}", W - MARGIN, H - 76, 8, MUTED, "latin")
+    # 注意：这行含中文，必须用中文字体。用 Helvetica(latin) 会把汉字渲染成豆腐块(III…)。
+    draw_text(c, f"科学家日历 · 月度生日版 · {EDITION_YEAR}", W - MARGIN, H - 76, 8, MUTED)
     c.setStrokeColor(LINE)
     c.setLineWidth(0.8)
     c.line(MARGIN, HEADER_LINE, W - MARGIN, HEADER_LINE)
