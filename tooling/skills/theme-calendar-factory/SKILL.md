@@ -53,9 +53,9 @@ agent_created: true
 生成器代码一动不动。例如医学日历把 `cardA` 映射到 `代表成就`、`field` 映射到 `科室`。
 
 ```bash
-python scripts/generate_daily_pdf.py   --config theme.json
-python scripts/generate_monthly_pdf.py --config theme.json
-python scripts/verify_pdf_layout.py output/pdf/xxx.pdf --card-color F0EBE1
+python tooling/scripts/generate_daily_pdf.py   --config theme.json
+python tooling/scripts/generate_monthly_pdf.py --config theme.json
+python tooling/scripts/verify_pdf_layout.py output/pdf/xxx.pdf --card-color F0EBE1
 ```
 
 ## 四、验收：看不到图时怎么保证版面正确（最关键的一节）
@@ -117,7 +117,7 @@ page.get_drawings()      # -> 填充矩形（可据此定位卡片/色块）
 14. **沙箱/受限环境里 `rm -rf dist` 可能触发批量删除保护而失败**，
     导致 `npm test` 挂在清空输出目录这步——这不是代码问题。用 `mv dist tmp/dist_old` 绕开
     （`tmp/` 通常已被 gitignore）。判断标准：看 transform 是否成功，而非 emptyDir 是否报错。
-15. **验证脚本不要放在 `tmp/`**（通常被 gitignore，无法随项目迁移和复用），要放进 `scripts/` 提交。
+15. **验证脚本不要放在 `tmp/`**（通常被 gitignore，无法随项目迁移和复用），要放进 `tooling/scripts/` 提交（与生成器同目录）。
 
 ### 字体 / 渲染类
 16. **中文标题/文字误用拉丁字体 → 豆腐块（连续 `III…`）**。
@@ -139,12 +139,41 @@ page.get_drawings()      # -> 填充矩形（可据此定位卡片/色块）
 
 ## 七、迁移清单（换个主题照着走）
 
-- [ ] 准备 `entries.json`（≥365 天覆盖）+ `quotes.json`（按 id 索引；没有就用 tagline 回落）
-- [ ] 复制 `assets/theme.example.json` 改名，填 `theme` 与 `fieldMap`
-- [ ] `python scripts/generate_daily_pdf.py --config theme.json`
-- [ ] `python scripts/generate_monthly_pdf.py --config theme.json`
-- [ ] `python scripts/verify_pdf_layout.py <pdf>` 两份都跑，**压字必须为 0**
+- [ ] 准备 `entries.json`（≥365 天覆盖）+ `quotes.json`（按 id 索引；没有就用 tagline 回落），**放进 `app/data/`**
+- [ ] 复制 `assets/theme.example.json` 改名，填 `theme` 与 `fieldMap`（`entryFile`/`quoteFile` 已默认指向 `app/data/`）
+- [ ] `python tooling/scripts/generate_daily_pdf.py --config theme.json`
+- [ ] `python tooling/scripts/generate_monthly_pdf.py --config theme.json`
+- [ ] `python tooling/scripts/verify_pdf_layout.py <pdf>` 两份都跑，**压字必须为 0**
 - [ ] 每日版若保留卡片：`--card-color F0EBE1 --allow-file <卡片允许词条>`
 - [ ] 数据体检：`verify_dates` / `verify_facts`，按第五节的 8–12 条分辨真假阳性
 - [ ] 复制到 `public/print/` + `docs/print/`，提交推送，核验 Pages 200 + 文件大小一致
 - [ ] 网页上补上新 PDF 的下载入口（**容易漏**：之前新增月度版就忘了挂链接）
+
+### 七·附：默认目录布局（新项目开箱即用，别再走科学家日历踩坑的老路）
+
+科学家日历复盘后定下的整洁下限：**数据、脚本、测试、Skill、独立静态站各归其位**，根目录只留框架锁死项。
+
+```
+<project>/
+├─ app/                      # Next.js 站点
+│  ├─ data/                  # 数据集：scientists.json / quotes.json / curated_content*.json
+│  ├─ page.tsx
+│  └─ ...
+├─ public/                   # 静态素材（含 print/ PDF）
+├─ docs/                     # GitHub Pages 发布目录（build:pages 输出）
+├─ worker/                   # Cloudflare Worker
+├─ tooling/                  # 非站点工程资产
+│  ├─ scripts/              # generate_daily_pdf.py / generate_monthly_pdf.py / verify_pdf_layout.py / verify_dates.py ...
+│  ├─ tests/                 # 渲染/数据测试
+│  ├─ skills/                # 本 Skill 的项目内副本：skills/theme-calendar-factory/
+│  └─ pages/                 # 独立静态站（vite，outDir 指向上层 ../../docs）
+└─ （根目录仅剩框架锁死项：next.config.ts / vite.config.ts / package.json / tsconfig.json /
+     postcss.config.mjs / README.md / .git* / .workbuddy / node_modules —— 约 17 项硬下限）
+```
+
+- **数据 JSON 一律进 `app/data/`**：`app/` 根从 12 项降到 3 项，避免"母路径一堆 JSON 外露"。
+- **生成/验证脚本一律进 `tooling/scripts/`**：与 `scripts/` 平铺相比，根目录少一堆 `.py` 外露。
+- **本 Skill 同时存一份到 `tooling/skills/theme-calendar-factory/`**，随项目走，新人 clone 即有一致工具链。
+- **独立静态站放 `tooling/pages/`**，其 `vite.config.ts` 用 `outDir: "../../docs"`、`publicDir: "../../public"` 指回上层。
+- 根目录"乱"的真相：**约一半是框架硬约束（Next/Vite/Cloudflare 配置必须根置），一半是没提前规划布局**。
+  上面这套布局是框架约束下最干净的下限，新项目直接套，别再平铺。

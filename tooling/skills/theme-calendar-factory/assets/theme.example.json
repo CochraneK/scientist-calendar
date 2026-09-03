@@ -7,9 +7,11 @@
     "unitLabel": "位医者"
   },
 
-  "entryFile": "app/doctors.json",
-  "quoteFile": "app/quotes.json",
+  "entryFile": "app/data/doctors.json",
+  "quoteFile": "app/data/quotes.json",
   "outputDir": "output/pdf",
+
+  "_layout_comment": "默认整洁布局（科学家日历复盘得出）：数据集放 app/data/，开发脚本放 tooling/scripts/，测试放 tooling/tests/，本 Skill 放 tooling/skills/，独立静态站放 tooling/pages/。根目录只剩框架锁定项 + app/public/worker/docs/node_modules/tooling，约 17 项硬下限。",
 
   "_fieldMap_comment": "把『逻辑角色』映射到你的 JSON 实际字段名。缺失的角色可用空字符串。",
   "fieldMap": {
