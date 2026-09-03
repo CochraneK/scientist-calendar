@@ -32,6 +32,7 @@
 from __future__ import annotations
 
 import argparse
+import re
 import sys
 from pathlib import Path
 
@@ -79,14 +80,24 @@ def verify(
     floor_y: float | None = None,
     footer_y: float | None = None,
     check_bounds: bool = False,
+    check_tofu: bool = True,
 ):
     doc = fitz.open(pdf_path)
     pairwise: list[tuple] = []
     leaks: list[tuple] = []
     oob: list[tuple] = []
+    tofu: list[tuple] = []
 
     for pno in range(doc.page_count):
         page = doc[pno]
+        # 豆腐块检测：中文被交给无中文字形的字体(如 Helvetica)渲染时，
+        # 提取出来会变成连续的 "I"。这类问题肉眼在页面上很难发现（看着像乱码），
+        # 但压字检测完全查不出来。
+        if check_tofu:
+            text = page.get_text()
+            bad = re.findall(r"I{3,}", text)
+            if bad:
+                tofu.append((pno + 1, bad[:3], "中文可能用了拉丁字体渲染"))
         h = page.rect.height
         # 每页按自身高度推导边界 —— 同一份 PDF 可能有横版/纵版混排
         hy = header_y if header_y is not None else ratio_header * h
@@ -115,8 +126,8 @@ def verify(
                         (pno + 1, wi[4], wj[4], round(ox, 1), round(oy, 1))
                     )
 
-    total = len(pairwise) + len(leaks) + len(oob)
-    return doc.page_count, pairwise, leaks, oob, total
+    total = len(pairwise) + len(leaks) + len(oob) + len(tofu)
+    return doc.page_count, pairwise, leaks, oob, tofu, total
 
 
 def main() -> int:
@@ -149,6 +160,19 @@ def main() -> int:
     ap.add_argument("--floor-y", type=float, default=None, help="显式指定内容区下沿(覆盖比例推导)")
     ap.add_argument("--footer-y", type=float, default=None, help="显式指定页脚区起点(覆盖比例推导)")
     ap.add_argument("--th", type=float, default=1.2, help="压字判定阈值(pt)")
+    ap.add_argument(
+        "--check-tofu",
+        dest="check_tofu",
+        action="store_true",
+        default=True,
+        help="启用豆腐块(中文用拉丁字体渲染成连续 I)检测（默认开）",
+    )
+    ap.add_argument(
+        "--no-check-tofu",
+        dest="check_tofu",
+        action="store_false",
+        help="关闭豆腐块检测",
+    )
     ap.add_argument("--max-report", type=int, default=20)
     ap.add_argument("--quiet", action="store_true", help="只输出汇总")
     args = ap.parse_args()
@@ -165,7 +189,7 @@ def main() -> int:
             sys.exit(f"找不到 allow-file：{p}")
         allow += [ln.strip() for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
 
-    pages, pairwise, leaks, oob, total = verify(
+    pages, pairwise, leaks, oob, tofu, total = verify(
         pdf_path,
         card_rgb,
         allow,
@@ -177,6 +201,7 @@ def main() -> int:
         args.floor_y,
         args.footer_y,
         check_bounds=args.check_bounds,
+        check_tofu=args.check_tofu,
     )
 
     if not args.quiet:
@@ -199,9 +224,10 @@ def main() -> int:
     report("卡片内混入外来文字", leaks)
     report("内容越界（撞页眉/越内容底线）", oob)
     report("两两文字压字", pairwise)
+    report("豆腐块（中文用拉丁字体渲染成连续 I）", tofu)
 
     status = "✓ 通过" if total == 0 else f"✗ 发现 {total} 处"
-    print(f"== 汇总：{status}（压字 {len(pairwise)} / 越界 {len(oob)} / 卡片泄漏 {len(leaks)}）==")
+    print(f"== 汇总：{status}（压字 {len(pairwise)} / 越界 {len(oob)} / 卡片泄漏 {len(leaks)} / 豆腐块 {len(tofu)}）==")
     return 0 if total == 0 else 1
 
 
