@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "vinext dev",
     "build": "vinext build",
-    "build:pages": "vite build --config static/vite.config.ts",
+    "build:pages": "vite build --config tooling/pages/vite.config.ts",
     "start": "vinext start",
     "test": "npm run build && node --test tooling/tests/rendered-html.test.mjs",
     "lint": "eslint . --config tooling/eslint.config.mjs --ignore-pattern dist --ignore-pattern .next",

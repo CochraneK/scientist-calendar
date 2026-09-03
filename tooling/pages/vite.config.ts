@@ -8,7 +8,7 @@ function copyExtras() {
   return {
     name: "copy-docs-extras",
     closeBundle() {
-      const outDir = fileURLToPath(new URL("../docs", import.meta.url));
+      const outDir = fileURLToPath(new URL("../../docs", import.meta.url));
       for (const name of ["backup-candidates.md"]) {
         mkdirSync(outDir, { recursive: true });
         copyFileSync(new URL(`./extras/${name}`, import.meta.url), `${outDir}/${name}`);
@@ -20,10 +20,10 @@ function copyExtras() {
 export default defineConfig({
   root: fileURLToPath(new URL(".", import.meta.url)),
   base: "/scientist-calendar/",
-  publicDir: "../public",
+  publicDir: "../../public",
   plugins: [react(), copyExtras()],
   build: {
-    outDir: "../docs",
+    outDir: "../../docs",
     emptyOutDir: true,
   },
 });

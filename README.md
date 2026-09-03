@@ -19,8 +19,8 @@
 | `app/` | 主应用（vinext + React 19），`page.tsx` 同时供静态站复用 |
 | `app/scientists.json` | 466 位科学家档案（日期、领域、生卒年、贡献、轶事） |
 | `app/quotes.json` | 人物语录，按 id 索引 |
-| `static/` | Vite 静态站（base `/scientist-calendar/`），构建输出到 `docs/` |
-| `static/extras/` | 构建后复制进 `docs/` 的附加文件（如 `backup-candidates.md`） |
+| `tooling/pages/` | Vite 静态站（base `/scientist-calendar/`），构建输出到 `docs/` |
+| `tooling/pages/extras/` | 构建后复制进 `docs/` 的附加文件（如 `backup-candidates.md`） |
 | `docs/` | 静态站构建产物，GitHub Pages 直接从这里发布 |
 | `public/` | 共享资源：`avatars/` 肖像、`avatars.json` 头像清单、`art/` 插画、`print/` 打印 PDF |
 | `tooling/` | 开发工具集合：脚本、测试与迁移 Skill |
@@ -69,7 +69,7 @@ cp "output/pdf/科学家日历_精选466位_A4打印版.pdf" "public/print/" && 
 ## 数据维护
 
 - 一致性测试在 `tooling/tests/rendered-html.test.mjs`：id 唯一、365 天全覆盖、头像清单与语录引用完整
-- 扩充候选池：`static/extras/backup-candidates.md`（随站点发布）
+- 扩充候选池：`tooling/pages/extras/backup-candidates.md`（随站点发布）
 
 ## 发布
 
