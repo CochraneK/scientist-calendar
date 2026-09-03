@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """用 Wikidata 交叉核验科学家日历的生卒日期。
 
-数据源说明：`app/scientists.json` 里 `auto-q<QID>` 形式的 id 直接对应 Wikidata 实体号；
+数据源说明：`app/data/scientists.json` 里 `auto-q<QID>` 形式的 id 直接对应 Wikidata 实体号；
 其余自定义 id（如 newton、einstein）用拉丁姓名回查 Wikidata 搜索接口定位实体。
 
 核验要点：
@@ -33,7 +33,7 @@ import urllib.request
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-DATA = ROOT / "app" / "scientists.json"
+DATA = ROOT / "app" / "data" / "scientists.json"
 CACHE = ROOT / "output" / "wikidata-cache.json"   # output/ 已被 .gitignore 忽略
 API = "https://www.wikidata.org/w/api.php"
 HEADERS = {"User-Agent": "scientist-calendar/1.0 (data verification script)"}

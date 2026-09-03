@@ -5,8 +5,8 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA = ROOT / "app" / "scientists.json"
-PACKS = sorted((ROOT / "app").glob("curated_content*.json"))
+DATA = ROOT / "app" / "data" / "scientists.json"
+PACKS = sorted((ROOT / "app" / "data").glob("curated_content*.json"))
 
 
 def main() -> None:

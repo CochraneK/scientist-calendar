@@ -17,8 +17,8 @@ from reportlab.pdfbase.cidfonts import UnicodeCIDFont
 from reportlab.pdfgen import canvas
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA = ROOT / "app" / "scientists.json"
-QUOTES = ROOT / "app" / "quotes.json"
+DATA = ROOT / "app" / "data" / "scientists.json"
+QUOTES = ROOT / "app" / "data" / "quotes.json"
 OUTPUT_DIR = ROOT / "output" / "pdf"
 EDITION_YEAR = datetime.date.today().year
 

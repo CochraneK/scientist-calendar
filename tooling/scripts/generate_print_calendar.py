@@ -13,8 +13,8 @@ from reportlab.lib.utils import ImageReader
 
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA = ROOT / "app" / "scientists.json"
-QUOTES = ROOT / "app" / "quotes.json"
+DATA = ROOT / "app" / "data" / "scientists.json"
+QUOTES = ROOT / "app" / "data" / "quotes.json"
 OUTPUT_DIR = ROOT / "output" / "pdf"
 # 版次年份随生成时间走，避免每年都要手改硬编码。
 EDITION_YEAR = datetime.date.today().year

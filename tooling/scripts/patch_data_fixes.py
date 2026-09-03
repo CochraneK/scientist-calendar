@@ -38,8 +38,8 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SCIENTISTS = ROOT / "app" / "scientists.json"
-QUOTES = ROOT / "app" / "quotes.json"
+SCIENTISTS = ROOT / "app" / "data" / "scientists.json"
+QUOTES = ROOT / "app" / "data" / "quotes.json"
 AVATARS = ROOT / "public" / "avatars.json"
 
 JACOBI = {

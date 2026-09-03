@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """科学家日历数据集体检脚本。
 
-用途：在改动 app/scientists.json / app/quotes.json / public/avatars.json 之后跑一遍，
+用途：在改动 app/data/scientists.json / app/data/quotes.json / public/avatars.json 之后跑一遍，
 把「结构性错误」和「格式不统一」一次性列出来，避免脏数据混入构建产物。
 
 检查项：
@@ -24,8 +24,8 @@ import unicodedata
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
-SCIENTISTS = ROOT / "app" / "scientists.json"
-QUOTES = ROOT / "app" / "quotes.json"
+SCIENTISTS = ROOT / "app" / "data" / "scientists.json"
+QUOTES = ROOT / "app" / "data" / "quotes.json"
 AVATARS = ROOT / "public" / "avatars.json"
 AVATAR_DIR = ROOT / "public" / "avatars"
 

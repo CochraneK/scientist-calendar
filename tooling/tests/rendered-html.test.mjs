@@ -33,7 +33,7 @@ async function loadJson(relativePath) {
 test("server-renders the calendar page", async () => {
   const [response, scientists] = await Promise.all([
     render(),
-    loadJson("../app/scientists.json"),
+    loadJson("../app/data/scientists.json"),
   ]);
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
@@ -51,9 +51,9 @@ test("server-renders the calendar page", async () => {
 
 test("calendar dataset stays consistent", async () => {
   const [scientists, manifest, quotes] = await Promise.all([
-    loadJson("../app/scientists.json"),
+    loadJson("../app/data/scientists.json"),
     loadJson("../public/avatars.json"),
-    loadJson("../app/quotes.json"),
+    loadJson("../app/data/quotes.json"),
   ]);
 
   const ids = new Set(scientists.map((entry) => entry.id));
@@ -79,8 +79,8 @@ test("calendar dataset stays consistent", async () => {
 
 test("prose uses full-width punctuation", async () => {
   const [scientists, quotes] = await Promise.all([
-    loadJson("../app/scientists.json"),
-    loadJson("../app/quotes.json"),
+    loadJson("../app/data/scientists.json"),
+    loadJson("../app/data/quotes.json"),
   ]);
 
   const textFields = ["name", "country", "relation", "tagline", "story", "contribution", "fact"];

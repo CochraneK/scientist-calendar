@@ -17,8 +17,9 @@
 | 路径 | 说明 |
 | --- | --- |
 | `app/` | 主应用（vinext + React 19），`page.tsx` 同时供静态站复用 |
-| `app/scientists.json` | 466 位科学家档案（日期、领域、生卒年、贡献、轶事） |
-| `app/quotes.json` | 人物语录，按 id 索引 |
+| `app/data/scientists.json` | 466 位科学家档案（日期、领域、生卒年、贡献、轶事） |
+| `app/data/quotes.json` | 人物语录，按 id 索引 |
+| `app/data/curated_content*.json` | 人工精修稿（与 scientists.json 合并的增量源） |
 | `tooling/pages/` | Vite 静态站（base `/scientist-calendar/`），构建输出到 `docs/` |
 | `tooling/pages/extras/` | 构建后复制进 `docs/` 的附加文件（如 `backup-candidates.md`） |
 | `docs/` | 静态站构建产物，GitHub Pages 直接从这里发布 |

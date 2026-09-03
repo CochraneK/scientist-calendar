@@ -17,8 +17,8 @@ from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGE = ROOT / "app" / "page.tsx"
-DATA = ROOT / "app" / "scientists.json"
-QUOTES = ROOT / "app" / "quotes.json"
+DATA = ROOT / "app" / "data" / "scientists.json"
+QUOTES = ROOT / "app" / "data" / "quotes.json"
 
 WIKIDATA_SPARQL = "https://query.wikidata.org/sparql"
 WIKIDATA_API = "https://www.wikidata.org/w/api.php"
@@ -90,7 +90,7 @@ CURATED_AUTO_OVERRIDES: dict[str, dict[str, str]] = {
 
 # Hand-edited, source-oriented content is kept in split JSON packs so the
 # yearly generator can be rerun without falling back to generic biographies.
-for _content_file in sorted((ROOT / "app").glob("curated_content*.json")):
+for _content_file in sorted((ROOT / "app" / "data").glob("curated_content*.json")):
     try:
         _content_payload = json.loads(_content_file.read_text(encoding="utf-8"))
     except (OSError, json.JSONDecodeError):

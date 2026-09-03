@@ -1,8 +1,8 @@
 "use client";
 
 import { useMemo, useState, useSyncExternalStore } from "react";
-import quotes from "./quotes.json";
-import scientistsData from "./scientists.json";
+import quotes from "./data/quotes.json";
+import scientistsData from "./data/scientists.json";
 import avatarsData from "../public/avatars.json";
 
 type Field = "物理" | "化学" | "生命科学" | "数学" | "计算机" | "天文" | "医学" | "地球科学";
