@@ -23,18 +23,19 @@
 | `static/extras/` | 构建后复制进 `docs/` 的附加文件（如 `backup-candidates.md`） |
 | `docs/` | 静态站构建产物，GitHub Pages 直接从这里发布 |
 | `public/` | 共享资源：`avatars/` 肖像、`avatars.json` 头像清单、`art/` 插画、`print/` 打印 PDF |
-| `scripts/` | 数据、校验与 PDF 脚本 |
-| `tests/` | `node --test` 测试 |
-| `tmp/` | 一次性工作脚本（不入库） |
+| `tooling/` | 开发工具集合：脚本、测试与迁移 Skill |
+| `tooling/scripts/` | 数据、校验与 PDF 脚本（含 `verify_pdf_layout.py` 豆腐块护栏） |
+| `tooling/tests/` | `node --test` 测试 |
+| `tooling/skills/theme-calendar-factory/` | 可复用的「主题日历工厂」Skill（换主题不改生成器代码） |
 
 ## 数据脚本
 
 | 命令 | 作用 |
 | --- | --- |
 | `npm run audit:data` | 结构体检：字段完整性、365 天覆盖、头像/语录关联、中文标点、年份格式 |
-| `python -X utf8 scripts/fix_punctuation.py --dry` | 预览/修复正文里的半角标点 |
-| `python -X utf8 scripts/verify_dates.py` | 用 Wikidata 交叉核验生卒年与生日（结果写入 `output/wikidata-cache.json` 缓存） |
-| `python -X utf8 scripts/patch_data_fixes.py` | 历史数据修正留档（可重复执行） |
+| `python -X utf8 tooling/scripts/fix_punctuation.py --dry` | 预览/修复正文里的半角标点 |
+| `python -X utf8 tooling/scripts/verify_dates.py` | 用 Wikidata 交叉核验生卒年与生日（结果写入 `output/wikidata-cache.json` 缓存，gitignored 自动生成） |
+| `python -X utf8 tooling/scripts/patch_data_fixes.py` | 历史数据修正留档（可重复执行） |
 
 日期口径：全库统一使用**格里历**（公历）；Wikidata 中标为儒略历的日期已换算后比对。
 个别生卒日期不可考的人物（如阿基米德、费马）落在占位日期或逝世纪念日上。
@@ -55,7 +56,7 @@ npm run lint
 ## 打印版 PDF
 
 ```bash
-python -X utf8 scripts/generate_print_calendar.py
+python -X utf8 tooling/scripts/generate_print_calendar.py
 # 产物: output/pdf/科学家日历_精选466位_A4打印版.pdf（版次年号自动取当前年份）
 ```
 
@@ -67,7 +68,7 @@ cp "output/pdf/科学家日历_精选466位_A4打印版.pdf" "public/print/" && 
 
 ## 数据维护
 
-- 一致性测试在 `tests/rendered-html.test.mjs`：id 唯一、365 天全覆盖、头像清单与语录引用完整
+- 一致性测试在 `tooling/tests/rendered-html.test.mjs`：id 唯一、365 天全覆盖、头像清单与语录引用完整
 - 扩充候选池：`static/extras/backup-candidates.md`（随站点发布）
 
 ## 发布

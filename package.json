@@ -10,14 +10,14 @@
     "build": "vinext build",
     "build:pages": "vite build --config static/vite.config.ts",
     "start": "vinext start",
-    "test": "npm run build && node --test tests/rendered-html.test.mjs",
+    "test": "npm run build && node --test tooling/tests/rendered-html.test.mjs",
     "lint": "eslint . --ignore-pattern dist --ignore-pattern .next",
-    "audit:data": "python -X utf8 scripts/audit_data.py",
-    "verify:dates": "python -X utf8 scripts/verify_dates.py",
-    "verify:facts": "python -X utf8 scripts/verify_facts.py",
-    "verify:pdf": "python -X utf8 scripts/verify_pdf_layout.py",
-    "pdf:daily": "python -X utf8 scripts/generate_print_calendar.py",
-    "pdf:monthly": "python -X utf8 scripts/generate_monthly_calendar.py"
+    "audit:data": "python -X utf8 tooling/scripts/audit_data.py",
+    "verify:dates": "python -X utf8 tooling/scripts/verify_dates.py",
+    "verify:facts": "python -X utf8 tooling/scripts/verify_facts.py",
+    "verify:pdf": "python -X utf8 tooling/scripts/verify_pdf_layout.py",
+    "pdf:daily": "python -X utf8 tooling/scripts/generate_print_calendar.py",
+    "pdf:monthly": "python -X utf8 tooling/scripts/generate_monthly_calendar.py"
   },
   "dependencies": {
     "next": "16.2.6",
