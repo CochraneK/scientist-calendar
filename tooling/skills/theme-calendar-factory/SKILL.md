@@ -58,6 +58,11 @@ python tooling/scripts/generate_monthly_pdf.py --config theme.json
 python tooling/scripts/verify_pdf_layout.py output/pdf/xxx.pdf --card-color F0EBE1
 ```
 
+> **命名对照（易混）**：上面是**本 Skill 的模板脚本名**（`generate_daily_pdf.py` / `generate_monthly_pdf.py`）。
+> 科学家日历项目把它们**定制化改名**为 `generate_print_calendar.py`（每日版）/ `generate_monthly_calendar.py`（月度版），
+> 并放在 `tooling/scripts/` 下；`tooling/skills/theme-calendar-factory/scripts/` 里的同名文件才是对照模板。
+> 换主题时以本 Skill `scripts/` 的模板为准，项目里的改名副本只是同一流水线的具体实现。
+
 ## 四、验收：看不到图时怎么保证版面正确（最关键的一节）
 
 很多环境**无法查看渲染图**（读 PNG 会被过滤）。此时**不要靠肉眼**，用 PyMuPDF 做纯几何判定：

@@ -3,14 +3,15 @@
 一年 365 天，每天认识一位科学家。共 466 位精选人物档案：每一天有一位人物、一项发现、一个改变世界的念头。
 
 - 在线版（GitHub Pages）：<https://cochranek.github.io/scientist-calendar/>
-- 打印版：A4 横版 PDF，471 页（站点导航中可直接下载）
+- 打印版：两份 A4 PDF——每日人物版（横版，466 页，一人一页）+ 月度生日版（纵版，一页一个月），站点导航可直接下载
 
 ## 功能
 
 - 今日人物：按当天日期自动展示对应科学家
 - 档案浏览：466 张档案卡，按领域筛选、支持搜索
 - 头像模式：单字 / 照片切换；肖像来自 Wikimedia Commons，无肖像的人物回落为单字头像
-- 打印版：封面 + 打印说明 + 2 页总览 + 466 页人物页（页码 5–470）
+- 打印版（每日人物版）：封面 + 打印说明 + 2 页总览 + 466 页人物页（页码 5–470）
+- 打印版（月度生日版）：纵版 A4，一页一个月，每人只显示生日·名字·名言
 
 ## 目录结构
 
@@ -54,18 +55,29 @@ npm run lint
 
 静态站以 `../public` 为公共资源目录；本地预览需带上 `/scientist-calendar/` 路径前缀。
 
-## 打印版 PDF
+## 打印版 PDF（两份）
+
+每日人物版（横版 A4、一人一页）与月度生日版（纵版 A4、一页一个月）由两套脚本分别生成：
 
 ```bash
+# 每日人物版（精选 466 位）
 python -X utf8 tooling/scripts/generate_print_calendar.py
-# 产物: output/pdf/科学家日历_精选466位_A4打印版.pdf（版次年号自动取当前年份）
+#   产物: output/pdf/科学家日历_精选466位_A4打印版.pdf
+
+# 月度生日版（一页一个月，只显示 生日·名字·名言）
+python -X utf8 tooling/scripts/generate_monthly_calendar.py
+#   产物: output/pdf/科学家日历_月度生日版_A4.pdf
 ```
 
-依赖 Python 3 + reportlab，使用其内置中文字体（`UnicodeCIDFont`），无需额外安装字体。生成后覆盖复制到 `public/print/`，再运行 `npm run build:pages` 同步到 `docs/print/`。
+依赖 Python 3 + reportlab（内置中文字体 `UnicodeCIDFont`，无需额外安装字体）。生成后两份都覆盖复制到 `public/print/`，再 `npm run build:pages` 同步到 `docs/print/`（GitHub Pages 发布目录）：
 
 ```bash
-cp "output/pdf/科学家日历_精选466位_A4打印版.pdf" "public/print/" && npm run build:pages
+cp "output/pdf/科学家日历_精选466位_A4打印版.pdf" "public/print/"
+cp "output/pdf/科学家日历_月度生日版_A4.pdf"      "public/print/"
+npm run build:pages
 ```
+
+> 字体坑：CID 字体 `STSong-Light` 不含 `·`（U+00B7）字形，渲染会丢整段；生成器已在 `face="cn"` 时把 `·` 替换为 `・`（U+30FB）。每次重生成后务必跑 `python -X utf8 tooling/scripts/verify_pdf_layout.py <pdf> --check-tofu`，豆腐块必须为 0 才发版。
 
 ## 数据维护
 
