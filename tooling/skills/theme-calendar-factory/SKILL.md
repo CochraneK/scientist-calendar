@@ -151,6 +151,29 @@ page.get_drawings()      # -> 填充矩形（可据此定位卡片/色块）
     `quote_of` 取到的引语常无结尾标点（如 `知识就是力量`）；阅读体验上每句应成句。
     在 `quote_of` 出口统一 `ensure_terminal_punct`：已以 `。！？.!?…」』）`等结尾则保留，否则补 `。`；
     占位符 `—` 不处理。验证：跑全量 `quote_of` 确认 0 条缺结尾标点。
+20. **通用模板里不得出现项目专属文案（同步修复时最易带入）。**
+    曾把科学家日历项目修复同步回模板时，把页脚 `"每天认识一位科学家"` 一起带了进去，
+    结果做「冒烟测试历」时页脚显示"每天认识一位科学家"——**主题串味**。
+    - **根因**：模板其他地方都正确用了 `theme.cfg["theme"]["unitLabel"]`（如封面"每个月，认识在这个月出生的{unitLabel}们"），
+      唯独页脚被写死；而且只做 `ast.parse` 语法检查**查不出**这种字符串级泄漏。
+    - **修法**：任何面向用户的文案都从 `theme.cfg` 取（`unitLabel` / `theme.name`），函数需要就把主题对象传进去
+      （如 `draw_footer(c, page_no, total, unit_label)`）。
+    - **永久护栏**：换主题后**必须实际跑一次模板**（造 3–6 条 fixture，见下方冒烟测试），
+      把产物文本抽出来 grep 旧主题名（如 `科学家`），必须为 0。**只做语法检查不够。**
+
+### 模板冒烟测试（换主题后必做，2 分钟）
+造一份最小 fixture（`entries.json` 6 条 + `quotes.json`），`theme.json` 里用**绝对路径**指向它们，然后真跑模板：
+
+```bash
+PY="<装有 reportlab 的解释器>"   # 例：C:/Users/cunyi/.workbuddy/binaries/python/envs/default/Scripts/python.exe
+"$PY" scripts/generate_monthly_pdf.py --config /tmp/tcf_smoke/theme.json
+"$PY" scripts/generate_daily_pdf.py   --config /tmp/tcf_smoke/theme.json   # 若用到每日版
+```
+fixture 要刻意包含：带 `·` 的名字、无句末标点的名言、超长名字（测缩字号/截断）。
+产出后抽文本自检：`中点是否存在`、`名言是否都以标点结尾`、**旧主题名残留是否为 0**。
+
+> **模板路径很脆弱**：`entryFile` / `quoteFile` 是 `Path(cfg[...])` **相对当前工作目录**解析，没有 join 项目根。
+> 必须在**项目根目录**下运行（配置里写 `app/data/xxx.json`），换目录跑会找不到数据。
 
 ## 六、发布到 GitHub Pages
 

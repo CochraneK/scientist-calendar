@@ -69,7 +69,16 @@ python -X utf8 tooling/scripts/generate_monthly_calendar.py
 #   产物: output/pdf/科学家日历_月度生日版_A4.pdf
 ```
 
-依赖 Python 3 + reportlab（内置中文字体 `UnicodeCIDFont`，无需额外安装字体）。生成后两份都覆盖复制到 `public/print/`，再 `npm run build:pages` 同步到 `docs/print/`（GitHub Pages 发布目录）：
+依赖 Python 3 + reportlab（内置中文字体 `UnicodeCIDFont`，无需额外安装字体）。
+
+> **必须用装有 reportlab 的解释器**。系统 `C:/Python313/python.exe` 与裸 `python` **默认没有 reportlab**，直接跑会 `ModuleNotFoundError`。请用托管 venv（或先 `pip install reportlab`）：
+> ```bash
+> PY="C:/Users/cunyi/.workbuddy/binaries/python/envs/default/Scripts/python.exe"
+> "$PY" -X utf8 tooling/scripts/generate_print_calendar.py
+> "$PY" -X utf8 tooling/scripts/generate_monthly_calendar.py
+> ```
+
+生成后两份都覆盖复制到 `public/print/`，再 `npm run build:pages` 同步到 `docs/print/`（GitHub Pages 发布目录）：
 
 ```bash
 cp "output/pdf/科学家日历_精选466位_A4打印版.pdf" "public/print/"
@@ -77,7 +86,7 @@ cp "output/pdf/科学家日历_月度生日版_A4.pdf"      "public/print/"
 npm run build:pages
 ```
 
-> 字体坑：CID 字体 `STSong-Light` 不含 `·`（U+00B7）字形，渲染会丢整段；生成器已在 `face="cn"` 时把 `·` 替换为 `・`（U+30FB）。每次重生成后务必跑 `python -X utf8 tooling/scripts/verify_pdf_layout.py <pdf> --check-tofu`，豆腐块必须为 0 才发版。
+> 字体坑：CID 字体 `STSong-Light` 不含 `·`（U+00B7）字形，渲染会丢整段；生成器已在 `face="cn"` 时把 `·` 替换为 `・`（U+30FB）。每次重生成后务必跑 `"$PY" -X utf8 tooling/scripts/verify_pdf_layout.py <pdf> --check-tofu`，豆腐块必须为 0 才发版。
 
 ## 数据维护
 

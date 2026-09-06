@@ -215,12 +215,14 @@ def draw_block(c, entry, x, y_top, col_w, theme, quotes):
         draw_text(c, line, x, qy - i * QUOTE_LEAD, QUOTE_SIZE, MUTED)
 
 
-def draw_footer(c, page_no, total):
+def draw_footer(c, page_no, total, unit_label="位人物"):
     c.setStrokeColor(LINE)
     c.setLineWidth(0.6)
     c.line(MARGIN, 30, W - MARGIN, 30)
     draw_text(c, f"第 {page_no:02d} 页 / 共 {total:02d} 页", MARGIN, 18, 8, MUTED)
-    draw_right(c, "每天认识一位科学家", W - MARGIN, 18, 8, MUTED)
+    # 坑：页脚文案必须主题无关。曾硬编码「每天认识一位科学家」，导致医学/文学等
+    # 主题日历页脚串味。unitLabel 形如「位人物」「位医者」，拼在「每天认识一」之后。
+    draw_right(c, f"每天认识一{unit_label}", W - MARGIN, 18, 8, MUTED)
 
 
 def draw_cover(c, theme):
@@ -277,7 +279,7 @@ def main() -> int:
                     h, _ = block_height(c, entry, theme, quotes, col_w)
                     draw_block(c, entry, col_x[ci], y, col_w, theme, quotes)
                     y -= h
-            draw_footer(c, page_no, total_pages)
+            draw_footer(c, page_no, total_pages, theme.cfg.get("theme", {}).get("unitLabel", "位人物"))
             c.showPage()
     c.save()
     print(out)
