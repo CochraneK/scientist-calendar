@@ -24,6 +24,9 @@
 __pycache__/
 *.pyc
 
+# 构建产物：npm run build:pages 生成，改由 GitHub Actions 部署，不再提交
+/docs/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
