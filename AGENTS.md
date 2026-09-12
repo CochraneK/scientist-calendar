@@ -3,12 +3,12 @@
 科学家日历：466 位科学家、365 天「每天认识一位」。产物是双 A4 PDF（每日人物版 471 页 / 月度生日版 13 页）+ GitHub Pages 站点。本文件是下次会话恢复上下文的入口，不是第二份 README。
 
 ## 怎么跑
-- 站点：`npm run dev`（主站，vinext）、`npm run build:pages`（构建静态站到 `docs/`，即 Pages 源）。
+- 站点：`npm run dev`（主站，vinext）、`npm run build:pages`（构建静态站到 `docs/`，**纯构建产物、已 gitignore，不提交；由 GitHub Actions 部署**）。
 - **PDF 生成必须用托管 venv**：裸 `python` 与系统 `C:/Python313/python.exe` **都没有 reportlab**，会 `ModuleNotFoundError`。
   正确解释器：`C:/Users/cunyi/.workbuddy/binaries/python/envs/default/Scripts/python.exe`（reportlab 5.x + PyMuPDF）。
   - `npm run pdf:daily` / `pdf:monthly` 本质是调 `tooling/scripts/` 下的生成器。
   - `npm run verify:pdf` 跑 `verify_pdf_layout.py --check-tofu`，豆腐块必须为 0 才发版。
-- 发布：`git push github main`（远程叫 `github`，**不是** `origin`）；push 前 `env -u HTTPS_PROXY -u HTTP_PROXY -u https_proxy -u http_proxy -u ALL_PROXY -u all_proxy` 清代理（沙箱代理会断 SSH）。
+- 发布（Pages 由 GitHub Actions 部署）：`git push github main`（远程叫 `github`，**不是** `origin`）；push 前 `env -u HTTPS_PROXY -u HTTP_PROXY -u https_proxy -u http_proxy -u ALL_PROXY -u all_proxy` 清代理（沙箱代理会断 SSH）。push 即触发 `.github/workflows/pages.yml` → `build:pages` → 部署；`docs/` 不提交（已 gitignore），仓库 Pages 设置 Source 须为 `GitHub Actions`（非 `/docs`）。
 
 ## 技术栈
 Next.js(vinext)/React19 主站 + Vite 独立静态站 + Cloudflare Worker；PDF 用 reportlab（`STSong-Light` CID 字体，无需装字体）。
