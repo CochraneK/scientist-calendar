@@ -63,11 +63,14 @@ function Calendar({ now }: { now: DateParts }) {
   const [avatarMode, setAvatarMode] = useState<AvatarMode>("letter");
   const [archiveLimit, setArchiveLimit] = useState(ARCHIVE_PAGE_SIZE);
   const [detailsById, setDetailsById] = useState<MonthDetails>({});
+  const [detailLoadErrors, setDetailLoadErrors] = useState<Set<number>>(() => new Set());
+  const [detailRetryToken, setDetailRetryToken] = useState(0);
 
   const selected = scientists.find((scientist) => scientist.id === selectedId) ?? scientists[0];
   const selectedDetail = detailsById[selected.id];
   const selectedQuote = selectedDetail?.quote && selectedDetail.quoteSource ? { text: selectedDetail.quote, source: selectedDetail.quoteSource } : undefined;
   const isTodaySelection = selected.id === todayScientist?.id;
+  const detailLoadFailed = detailLoadErrors.has(selected.month);
 
   useEffect(() => {
     if (detailsById[selected.id]) return;
@@ -75,10 +78,20 @@ function Calendar({ now }: { now: DateParts }) {
     void detailLoaders[selected.month]().then((module) => {
       if (!cancelled) {
         setDetailsById((current) => ({ ...current, ...(module.default as MonthDetails) }));
+        setDetailLoadErrors((current) => {
+          if (!current.has(selected.month)) return current;
+          const next = new Set(current);
+          next.delete(selected.month);
+          return next;
+        });
+      }
+    }).catch(() => {
+      if (!cancelled) {
+        setDetailLoadErrors((current) => new Set(current).add(selected.month));
       }
     });
     return () => { cancelled = true; };
-  }, [selected.id, selected.month, detailsById]);
+  }, [selected.id, selected.month, detailsById, detailRetryToken]);
   const filtered = useMemo(() => scientists.filter((scientist) => {
     const inField = activeField === "全部" || scientist.field === activeField;
     const needle = query.trim().toLowerCase();
@@ -151,7 +164,7 @@ function Calendar({ now }: { now: DateParts }) {
               {(["letter", "photo"] as AvatarMode[]).map((m) => <button key={m} type="button" className={avatarMode === m ? "active" : ""} onClick={() => setAvatarMode(m)}>{m === "letter" ? "单字" : "照片"}</button>)}
             </div>
           </div>
-          <div className="feature-copy"><p className="feature-relation">{selected.relation} · {selected.years}</p><h3>{selected.name}</h3><p className="latin-name">{selected.latinName} · {selected.country}</p><p className="feature-tagline">阅读线索｜{selected.tagline}</p>{selectedQuote && <blockquote className="quote-block"><span>{isTodaySelection ? "今日引语" : "人物引语"}</span><p>“{selectedQuote.text}”</p><cite>— {selectedQuote.source}</cite></blockquote>}<p className="feature-story">{selectedDetail?.story ?? "正在加载人物档案…"}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selectedDetail?.fact ?? "正在加载…"}</strong></div></div><button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button></div>
+          <div className="feature-copy"><p className="feature-relation">{selected.relation} · {selected.years}</p><h3>{selected.name}</h3><p className="latin-name">{selected.latinName} · {selected.country}</p><p className="feature-tagline">阅读线索｜{selected.tagline}</p>{selectedQuote && <blockquote className="quote-block"><span>{isTodaySelection ? "今日引语" : "人物引语"}</span><p>“{selectedQuote.text}”</p><cite>— {selectedQuote.source}</cite></blockquote>}<p className="feature-story" aria-live="polite">{selectedDetail?.story ?? (detailLoadFailed ? "人物档案加载失败，请检查网络后重试。" : "正在加载人物档案…")}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selectedDetail?.fact ?? (detailLoadFailed ? "暂时无法加载" : "正在加载…")}</strong></div></div>{detailLoadFailed && <button className="detail-button" type="button" onClick={() => { setDetailLoadErrors((current) => { const next = new Set(current); next.delete(selected.month); return next; }); setDetailRetryToken((token) => token + 1); }}>重新加载人物档案 <span>↻</span></button>}<button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button></div>
           <div className="feature-index" aria-hidden="true"><span>SCIENCE</span><span>NOTE</span><b>{selected.id.slice(0, 3).toUpperCase()}</b></div>
         </article>
       </section>
