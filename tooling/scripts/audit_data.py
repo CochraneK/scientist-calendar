@@ -21,6 +21,7 @@ import json
 import re
 import sys
 import unicodedata
+from datetime import date
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -28,6 +29,7 @@ SCIENTISTS = ROOT / "app" / "data" / "scientists.json"
 QUOTES = ROOT / "app" / "data" / "quotes.json"
 AVATARS = ROOT / "public" / "avatars.json"
 AVATAR_DIR = ROOT / "public" / "avatars"
+CURRENT_YEAR = date.today().year
 
 REQUIRED_FIELDS = [
     "id", "month", "day", "name", "latinName", "years",
@@ -197,9 +199,9 @@ def audit() -> int:
                     bad(f"{label}: 生年晚于卒年 -> {years!r}")
                 if birth is not None and birth < -3000:
                     warn(f"{label}: 生年早于公元前 3000 年 -> {years!r}")
-                if death is not None and death > 2026:
+                if death is not None and death > CURRENT_YEAR:
                     warn(f"{label}: 卒年在未来 -> {years!r}")
-                if birth is not None and birth > 2026:
+                if birth is not None and birth > CURRENT_YEAR:
                     bad(f"{label}: 生年在未来 -> {years!r}")
 
     # ---------- 365 天覆盖（严格，必须恰好等于平年 365 天）----------
