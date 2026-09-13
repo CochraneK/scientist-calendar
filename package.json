@@ -9,6 +9,7 @@
     "dev": "vinext dev",
     "build": "vinext build",
     "build:pages": "vite build --config tooling/pages/vite.config.ts",
+    "check:pages": "node tooling/scripts/check_pages_output.mjs",
     "start": "vinext start",
     "typecheck": "tsc --noEmit",
     "typecheck:worker": "tsc -p worker/tsconfig.json --noEmit",
