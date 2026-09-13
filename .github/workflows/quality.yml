@@ -45,6 +45,9 @@ jobs:
       - name: Audit data（365 天平年覆盖 + 结构 + 关联）
         run: npm run audit:data
 
+      - name: Audit avatar provenance
+        run: npm run audit:avatars
+
       - name: Check generated web data
         run: npm run check:web-data
 
