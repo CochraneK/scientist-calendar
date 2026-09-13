@@ -15,6 +15,8 @@
     "test": "npm run build && node --test tooling/tests/rendered-html.test.mjs",
     "lint": "eslint . --config tooling/eslint.config.mjs --ignore-pattern dist --ignore-pattern .next",
     "audit:data": "python -X utf8 tooling/scripts/audit_data.py",
+    "build:web-data": "python -X utf8 tooling/scripts/build_web_data.py",
+    "check:web-data": "python -X utf8 tooling/scripts/build_web_data.py --check",
     "verify:dates": "python -X utf8 tooling/scripts/verify_dates.py",
     "verify:facts": "python -X utf8 tooling/scripts/verify_facts.py",
     "verify:pdf": "python -X utf8 tooling/scripts/verify_pdf_layout.py",

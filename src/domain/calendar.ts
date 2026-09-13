@@ -11,7 +11,7 @@ export type Field =
   | "医学"
   | "地球科学";
 
-export type Scientist = {
+export type ScientistSummary = {
   id: string;
   month: number;
   day: number;
@@ -23,8 +23,11 @@ export type Scientist = {
   color: string;
   relation: string;
   tagline: string;
-  story: string;
   contribution: string;
+};
+
+export type Scientist = ScientistSummary & {
+  story: string;
   fact: string;
   quote?: string;
   quoteSource?: string;
@@ -73,10 +76,10 @@ export function getDaysInMonth(year: number, month: number): number {
 }
 
 /** 按“当日人物”语义取科学家：闰年 2/29 自动回退到 2/28。 */
-export function getScientistForDate(
-  scientists: Scientist[],
+export function getScientistForDate<T extends { month: number; day: number }>(
+  scientists: T[],
   date: DateParts,
-): Scientist | undefined {
+): T | undefined {
   const { date: resolved } = resolveCalendarDate(date);
   return scientists.find(
     (s) => s.month === resolved.month && s.day === resolved.day,
