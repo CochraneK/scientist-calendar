@@ -24,7 +24,7 @@ jobs:
           cache: npm
 
       - name: Add Cloudflare Worker platform types
-        run: npm install --save-dev --save-exact @cloudflare/workers-types@5.20260911.1
+        run: npm install --save-dev --save-exact @cloudflare/workers-types@4.20260702.1
 
       - name: Typecheck application
         run: npm run typecheck
