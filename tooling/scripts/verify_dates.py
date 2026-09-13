@@ -32,7 +32,7 @@ import urllib.parse
 import urllib.request
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / "app" / "data" / "scientists.json"
 CACHE = ROOT / "output" / "wikidata-cache.json"   # output/ 已被 .gitignore 忽略
 API = "https://www.wikidata.org/w/api.php"

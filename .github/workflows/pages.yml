@@ -1,23 +1,33 @@
 name: Deploy to GitHub Pages
 
+# 仅在 Quality 工作流通过后才构建并部署；任何质量门禁失败都禁止发布。
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: ["Quality"]
+    types: [completed]
   workflow_dispatch:
 
-# 允许本工作流把构建产物部署到 GitHub Pages
 permissions:
   contents: read
   pages: write
   id-token: write
 
-# 同一时间只允许一个部署运行，进行中的旧运行会被取消
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
+  # 质量门禁：Quality 失败时阻断部署；手动 workflow_dispatch 时直接放行。
+  gate:
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+    steps:
+      - run: echo "Quality gate passed, proceeding to build & deploy"
+
   build:
+    needs: gate
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

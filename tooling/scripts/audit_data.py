@@ -23,7 +23,7 @@ import sys
 import unicodedata
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = Path(__file__).resolve().parents[2]
 SCIENTISTS = ROOT / "app" / "data" / "scientists.json"
 QUOTES = ROOT / "app" / "data" / "quotes.json"
 AVATARS = ROOT / "public" / "avatars.json"
@@ -62,6 +62,45 @@ YEAR_OPEN_RE = re.compile(r"^(-?)(\d{1,4})([–\-~])(\.\.\.|…)?$")
 def load_json(path: Path):
     with path.open(encoding="utf-8") as handle:
         return json.load(handle)
+
+
+# 平年（如 2025）每月天数，二月按 28 天——365 天日历的合法日期全集。
+COMMON_YEAR_LENGTHS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+
+
+def expected_common_year_dates() -> set[tuple[int, int]]:
+    """固定平年的 365 个合法 (month, day)，作为覆盖校验的基准集合。"""
+    out: set[tuple[int, int]] = set()
+    for month in range(1, 13):
+        for day in range(1, COMMON_YEAR_LENGTHS[month - 1] + 1):
+            out.add((month, day))
+    return out
+
+
+def check_calendar_coverage(scientists: list[dict]) -> list[str]:
+    """严格校验：实际覆盖的日期集合必须等于平年 365 天全集。
+
+    注意：本项目支持「同日多人」，因此按「日期集合」校验，不禁止同一天出现多位人物；
+    只报告 missing（缺失的平年日期）与 unexpected（平年不应出现、如 2/29）。
+    """
+    problems: list[str] = []
+    expected = expected_common_year_dates()
+    actual = {
+        (s["month"], s["day"])
+        for s in scientists
+        if isinstance(s.get("month"), int) and isinstance(s.get("day"), int)
+    }
+    missing = sorted(expected - actual)
+    unexpected = sorted(actual - expected)
+    if missing:
+        shown = "、".join(f"{m}/{d}" for m, d in missing[:20])
+        more = "…" if len(missing) > 20 else ""
+        problems.append(f"缺失 {len(missing)} 个平年日期（必须恰好覆盖 365 天）：{shown}{more}")
+    if unexpected:
+        shown = "、".join(f"{m}/{d}" for m, d in unexpected[:20])
+        more = "…" if len(unexpected) > 20 else ""
+        problems.append(f"存在 {len(unexpected)} 个非法日期（平年不应出现，如 2/29）：{shown}{more}")
+    return problems
 
 
 def audit() -> int:
@@ -163,9 +202,12 @@ def audit() -> int:
                 if birth is not None and birth > 2026:
                     bad(f"{label}: 生年在未来 -> {years!r}")
 
-    # ---------- 365 天覆盖 ----------
+    # ---------- 365 天覆盖（严格，必须恰好等于平年 365 天）----------
+    coverage_problems = check_calendar_coverage(scientists)
+    problems.extend(coverage_problems)
     covered = {(s["month"], s["day"]) for s in scientists if isinstance(s.get("month"), int) and isinstance(s.get("day"), int)}
-    print(f"人物总数：{len(scientists)}　已覆盖日期：{len(covered)} / 365")
+    print(f"人物总数：{len(scientists)}　已覆盖日期：{len(covered)} / 365"
+          f"{'　✓ 覆盖完整' if not coverage_problems else '　✗ 覆盖不完整'}")
 
     # ---------- B. 关联 ----------
     id_set = set(seen_ids)

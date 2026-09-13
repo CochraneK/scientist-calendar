@@ -1,62 +1,24 @@
 "use client";
 
-import { useMemo, useState, useSyncExternalStore } from "react";
+import { useMemo, useState } from "react";
 import quotes from "./data/quotes.json";
 import scientistsData from "./data/scientists.json";
 import avatarsData from "../public/avatars.json";
-
-type Field = "物理" | "化学" | "生命科学" | "数学" | "计算机" | "天文" | "医学" | "地球科学";
-
-type Scientist = {
-  id: string;
-  month: number;
-  day: number;
-  name: string;
-  latinName: string;
-  years: string;
-  field: Field;
-  country: string;
-  color: string;
-  relation: string;
-  tagline: string;
-  story: string;
-  contribution: string;
-  fact: string;
-  quote?: string;
-  quoteSource?: string;
-};
+import {
+  type Scientist,
+  type Field,
+  type DateParts,
+  getScientistForDate,
+} from "../src/domain/calendar";
+import { useCurrentDate } from "../src/hooks/useCurrentDate";
 
 type AvatarMode = "letter" | "photo";
-type DateParts = { year: number; month: number; day: number };
 
 const scientists = scientistsData as Scientist[];
 const avatars = avatarsData as Record<string, { photo: boolean }>;
 const einsteinIllustration = "art/einstein-archive.webp";
 
-const datePartsCache = new Map<string, DateParts>();
-
-function dateParts(year: number, month: number, day: number): DateParts {
-  const key = `${year}-${month}-${day}`;
-  const cached = datePartsCache.get(key);
-  if (cached) return cached;
-  const value = { year, month, day };
-  datePartsCache.set(key, value);
-  return value;
-}
-
-function subscribeNoop() {
-  return () => {};
-}
-
-function getLocalDate(): DateParts {
-  const d = new Date();
-  return dateParts(d.getFullYear(), d.getMonth() + 1, d.getDate());
-}
-
-function getUTCDate(): DateParts {
-  const d = new Date();
-  return dateParts(d.getUTCFullYear(), d.getUTCMonth() + 1, d.getUTCDate());
-}
+// 日期与“当前日期”逻辑已移至 src/domain/calendar.ts 与 src/hooks/useCurrentDate.ts
 
 function avatarFor(scientist: Scientist, mode: AvatarMode): string | null {
   if (mode !== "photo") return null;
@@ -74,11 +36,14 @@ function formatDate(month: number, day: number) {
 }
 
 function Calendar({ now }: { now: DateParts }) {
-  const todayScientist = scientists.find((s) => s.month === now.month && s.day === now.day);
+  // 2/29 等闰年专属日期在平年日历无对应人物，已由 getScientistForDate 统一回退到 2/28，
+  // 禁止 silent fallback 到 Einstein / 错误月份。
+  const todayScientist = getScientistForDate(scientists, now);
   const [activeField, setActiveField] = useState<Field | "全部">("全部");
   const [query, setQuery] = useState("");
   const [selectedId, setSelectedId] = useState(todayScientist?.id ?? "einstein");
-  const [calendarMonth, setCalendarMonth] = useState(todayScientist?.month ?? 7);
+  // 月历默认停在“当前月份”，不依赖今日人物是否存在（否则 2/29 会错误跳到 7 月）。
+  const [calendarMonth, setCalendarMonth] = useState(now.month);
   const [avatarMode, setAvatarMode] = useState<AvatarMode>("letter");
 
   const selected = scientists.find((scientist) => scientist.id === selectedId) ?? scientists[0];
@@ -181,8 +146,8 @@ function Calendar({ now }: { now: DateParts }) {
 }
 
 export default function Home() {
-  // 服务端按 UTC 日期渲染，客户端水合后切换为本地日期；
-  // 以日期为 key 让整页状态随之重新初始化，避免水合不一致，也无需在 effect 中 setState。
-  const now = useSyncExternalStore(subscribeNoop, getLocalDate, getUTCDate);
+  // useCurrentDate：SSR 用 UTC 保证水合一致，客户端挂载后切本地时间，
+  // 并精确调度到下一次本地午夜 + visibilitychange 回到前台时刷新，跨午夜无需手动刷新。
+  const now = useCurrentDate();
   return <Calendar key={`${now.year}-${now.month}-${now.day}`} now={now} />;
 }

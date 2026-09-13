@@ -1,4 +1,9 @@
-/** Cloudflare Worker entry point for the vinext-starter template. */
+/** Cloudflare Worker entry point for the vinext-starter template.
+ * 注意：本文件使用 Cloudflare 平台全局类型（Fetcher / D1Database 等），
+ * 由 wrangler / @cloudflare/vite-plugin 在构建期提供，不属于 Next 应用的 tsc 范畴，
+ * 因此已从根 tsconfig.json 的 typecheck 中排除。需单独类型检查时运行：
+ *   npx tsc -p worker/tsconfig.json   （需先 npm i -D @cloudflare/workers-types）
+ */
 import { handleImageOptimization, DEFAULT_DEVICE_SIZES, DEFAULT_IMAGE_SIZES } from "vinext/server/image-optimization";
 import handler from "vinext/server/app-router-entry";
 
