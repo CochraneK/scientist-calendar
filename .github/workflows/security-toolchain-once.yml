@@ -23,6 +23,9 @@ jobs:
           python-version: "3.13"
       - name: Upgrade direct packages with non-major security fixes
         run: |
+          npm install \
+            react@19.2.8 \
+            react-dom@19.2.8
           npm install --save-dev \
             @cloudflare/vite-plugin@1.54.8 \
             @cloudflare/workers-types@5.20260911.1 \
