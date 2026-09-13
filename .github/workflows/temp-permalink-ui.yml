@@ -30,6 +30,16 @@ jobs:
       - name: Apply deterministic page migration
         run: |
           if [ -f tooling/scripts/apply_permalink_ui_patch.mjs ]; then
+            python - <<'PY'
+          from pathlib import Path
+          path = Path("tooling/scripts/apply_permalink_ui_patch.mjs")
+          text = path.read_text(encoding="utf-8")
+          old = '  if (matches !== 1) throw new Error(`${label}: expected exactly one match, found ${matches}`);'
+          new = '  const expectedMatches = label === "hero daily PDF path" ? 2 : 1;\n  if (matches !== expectedMatches) throw new Error(`${label}: expected exactly ${expectedMatches} match(es), found ${matches}`);'
+          if text.count(old) != 1:
+              raise SystemExit("unexpected migration helper shape")
+          path.write_text(text.replace(old, new), encoding="utf-8")
+          PY
             node tooling/scripts/apply_permalink_ui_patch.mjs
             rm tooling/scripts/apply_permalink_ui_patch.mjs
           fi
