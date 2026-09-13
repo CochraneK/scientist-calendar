@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
+const REPO_ROOT = new URL("../../", import.meta.url);
+
 async function render() {
-  const workerUrl = new URL("../dist/server/index.js", import.meta.url);
+  const workerUrl = new URL("dist/server/index.js", REPO_ROOT);
   workerUrl.searchParams.set("test", `${process.pid}-${Date.now()}`);
   const { default: worker } = await import(workerUrl.href);
 
@@ -27,13 +29,13 @@ async function render() {
 const HALFWIDTH_IN_CJK = /[一-鿿][,;:?!]|[一-鿿]\(/;
 
 async function loadJson(relativePath) {
-  return JSON.parse(await readFile(new URL(relativePath, import.meta.url), "utf8"));
+  return JSON.parse(await readFile(new URL(relativePath, REPO_ROOT), "utf8"));
 }
 
 test("server-renders the calendar page", async () => {
   const [response, scientists] = await Promise.all([
     render(),
-    loadJson("../app/data/scientists.json"),
+    loadJson("app/data/scientists.json"),
   ]);
   assert.equal(response.status, 200);
   assert.match(response.headers.get("content-type") ?? "", /^text\/html\b/i);
@@ -51,9 +53,9 @@ test("server-renders the calendar page", async () => {
 
 test("calendar dataset stays consistent", async () => {
   const [scientists, manifest, quotes] = await Promise.all([
-    loadJson("../app/data/scientists.json"),
-    loadJson("../public/avatars.json"),
-    loadJson("../app/data/quotes.json"),
+    loadJson("app/data/scientists.json"),
+    loadJson("public/avatars.json"),
+    loadJson("app/data/quotes.json"),
   ]);
 
   const ids = new Set(scientists.map((entry) => entry.id));
@@ -66,7 +68,7 @@ test("calendar dataset stays consistent", async () => {
     assert.ok(ids.has(id), `avatar manifest references unknown scientist: ${id}`);
     if (info.photo) {
       await assert.doesNotReject(
-        readFile(new URL(`../public/avatars/${id}.jpg`, import.meta.url)),
+        readFile(new URL(`public/avatars/${id}.jpg`, REPO_ROOT)),
         `manifest says ${id} has a photo but public/avatars/${id}.jpg is missing`,
       );
     }
@@ -79,8 +81,8 @@ test("calendar dataset stays consistent", async () => {
 
 test("prose uses full-width punctuation", async () => {
   const [scientists, quotes] = await Promise.all([
-    loadJson("../app/data/scientists.json"),
-    loadJson("../app/data/quotes.json"),
+    loadJson("app/data/scientists.json"),
+    loadJson("app/data/quotes.json"),
   ]);
 
   const textFields = ["name", "country", "relation", "tagline", "story", "contribution", "fact"];
