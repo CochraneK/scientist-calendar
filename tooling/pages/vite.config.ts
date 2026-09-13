@@ -3,7 +3,7 @@ import react from "@vitejs/plugin-react";
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath, URL } from "node:url";
-import { SITE_URL, scientistAbsoluteUrl } from "../../src/domain/scientistRoutes";
+import { SITE_URL, scientistAbsoluteUrl } from "../../src/domain/scientistRoutes.ts";
 
 type ScientistSeo = {
   id: string;
