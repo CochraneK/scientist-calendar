@@ -41,3 +41,6 @@ jobs:
 
       - name: Test（含 vinext 构建 + 渲染测试）
         run: npm test
+
+      - name: Build GitHub Pages artifact
+        run: npm run build:pages

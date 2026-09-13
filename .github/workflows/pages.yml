@@ -1,11 +1,10 @@
 name: Deploy to GitHub Pages
 
-# 仅在 Quality 工作流通过后才构建并部署；任何质量门禁失败都禁止发布。
+# 仅发布通过 Quality 的 main push，并且构建与被验证的提交严格使用同一个 SHA。
 on:
   workflow_run:
     workflows: ["Quality"]
     types: [completed]
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -17,21 +16,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # 质量门禁：Quality 失败时阻断部署；手动 workflow_dispatch 时直接放行。
   gate:
     runs-on: ubuntu-latest
     if: >-
-      github.event_name == 'workflow_dispatch' ||
-      github.event.workflow_run.conclusion == 'success'
+      github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_branch == 'main'
     steps:
-      - run: echo "Quality gate passed, proceeding to build & deploy"
+      - run: echo "Quality gate passed for ${{ github.event.workflow_run.head_sha }}"
 
   build:
     needs: gate
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout validated commit
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
 
       - name: Setup Node
         uses: actions/setup-node@v4
