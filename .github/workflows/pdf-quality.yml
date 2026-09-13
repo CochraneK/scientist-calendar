@@ -1,0 +1,45 @@
+name: PDF Quality
+
+on:
+  pull_request:
+    paths:
+      - "app/data/**"
+      - "tooling/scripts/generate_*calendar.py"
+      - "tooling/scripts/verify_pdf_layout.py"
+      - "tooling/requirements.txt"
+      - ".github/workflows/pdf-quality.yml"
+  push:
+    branches: [main]
+    paths:
+      - "app/data/**"
+      - "tooling/scripts/generate_*calendar.py"
+      - "tooling/scripts/verify_pdf_layout.py"
+      - "tooling/requirements.txt"
+      - ".github/workflows/pdf-quality.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-pdfs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: tooling/requirements.txt
+      - name: Install pinned PDF tooling
+        run: python -m pip install -r tooling/requirements.txt
+      - name: Generate daily PDF
+        run: python -X utf8 tooling/scripts/generate_print_calendar.py
+      - name: Generate monthly PDF
+        run: python -X utf8 tooling/scripts/generate_monthly_calendar.py
+      - name: Verify daily PDF
+        run: python -X utf8 tooling/scripts/verify_pdf_layout.py "output/pdf/科学家日历_精选466位_A4打印版.pdf" --quiet
+      - name: Verify monthly PDF
+        run: python -X utf8 tooling/scripts/verify_pdf_layout.py "output/pdf/科学家日历_月度生日版_A4.pdf" --quiet
