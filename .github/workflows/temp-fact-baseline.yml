@@ -48,7 +48,7 @@ jobs:
 
       - name: Commit baseline
         run: |
-          if git diff --quiet -- tooling/data/legacy-scientist-facts.json; then
+          if [ -z "$(git status --porcelain -- tooling/data/legacy-scientist-facts.json)" ]; then
             echo "Baseline already current."
             exit 0
           fi
