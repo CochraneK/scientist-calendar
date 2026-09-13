@@ -11,6 +11,7 @@
     "build:pages": "vite build --config tooling/pages/vite.config.ts",
     "start": "vinext start",
     "typecheck": "tsc --noEmit",
+    "typecheck:worker": "tsc -p worker/tsconfig.json --noEmit",
     "test": "npm run build && node --test tooling/tests/rendered-html.test.mjs",
     "lint": "eslint . --config tooling/eslint.config.mjs --ignore-pattern dist --ignore-pattern .next",
     "audit:data": "python -X utf8 tooling/scripts/audit_data.py",
