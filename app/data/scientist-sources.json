@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "scientists": {
+    "newton": [
+      {
+        "title": "Sir Isaac Newton’s Cambridge papers added to UNESCO’s Memory of the World Register",
+        "publisher": "University of Cambridge",
+        "url": "https://www.cam.ac.uk/research/news/sir-isaac-newtons-cambridge-papers-added-to-unescos-memory-of-the-world-register",
+        "covers": ["identity", "profile", "story", "contribution"],
+        "notes": "Documents Newton's work on gravity, calculus and optics and the development of those ideas. The project's modernized 1643 birth year is intentionally not covered by this record."
+      },
+      {
+        "title": "Newton; Sir; Isaac (1642 - 1727); natural philosopher and mathematician",
+        "publisher": "The Royal Society",
+        "url": "https://catalogues.royalsociety.org/calmview/Record.aspx?id=NA8414&src=CalmView.Persons",
+        "covers": ["identity", "profile", "story", "contribution"],
+        "notes": "Royal Society authority record for occupation, research fields and work on colours, mechanics, gravity, Principia and Opticks. Dates are Old Style and therefore not used to cover the project's normalized date fields."
+      }
+    ],
+    "einstein": [
+      {
+        "title": "Albert Einstein – Facts",
+        "publisher": "Nobel Prize Outreach",
+        "url": "https://www.nobelprize.org/prizes/physics/1921/einstein/facts/",
+        "covers": ["identity", "dates", "profile", "story", "contribution", "fact"],
+        "notes": "Official Nobel Prize profile covering life dates, theoretical physics, the photoelectric effect and award context."
+      }
+    ],
+    "curie": [
+      {
+        "title": "Marie Curie – Facts",
+        "publisher": "Nobel Prize Outreach",
+        "url": "https://www.nobelprize.org/prizes/physics/1903/marie-curie/facts/",
+        "covers": ["identity", "dates", "profile", "story", "contribution", "fact"],
+        "notes": "Official Nobel Prize profile covering life dates, radioactivity research, polonium/radium and her two Nobel Prizes."
+      }
+    ],
+    "turing": [
+      {
+        "title": "Alan Turing: A brief biography",
+        "publisher": "Bletchley Park",
+        "url": "https://bletchleypark.org.uk/wp-content/uploads/record_attachments/1800.pdf",
+        "covers": ["identity", "dates", "profile", "story", "contribution", "fact"],
+        "notes": "Bletchley Park biography covering Turing's 1936 theoretical work, the Turing machine, wartime Enigma work and Bombe design."
+      }
+    ],
+    "tuyouyou": [
+      {
+        "title": "Tu Youyou – Facts",
+        "publisher": "Nobel Prize Outreach",
+        "url": "https://www.nobelprize.org/prizes/medicine/2015/tu/facts/",
+        "covers": ["identity", "dates", "profile", "story", "contribution", "fact"],
+        "notes": "Official Nobel Prize profile covering birth date, malaria research and the extraction and impact of artemisinin."
+      }
+    ]
+  }
+}
