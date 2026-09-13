@@ -28,6 +28,7 @@
 | `app/page.tsx` | 主界面，同时供 vinext 与静态 Pages 入口复用；负责人物路由、浏览器历史与分享交互 |
 | `app/data/scientists.json` | 466 位科学家完整档案 |
 | `app/data/quotes.json` | 人物语录，按 id 索引 |
+| `app/data/scientist-sources.json` | 人物事实的可追溯来源注册表，按 id 记录标题、发布机构、URL 与字段组覆盖范围 |
 | `app/data/scientists-index.json` | 自动生成的轻量索引 |
 | `app/data/details/` | 自动生成的 12 个月详情分片 |
 | `app/data/curated_content*.json` | 人工精修内容及历史增量源 |
@@ -36,9 +37,11 @@
 | `src/hooks/` | 当前日期与跨午夜刷新逻辑 |
 | `tooling/pages/` | GitHub Pages 的 Vite 构建入口与配置；构建时生成 466 个人物静态入口页与 sitemap |
 | `tooling/scripts/check_pages_output.mjs` | 校验人物静态页、canonical、OG URL、Person JSON-LD 与 sitemap |
+| `tooling/scripts/audit_scientist_sources.py` | 对事实字段做分组哈希，并阻止未来无来源的事实改写 |
 | `tooling/scripts/` | 数据审计、Wikidata 核验、PDF 生成与版面检查 |
 | `tooling/tests/` | Node 渲染与数据一致性测试 |
 | `tooling/requirements.txt` | PDF 工具链的 Python 固定依赖 |
+| `tooling/data/legacy-scientist-facts.json` | 治理启用时 466 人 × 6 字段组的 SHA-256 历史基线；不是“已核验”清单 |
 | `tooling/data/legacy-avatars.json` | 历史照片债务基线，仅用于阻止新增无来源照片，不代表许可已核验 |
 | `public/avatar-provenance.json` | 已核验肖像的逐文件来源、作者、许可证与 attribution 注册表 |
 | `public/` | 肖像、插画、PDF 等静态资源 |
@@ -61,6 +64,7 @@ npm run typecheck
 npm run typecheck:worker
 npm run lint
 npm run audit:data
+npm run audit:sources
 npm run audit:avatars
 npm run check:web-data
 npm test
@@ -83,6 +87,7 @@ CI 会执行 `check:web-data`；如果生成文件落后于事实源，Quality �
 | --- | --- |
 | `npm run audit:deps` | npm 依赖安全审计；任何已知漏洞都会使 Quality 失败 |
 | `npm run audit:data` | 字段、365 天覆盖、头像/语录关联、中文标点和年份格式体检 |
+| `npm run audit:sources` | 阻止新增人物或已有人物事实变更在缺少对应字段组来源时进入主线 |
 | `npm run audit:avatars` | 阻止新增或启用缺少 provenance 的照片；允许历史债务逐步补齐 |
 | `npm run build:web-data` | 从完整数据生成轻量索引与 12 个月详情分片 |
 | `npm run check:web-data` | 检查生成分片是否与事实源一致，不改文件 |
@@ -92,6 +97,39 @@ CI 会执行 `check:web-data`；如果生成文件落后于事实源，Quality �
 | `python -X utf8 tooling/scripts/fix_punctuation.py --dry` | 预览正文半角标点修正 |
 
 日期口径统一使用**格里历（公历）**。Wikidata 中明确标为儒略历的日期在核验时转换后比较；史料无法确定生日的人物可能使用纪念日或资料占位日期，相关情况应在数据中明确说明。
+
+## 事实来源与历史债务
+
+项目早期的 466 人档案并没有逐条保存来源。为了不伪造“已全部核验”的状态，治理启用时把现有内容按六个事实字段组计算 SHA-256，并冻结在 `tooling/data/legacy-scientist-facts.json`：
+
+- `identity`：姓名、拉丁名、领域、国家/地区
+- `dates`：月、日、生卒年
+- `profile`：关系标签与 tagline
+- `story`：人物故事
+- `contribution`：核心贡献
+- `fact`：趣闻/补充事实
+
+这份基线只表示“这是制度启用前已经存在的历史内容”，**不表示内容已经有可靠来源**。历史来源可以逐步补到 `app/data/scientist-sources.json`；首批记录以 Nobel Prize、University of Cambridge、Royal Society、Bletchley Park 等机构页面作为样板。
+
+以后若修改 `scientists.json` 中任一事实组，必须同时给该人物增加至少一条能够覆盖该组的来源。例如修改 `contribution` 时，来源记录的 `covers` 必须包含 `contribution`；新增人物则六个字段组都必须有来源覆盖。格式示例：
+
+```json
+{
+  "scientists": {
+    "scientist-id": [
+      {
+        "title": "权威页面标题",
+        "publisher": "发布机构",
+        "url": "https://example.org/source",
+        "covers": ["dates", "contribution", "story"],
+        "notes": "可选的口径、历法或适用范围说明"
+      }
+    ]
+  }
+}
+```
+
+`audit:sources` 是离线、确定性的发布门禁，不会在 CI 中临时访问外部网站。`verify_dates.py` / `verify_facts.py` 仍用于联网交叉核验，两者用途不同。不要因为普通事实编辑而重建历史基线；只有经过明确审查的治理迁移才应使用 `audit_scientist_sources.py --write-baseline`。
 
 ## PDF 工具链
 
@@ -159,7 +197,7 @@ npm run check:pages
 
 `main` 的发布链为：
 
-1. `Quality` 对同一提交执行依赖安全审计、类型检查、lint、数据审计、头像 provenance 审计、生成数据一致性检查、Vinext 测试，并构建和逐项校验 Pages 人物永久页与 sitemap。
+1. `Quality` 对同一提交执行依赖安全审计、类型检查、lint、数据审计、**事实来源门禁**、头像 provenance 审计、生成数据一致性检查、Vinext 测试，并构建和逐项校验 Pages 人物永久页与 sitemap。
 2. 只有 Quality 成功后，`Deploy to GitHub Pages` 才会 checkout 该次通过验证的**精确 commit SHA**。
 3. Pages workflow 对同一 SHA 再次生成并校验静态站，然后上传 Pages artifact 并部署。
 
@@ -172,6 +210,7 @@ npm run check:pages
 ## 数据维护
 
 - `tooling/tests/rendered-html.test.mjs` 检查 SSR 渲染、id 唯一、365 天覆盖、头像与语录引用等契约
+- `tooling/scripts/audit_scientist_sources.py` 对比事实字段组哈希并验证来源覆盖范围
 - `tooling/scripts/check_pages_output.mjs` 检查 Pages 人物永久页与 sitemap 的生成契约
 - `tooling/pages/extras/backup-candidates.md` 保存后续扩充候选池
-- 数据源更新后应同时运行 `audit:data`、`audit:avatars`、`build:web-data`、`check:web-data` 与完整测试
+- 数据源更新后应同时运行 `audit:data`、`audit:sources`、`audit:avatars`、`build:web-data`、`check:web-data` 与完整测试
