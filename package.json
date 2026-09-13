@@ -20,7 +20,7 @@
     "check:web-data": "python -X utf8 tooling/scripts/build_web_data.py --check",
     "verify:dates": "python -X utf8 tooling/scripts/verify_dates.py",
     "verify:facts": "python -X utf8 tooling/scripts/verify_facts.py",
-    "verify:pdf": "python -X utf8 tooling/scripts/verify_pdf_layout.py",
+    "verify:pdf": "python -X utf8 tooling/scripts/verify_print_pdfs.py",
     "pdf:daily": "python -X utf8 tooling/scripts/generate_print_calendar.py",
     "pdf:monthly": "python -X utf8 tooling/scripts/generate_monthly_calendar.py"
   },
