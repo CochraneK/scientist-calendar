@@ -16,13 +16,17 @@
     "lint": "eslint . --config tooling/eslint.config.mjs --ignore-pattern dist --ignore-pattern .next",
     "audit:deps": "npm audit",
     "audit:data": "python -X utf8 tooling/scripts/audit_data.py",
+    "audit:avatars": "python -X utf8 tooling/scripts/audit_avatar_provenance.py",
     "build:web-data": "python -X utf8 tooling/scripts/build_web_data.py",
     "check:web-data": "python -X utf8 tooling/scripts/build_web_data.py --check",
     "verify:dates": "python -X utf8 tooling/scripts/verify_dates.py",
     "verify:facts": "python -X utf8 tooling/scripts/verify_facts.py",
-    "verify:pdf": "python -X utf8 tooling/scripts/verify_pdf_layout.py",
+    "verify:pdf": "npm run verify:pdf:daily && npm run verify:pdf:monthly",
+    "verify:pdf:daily": "python -X utf8 tooling/scripts/verify_pdf_layout.py \"output/pdf/科学家日历_精选466位_A4打印版.pdf\" --quiet",
+    "verify:pdf:monthly": "python -X utf8 tooling/scripts/verify_pdf_layout.py \"output/pdf/科学家日历_月度生日版_A4.pdf\" --quiet",
     "pdf:daily": "python -X utf8 tooling/scripts/generate_print_calendar.py",
-    "pdf:monthly": "python -X utf8 tooling/scripts/generate_monthly_calendar.py"
+    "pdf:monthly": "python -X utf8 tooling/scripts/generate_monthly_calendar.py",
+    "pdf:build": "npm run pdf:daily && npm run pdf:monthly && npm run verify:pdf"
   },
   "dependencies": {
     "next": "16.3.3",
