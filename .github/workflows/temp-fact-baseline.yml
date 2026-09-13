@@ -1,0 +1,59 @@
+name: Temporary fact provenance baseline
+
+on:
+  push:
+    branches: ["feat/fact-source-provenance"]
+
+permissions:
+  contents: write
+
+jobs:
+  baseline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          ref: feat/fact-source-provenance
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Generate baseline
+        run: python -X utf8 tooling/scripts/audit_scientist_sources.py --write-baseline
+
+      - name: Verify unchanged legacy data
+        run: python -X utf8 tooling/scripts/audit_scientist_sources.py
+
+      - name: Verify unsourced factual changes are rejected
+        run: |
+          cp app/data/scientists.json /tmp/scientists.json
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          path = Path('app/data/scientists.json')
+          data = json.loads(path.read_text(encoding='utf-8'))
+          target = next(item for item in data if item['id'] == 'braille')
+          target['contribution'] = target['contribution'] + '（门禁测试）'
+          path.write_text(json.dumps(data, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
+          PY
+          if python -X utf8 tooling/scripts/audit_scientist_sources.py; then
+            echo "Expected provenance audit to reject an unsourced fact change" >&2
+            exit 1
+          fi
+          mv /tmp/scientists.json app/data/scientists.json
+          python -X utf8 tooling/scripts/audit_scientist_sources.py
+
+      - name: Commit baseline
+        run: |
+          if git diff --quiet -- tooling/data/legacy-scientist-facts.json; then
+            echo "Baseline already current."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add tooling/data/legacy-scientist-facts.json
+          git commit -m "data: freeze legacy scientist fact baseline"
+          git push origin HEAD:feat/fact-source-provenance
