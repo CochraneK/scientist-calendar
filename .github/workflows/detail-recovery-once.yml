@@ -1,0 +1,76 @@
+name: One-shot detail chunk recovery fix
+
+on:
+  push:
+    branches: ["fix/detail-chunk-recovery"]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: fix/detail-chunk-recovery
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Apply focused recovery handling
+        shell: python
+        run: |
+          from pathlib import Path
+          path = Path('app/page.tsx')
+          text = path.read_text(encoding='utf-8')
+          replacements = [
+            (
+              '  const [detailsById, setDetailsById] = useState<MonthDetails>({});',
+              '  const [detailsById, setDetailsById] = useState<MonthDetails>({});\n  const [detailLoadErrors, setDetailLoadErrors] = useState<Set<number>>(() => new Set());\n  const [detailRetryToken, setDetailRetryToken] = useState(0);'
+            ),
+            (
+              '  const isTodaySelection = selected.id === todayScientist?.id;',
+              '  const isTodaySelection = selected.id === todayScientist?.id;\n  const detailLoadFailed = detailLoadErrors.has(selected.month);'
+            ),
+            (
+              '''  useEffect(() => {\n    if (detailsById[selected.id]) return;\n    let cancelled = false;\n    void detailLoaders[selected.month]().then((module) => {\n      if (!cancelled) {\n        setDetailsById((current) => ({ ...current, ...(module.default as MonthDetails) }));\n      }\n    });\n    return () => { cancelled = true; };\n  }, [selected.id, selected.month, detailsById]);''',
+              '''  useEffect(() => {\n    if (detailsById[selected.id]) return;\n    let cancelled = false;\n    setDetailLoadErrors((current) => {\n      if (!current.has(selected.month)) return current;\n      const next = new Set(current);\n      next.delete(selected.month);\n      return next;\n    });\n    void detailLoaders[selected.month]().then((module) => {\n      if (!cancelled) {\n        setDetailsById((current) => ({ ...current, ...(module.default as MonthDetails) }));\n      }\n    }).catch(() => {\n      if (!cancelled) {\n        setDetailLoadErrors((current) => new Set(current).add(selected.month));\n      }\n    });\n    return () => { cancelled = true; };\n  }, [selected.id, selected.month, detailsById, detailRetryToken]);'''
+            ),
+            (
+              '<p className="feature-story">{selectedDetail?.story ?? "正在加载人物档案…"}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selectedDetail?.fact ?? "正在加载…"}</strong></div></div><button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button>',
+              '<p className="feature-story" aria-live="polite">{selectedDetail?.story ?? (detailLoadFailed ? "人物档案加载失败，请检查网络后重试。" : "正在加载人物档案…")}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selectedDetail?.fact ?? (detailLoadFailed ? "暂时无法加载" : "正在加载…")}</strong></div></div>{detailLoadFailed && <button className="detail-button" type="button" onClick={() => setDetailRetryToken((token) => token + 1)}>重新加载人物档案 <span>↻</span></button>}<button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button>'
+            ),
+          ]
+          for old, new in replacements:
+            count = text.count(old)
+            if count != 1:
+              raise SystemExit(f'expected exactly one match, got {count}: {old[:120]}')
+            text = text.replace(old, new)
+          path.write_text(text, encoding='utf-8')
+      - name: Install dependencies
+        run: npm ci
+      - name: Typecheck app
+        run: npm run typecheck
+      - name: Typecheck worker
+        run: npm run typecheck:worker
+      - name: Lint
+        run: npm run lint
+      - name: Audit data
+        run: npm run audit:data
+      - name: Check generated web data
+        run: npm run check:web-data
+      - name: Test
+        run: npm test
+      - name: Build Pages
+        run: npm run build:pages
+      - name: Commit validated fix
+        run: |
+          git config user.name "CochraneK"
+          git config user.email "48022373+CochraneK@users.noreply.github.com"
+          git add app/page.tsx
+          git commit -m "fix: recover from scientist detail chunk load failures [detail-recovery-generated]"
+          git push origin HEAD:fix/detail-chunk-recovery
