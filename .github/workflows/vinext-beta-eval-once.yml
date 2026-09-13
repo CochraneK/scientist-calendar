@@ -21,8 +21,8 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
-      - name: Upgrade Vinext beta
-        run: npm install --save-dev vinext@1.0.0-beta.9
+      - name: Upgrade Vinext beta and required RSC peer
+        run: npm install --save-dev vinext@1.0.0-beta.9 @vitejs/plugin-rsc@0.5.34
       - name: Clean install from regenerated lockfile
         run: npm ci
       - name: Audit all dependencies
