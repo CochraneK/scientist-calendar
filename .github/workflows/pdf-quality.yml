@@ -4,16 +4,20 @@ on:
   pull_request:
     paths:
       - "app/data/**"
+      - "public/print/**"
       - "tooling/scripts/generate_*calendar.py"
       - "tooling/scripts/verify_pdf_layout.py"
+      - "tooling/scripts/verify_print_pdfs.py"
       - "tooling/requirements.txt"
       - ".github/workflows/pdf-quality.yml"
   push:
     branches: [main]
     paths:
       - "app/data/**"
+      - "public/print/**"
       - "tooling/scripts/generate_*calendar.py"
       - "tooling/scripts/verify_pdf_layout.py"
+      - "tooling/scripts/verify_print_pdfs.py"
       - "tooling/requirements.txt"
       - ".github/workflows/pdf-quality.yml"
   workflow_dispatch:
@@ -35,6 +39,8 @@ jobs:
           cache-dependency-path: tooling/requirements.txt
       - name: Install pinned PDF tooling
         run: python -m pip install -r tooling/requirements.txt
+      - name: Verify committed print artifacts
+        run: python -X utf8 tooling/scripts/verify_print_pdfs.py
       - name: Generate daily PDF
         run: python -X utf8 tooling/scripts/generate_print_calendar.py
       - name: Generate monthly PDF
