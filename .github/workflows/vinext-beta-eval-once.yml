@@ -1,0 +1,50 @@
+name: One-shot Vinext beta evaluation
+
+on:
+  push:
+    branches: ["security/vinext-beta9-eval"]
+
+permissions:
+  contents: write
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: security/vinext-beta9-eval
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+      - name: Upgrade Vinext beta
+        run: npm install --save-dev vinext@1.0.0-beta.9
+      - name: Clean install from regenerated lockfile
+        run: npm ci
+      - name: Audit all dependencies
+        run: npm audit --json
+      - name: Typecheck app
+        run: npm run typecheck
+      - name: Typecheck worker
+        run: npm run typecheck:worker
+      - name: Lint
+        run: npm run lint
+      - name: Audit calendar data
+        run: npm run audit:data
+      - name: Check generated web data
+        run: npm run check:web-data
+      - name: Vinext build + rendered tests
+        run: npm test
+      - name: GitHub Pages build
+        run: npm run build:pages
+      - name: Commit beta upgrade only after all checks pass
+        run: |
+          git config user.name "CochraneK"
+          git config user.email "48022373+CochraneK@users.noreply.github.com"
+          git add package.json package-lock.json
+          git commit -m "security: upgrade vinext to 1.0.0-beta.9 [vinext-beta-generated]"
+          git push origin HEAD:security/vinext-beta9-eval
