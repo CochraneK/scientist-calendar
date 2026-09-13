@@ -1,11 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import quotes from "./data/quotes.json";
-import scientistsData from "./data/scientists.json";
+import { useEffect, useMemo, useState } from "react";
+import scientistsData from "./data/scientists-index.json";
 import avatarsData from "../public/avatars.json";
 import {
-  type Scientist,
+  type ScientistSummary,
   type Field,
   type DateParts,
   getScientistForDate,
@@ -13,14 +12,16 @@ import {
 import { useCurrentDate } from "../src/hooks/useCurrentDate";
 
 type AvatarMode = "letter" | "photo";
+type ScientistDetail = { story: string; fact: string; quote?: string; quoteSource?: string };
+type MonthDetails = Record<string, ScientistDetail>;
 
-const scientists = scientistsData as Scientist[];
+const scientists = scientistsData as ScientistSummary[];
 const avatars = avatarsData as Record<string, { photo: boolean }>;
 const einsteinIllustration = "art/einstein-archive.webp";
 
 // 日期与“当前日期”逻辑已移至 src/domain/calendar.ts 与 src/hooks/useCurrentDate.ts
 
-function avatarFor(scientist: Scientist, mode: AvatarMode): string | null {
+function avatarFor(scientist: ScientistSummary, mode: AvatarMode): string | null {
   if (mode !== "photo") return null;
   if (avatars[scientist.id]?.photo) return `avatars/${scientist.id}.jpg`;
   if (scientist.id === "einstein") return einsteinIllustration;
@@ -31,6 +32,20 @@ const fields: Array<Field | "全部"> = ["全部", "物理", "化学", "生命�
 const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
 const weekdayNames = ["日", "一", "二", "三", "四", "五", "六"];
 const ARCHIVE_PAGE_SIZE = 48;
+const detailLoaders: Record<number, () => Promise<{ default: MonthDetails }>> = {
+  1: () => import("./data/details/01.json"),
+  2: () => import("./data/details/02.json"),
+  3: () => import("./data/details/03.json"),
+  4: () => import("./data/details/04.json"),
+  5: () => import("./data/details/05.json"),
+  6: () => import("./data/details/06.json"),
+  7: () => import("./data/details/07.json"),
+  8: () => import("./data/details/08.json"),
+  9: () => import("./data/details/09.json"),
+  10: () => import("./data/details/10.json"),
+  11: () => import("./data/details/11.json"),
+  12: () => import("./data/details/12.json"),
+};
 
 function formatDate(month: number, day: number) {
   return `${month} 月 ${day} 日`;
@@ -47,10 +62,23 @@ function Calendar({ now }: { now: DateParts }) {
   const [calendarMonth, setCalendarMonth] = useState(now.month);
   const [avatarMode, setAvatarMode] = useState<AvatarMode>("letter");
   const [archiveLimit, setArchiveLimit] = useState(ARCHIVE_PAGE_SIZE);
+  const [detailsById, setDetailsById] = useState<MonthDetails>({});
 
   const selected = scientists.find((scientist) => scientist.id === selectedId) ?? scientists[0];
-  const selectedQuote = quotes[selected.id as keyof typeof quotes] ?? (selected.quote && selected.quoteSource ? { text: selected.quote, source: selected.quoteSource } : undefined);
+  const selectedDetail = detailsById[selected.id];
+  const selectedQuote = selectedDetail?.quote && selectedDetail.quoteSource ? { text: selectedDetail.quote, source: selectedDetail.quoteSource } : undefined;
   const isTodaySelection = selected.id === todayScientist?.id;
+
+  useEffect(() => {
+    if (detailsById[selected.id]) return;
+    let cancelled = false;
+    void detailLoaders[selected.month]().then((module) => {
+      if (!cancelled) {
+        setDetailsById((current) => ({ ...current, ...(module.default as MonthDetails) }));
+      }
+    });
+    return () => { cancelled = true; };
+  }, [selected.id, selected.month, detailsById]);
   const filtered = useMemo(() => scientists.filter((scientist) => {
     const inField = activeField === "全部" || scientist.field === activeField;
     const needle = query.trim().toLowerCase();
@@ -62,7 +90,7 @@ function Calendar({ now }: { now: DateParts }) {
   const monthDays = new Date(now.year, calendarMonth, 0).getDate();
   const firstWeekday = new Date(now.year, calendarMonth - 1, 1).getDay();
   const monthEntries = scientists.filter((scientist) => scientist.month === calendarMonth);
-  const monthEntriesByDay = new Map<number, Scientist[]>();
+  const monthEntriesByDay = new Map<number, ScientistSummary[]>();
   for (const entry of monthEntries) {
     const list = monthEntriesByDay.get(entry.day) ?? [];
     list.push(entry);
@@ -71,7 +99,7 @@ function Calendar({ now }: { now: DateParts }) {
   const coveredDays = new Set(scientists.map((scientist) => `${scientist.month}-${scientist.day}`)).size;
   const coveragePercent = Math.min(100, (coveredDays / 365) * 100);
 
-  function selectScientist(scientist: Scientist) {
+  function selectScientist(scientist: ScientistSummary) {
     setSelectedId(scientist.id);
     setCalendarMonth(scientist.month);
     document.getElementById("today")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -123,7 +151,7 @@ function Calendar({ now }: { now: DateParts }) {
               {(["letter", "photo"] as AvatarMode[]).map((m) => <button key={m} type="button" className={avatarMode === m ? "active" : ""} onClick={() => setAvatarMode(m)}>{m === "letter" ? "单字" : "照片"}</button>)}
             </div>
           </div>
-          <div className="feature-copy"><p className="feature-relation">{selected.relation} · {selected.years}</p><h3>{selected.name}</h3><p className="latin-name">{selected.latinName} · {selected.country}</p><p className="feature-tagline">阅读线索｜{selected.tagline}</p>{selectedQuote && <blockquote className="quote-block"><span>{isTodaySelection ? "今日引语" : "人物引语"}</span><p>“{selectedQuote.text}”</p><cite>— {selectedQuote.source}</cite></blockquote>}<p className="feature-story">{selected.story}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selected.fact}</strong></div></div><button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button></div>
+          <div className="feature-copy"><p className="feature-relation">{selected.relation} · {selected.years}</p><h3>{selected.name}</h3><p className="latin-name">{selected.latinName} · {selected.country}</p><p className="feature-tagline">阅读线索｜{selected.tagline}</p>{selectedQuote && <blockquote className="quote-block"><span>{isTodaySelection ? "今日引语" : "人物引语"}</span><p>“{selectedQuote.text}”</p><cite>— {selectedQuote.source}</cite></blockquote>}<p className="feature-story">{selectedDetail?.story ?? "正在加载人物档案…"}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selectedDetail?.fact ?? "正在加载…"}</strong></div></div><button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button></div>
           <div className="feature-index" aria-hidden="true"><span>SCIENCE</span><span>NOTE</span><b>{selected.id.slice(0, 3).toUpperCase()}</b></div>
         </article>
       </section>
