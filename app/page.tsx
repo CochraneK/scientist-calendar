@@ -30,6 +30,7 @@ function avatarFor(scientist: Scientist, mode: AvatarMode): string | null {
 const fields: Array<Field | "全部"> = ["全部", "物理", "化学", "生命科学", "数学", "计算机", "天文", "医学", "地球科学"];
 const monthNames = ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月"];
 const weekdayNames = ["日", "一", "二", "三", "四", "五", "六"];
+const ARCHIVE_PAGE_SIZE = 48;
 
 function formatDate(month: number, day: number) {
   return `${month} 月 ${day} 日`;
@@ -45,15 +46,18 @@ function Calendar({ now }: { now: DateParts }) {
   // 月历默认停在“当前月份”，不依赖今日人物是否存在（否则 2/29 会错误跳到 7 月）。
   const [calendarMonth, setCalendarMonth] = useState(now.month);
   const [avatarMode, setAvatarMode] = useState<AvatarMode>("letter");
+  const [archiveLimit, setArchiveLimit] = useState(ARCHIVE_PAGE_SIZE);
 
   const selected = scientists.find((scientist) => scientist.id === selectedId) ?? scientists[0];
   const selectedQuote = quotes[selected.id as keyof typeof quotes] ?? (selected.quote && selected.quoteSource ? { text: selected.quote, source: selected.quoteSource } : undefined);
+  const isTodaySelection = selected.id === todayScientist?.id;
   const filtered = useMemo(() => scientists.filter((scientist) => {
     const inField = activeField === "全部" || scientist.field === activeField;
     const needle = query.trim().toLowerCase();
     const inSearch = !needle || [scientist.name, scientist.latinName, scientist.field, scientist.country, scientist.contribution].join(" ").toLowerCase().includes(needle);
     return inField && inSearch;
   }), [activeField, query]);
+  const visibleScientists = filtered.slice(0, archiveLimit);
 
   const monthDays = new Date(now.year, calendarMonth, 0).getDate();
   const firstWeekday = new Date(now.year, calendarMonth - 1, 1).getDay();
@@ -112,14 +116,14 @@ function Calendar({ now }: { now: DateParts }) {
       </section>
 
       <section className="today-section" id="today" aria-labelledby="today-title">
-        <header className="section-heading"><div><p className="eyebrow">TODAY&apos;S NOTE · {formatDate(selected.month, selected.day)}</p><h2 id="today-title">今日人物</h2></div><p className="section-aside">第 {String(selected.month).padStart(2, "0")}.{String(selected.day).padStart(2, "0")} 页 / 365</p></header>
+        <header className="section-heading"><div><p className="eyebrow">{isTodaySelection ? "TODAY&apos;S NOTE" : "ARCHIVE NOTE"} · {formatDate(selected.month, selected.day)}</p><h2 id="today-title">{isTodaySelection ? "今日人物" : "人物档案"}</h2></div><p className="section-aside">第 {String(selected.month).padStart(2, "0")}.{String(selected.day).padStart(2, "0")} 页 / 365</p></header>
         <article className={`feature-card tone-${selected.color}`}>
           <div className="portrait-panel"><span className="portrait-number">{String(selected.month).padStart(2, "0")}.{String(selected.day).padStart(2, "0")}</span>{(() => { const src = avatarFor(selected, avatarMode); if (src) return <img className={`portrait-image mode-${avatarMode}`} src={src} alt={`${selected.name}的肖像`} loading="lazy" />; if (selected.id === "einstein") return <img className="portrait-illustration" src={einsteinIllustration} alt="阿尔伯特·爱因斯坦的复古科学插画肖像" />; return <div className={`portrait-abstract tone-${selected.color}`} aria-hidden="true"><i /><b>{selected.name.slice(0, 1)}</b><em>{selected.latinName}</em></div>; })()}<span className="portrait-field">{selected.field}</span>
             <div className="portrait-switch" role="group" aria-label="头像模式">
               {(["letter", "photo"] as AvatarMode[]).map((m) => <button key={m} type="button" className={avatarMode === m ? "active" : ""} onClick={() => setAvatarMode(m)}>{m === "letter" ? "单字" : "照片"}</button>)}
             </div>
           </div>
-          <div className="feature-copy"><p className="feature-relation">{selected.relation} · {selected.years}</p><h3>{selected.name}</h3><p className="latin-name">{selected.latinName} · {selected.country}</p><p className="feature-tagline">阅读线索｜{selected.tagline}</p>{selectedQuote && <blockquote className="quote-block"><span>今日引语</span><p>“{selectedQuote.text}”</p><cite>— {selectedQuote.source}</cite></blockquote>}<p className="feature-story">{selected.story}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selected.fact}</strong></div></div><button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button></div>
+          <div className="feature-copy"><p className="feature-relation">{selected.relation} · {selected.years}</p><h3>{selected.name}</h3><p className="latin-name">{selected.latinName} · {selected.country}</p><p className="feature-tagline">阅读线索｜{selected.tagline}</p>{selectedQuote && <blockquote className="quote-block"><span>{isTodaySelection ? "今日引语" : "人物引语"}</span><p>“{selectedQuote.text}”</p><cite>— {selectedQuote.source}</cite></blockquote>}<p className="feature-story">{selected.story}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selected.fact}</strong></div></div><button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button></div>
           <div className="feature-index" aria-hidden="true"><span>SCIENCE</span><span>NOTE</span><b>{selected.id.slice(0, 3).toUpperCase()}</b></div>
         </article>
       </section>
@@ -131,10 +135,11 @@ function Calendar({ now }: { now: DateParts }) {
       </section>
 
       <section className="explore-section" id="explore" aria-labelledby="explore-title">
-        <header className="section-heading explore-heading"><div><p className="eyebrow">THE ARCHIVE · {scientists.length} STARTING POINTS</p><h2 id="explore-title">从好奇出发</h2></div><label className="search-box"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="搜索人物、领域或贡献" aria-label="搜索科学家档案" /></label></header>
-        <div className="field-filters" aria-label="按科学领域筛选">{fields.map((field) => <button key={field} type="button" className={field === activeField ? "active" : ""} onClick={() => setActiveField(field)}>{field}</button>)}</div>
-        <div className="archive-toolbar" aria-live="polite"><p>当前显示 <strong>{filtered.length}</strong> / {scientists.length} 位人物{activeField !== "全部" ? ` · ${activeField}` : ""}{query.trim() ? ` · “${query.trim()}”` : ""}</p>{(activeField !== "全部" || query) && <button type="button" onClick={() => { setActiveField("全部"); setQuery(""); }}>清除筛选</button>}</div>
-        <div className="archive-grid">{filtered.map((scientist, index) => <button className={`archive-card tone-${scientist.color}`} type="button" key={scientist.id} onClick={() => selectScientist(scientist)}><span className="archive-date">{String(scientist.month).padStart(2, "0")}.{String(scientist.day).padStart(2, "0")}</span>{(() => { const src = avatarFor(scientist, avatarMode); if (src) return <img className="archive-art archive-photo" src={src} alt="" loading="lazy" />; return <span className="archive-art" aria-hidden="true"><i /><b>{scientist.name.slice(0, 1)}</b><em>{scientist.field}</em></span>; })()}<span className="archive-field">{scientist.field}</span><h3>{scientist.name}</h3><p>{scientist.tagline}</p><span className="archive-open">阅读档案 <b>↗</b></span><i className="archive-index">{String(index + 1).padStart(2, "0")}</i></button>)}</div>
+        <header className="section-heading explore-heading"><div><p className="eyebrow">THE ARCHIVE · {scientists.length} STARTING POINTS</p><h2 id="explore-title">从好奇出发</h2></div><label className="search-box"><span>⌕</span><input value={query} onChange={(event) => { setQuery(event.target.value); setArchiveLimit(ARCHIVE_PAGE_SIZE); }} placeholder="搜索人物、领域或贡献" aria-label="搜索科学家档案" /></label></header>
+        <div className="field-filters" aria-label="按科学领域筛选">{fields.map((field) => <button key={field} type="button" className={field === activeField ? "active" : ""} onClick={() => { setActiveField(field); setArchiveLimit(ARCHIVE_PAGE_SIZE); }}>{field}</button>)}</div>
+        <div className="archive-toolbar" aria-live="polite"><p>当前显示 <strong>{filtered.length}</strong> / {scientists.length} 位人物{activeField !== "全部" ? ` · ${activeField}` : ""}{query.trim() ? ` · “${query.trim()}”` : ""}</p>{(activeField !== "全部" || query) && <button type="button" onClick={() => { setActiveField("全部"); setQuery(""); setArchiveLimit(ARCHIVE_PAGE_SIZE); }}>清除筛选</button>}</div>
+        <div className="archive-grid">{visibleScientists.map((scientist, index) => <button className={`archive-card tone-${scientist.color}`} type="button" key={scientist.id} onClick={() => selectScientist(scientist)}><span className="archive-date">{String(scientist.month).padStart(2, "0")}.{String(scientist.day).padStart(2, "0")}</span>{(() => { const src = avatarFor(scientist, avatarMode); if (src) return <img className="archive-art archive-photo" src={src} alt="" loading="lazy" />; return <span className="archive-art" aria-hidden="true"><i /><b>{scientist.name.slice(0, 1)}</b><em>{scientist.field}</em></span>; })()}<span className="archive-field">{scientist.field}</span><h3>{scientist.name}</h3><p>{scientist.tagline}</p><span className="archive-open">阅读档案 <b>↗</b></span><i className="archive-index">{String(index + 1).padStart(2, "0")}</i></button>)}</div>
+        {visibleScientists.length < filtered.length && <button className="button-secondary" type="button" onClick={() => setArchiveLimit((limit) => Math.min(limit + ARCHIVE_PAGE_SIZE, filtered.length))}>加载更多 · 还剩 {filtered.length - visibleScientists.length} 位 <span>↓</span></button>}
         {!filtered.length && <p className="empty-state">没有找到匹配的人物。换个关键词试试。</p>}
       </section>
 
