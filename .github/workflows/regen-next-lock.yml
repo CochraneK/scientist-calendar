@@ -1,0 +1,51 @@
+name: Regenerate Next lockfile
+
+on:
+  push:
+    branches: [security/next-16.3.3]
+
+permissions:
+  contents: write
+
+jobs:
+  regenerate:
+    if: ${{ !contains(github.event.head_commit.message, '[lockfile-generated]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.ref_name }}
+
+      - name: Setup Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Upgrade patched Next.js line and regenerate lockfile
+        run: npm install --save-exact next@16.3.3 eslint-config-next@16.3.3
+
+      - name: Typecheck
+        run: npm run typecheck
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Audit data
+        run: npm run audit:data
+
+      - name: Test
+        run: npm test
+
+      - name: Build GitHub Pages artifact
+        run: npm run build:pages
+
+      - name: Commit regenerated dependency metadata
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json package-lock.json
+          git diff --cached --quiet && exit 0
+          git commit -m "security: upgrade Next.js to 16.3.3 [lockfile-generated]"
+          git push origin HEAD:${GITHUB_REF_NAME}
