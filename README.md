@@ -3,11 +3,15 @@
 一年 365 天，每天认识一位科学家。项目收录 466 位人物，以日期、领域、贡献、故事、语录和肖像组织成可搜索的交互日历，并提供两套 A4 打印版。
 
 - 在线版（GitHub Pages）：<https://cochranek.github.io/scientist-calendar/>
+- 人物永久链接示例：`/scientist-calendar/scientists/newton/`
 - 打印版：每日人物版（横版，一人一页）+ 月度生日版（纵版，一月一页）
 
 ## 功能
 
 - 今日人物：按用户本地日期展示对应人物，跨午夜自动刷新
+- 人物永久链接：466 位人物均有稳定 `/scientists/<id>/` 地址，可直接打开、复制和分享
+- 分享人物：支持 Web Share API；不支持时自动回落到复制永久链接
+- 搜索与社交预览：人物页生成独立 title、description、canonical、Open Graph、Twitter Card 与 `Person` JSON-LD，并进入 sitemap
 - 月历：365 天覆盖，同日多人可循环查看
 - 档案浏览：按领域筛选并支持姓名、国家、领域和贡献搜索
 - 渐进渲染：档案列表分批挂载，避免首屏一次创建全部 466 张卡片
@@ -21,15 +25,17 @@
 
 | 路径 | 说明 |
 | --- | --- |
-| `app/page.tsx` | 主界面，同时供 vinext 与静态 Pages 入口复用 |
+| `app/page.tsx` | 主界面，同时供 vinext 与静态 Pages 入口复用；负责人物路由、浏览器历史与分享交互 |
 | `app/data/scientists.json` | 466 位科学家完整档案 |
 | `app/data/quotes.json` | 人物语录，按 id 索引 |
 | `app/data/scientists-index.json` | 自动生成的轻量索引 |
 | `app/data/details/` | 自动生成的 12 个月详情分片 |
 | `app/data/curated_content*.json` | 人工精修内容及历史增量源 |
+| `src/domain/scientistRoutes.ts` | 人物永久链接、Pages base path 与 URL 解析规则 |
 | `src/domain/` | 日期、365 天日历等领域规则 |
 | `src/hooks/` | 当前日期与跨午夜刷新逻辑 |
-| `tooling/pages/` | GitHub Pages 的 Vite 构建入口与配置 |
+| `tooling/pages/` | GitHub Pages 的 Vite 构建入口与配置；构建时生成 466 个人物静态入口页与 sitemap |
+| `tooling/scripts/check_pages_output.mjs` | 校验人物静态页、canonical、OG URL、Person JSON-LD 与 sitemap |
 | `tooling/scripts/` | 数据审计、Wikidata 核验、PDF 生成与版面检查 |
 | `tooling/tests/` | Node 渲染与数据一致性测试 |
 | `tooling/requirements.txt` | PDF 工具链的 Python 固定依赖 |
@@ -59,6 +65,7 @@ npm run audit:avatars
 npm run check:web-data
 npm test
 npm run build:pages
+npm run check:pages
 ```
 
 修改 `scientists.json` 或 `quotes.json` 后，先重新生成 Web 分片：
@@ -68,7 +75,7 @@ npm run build:web-data
 npm run check:web-data
 ```
 
-CI 会执行 `check:web-data`；如果生成文件落后于事实源，Quality 会直接失败。
+CI 会执行 `check:web-data`；如果生成文件落后于事实源，Quality 会直接失败。Pages 构建后还会执行 `check:pages`，逐个验证 466 个人物静态入口及 sitemap，避免永久链接或 SEO 元数据悄悄退化。
 
 ## 数据校验
 
@@ -79,6 +86,7 @@ CI 会执行 `check:web-data`；如果生成文件落后于事实源，Quality �
 | `npm run audit:avatars` | 阻止新增或启用缺少 provenance 的照片；允许历史债务逐步补齐 |
 | `npm run build:web-data` | 从完整数据生成轻量索引与 12 个月详情分片 |
 | `npm run check:web-data` | 检查生成分片是否与事实源一致，不改文件 |
+| `npm run check:pages` | 检查 466 个人物永久页、canonical/OG/JSON-LD 与 sitemap 是否完整 |
 | `python -X utf8 tooling/scripts/verify_dates.py` | 使用 Wikidata 交叉核验生日与生卒年 |
 | `python -X utf8 tooling/scripts/verify_facts.py` | 抽样核验高关注人物事实字段 |
 | `python -X utf8 tooling/scripts/fix_punctuation.py --dry` | 预览正文半角标点修正 |
@@ -122,6 +130,7 @@ npm run verify:pdf
 cp "output/pdf/科学家日历_精选466位_A4打印版.pdf" "public/print/"
 cp "output/pdf/科学家日历_月度生日版_A4.pdf" "public/print/"
 npm run build:pages
+npm run check:pages
 ```
 
 生成器会规避 `STSong-Light` 对部分标点字形支持不足的问题；PDF 校验仍应作为每次重新生成后的发布前步骤。相关生成器、数据或 Python 依赖发生变化时，`PDF Quality` workflow 会在干净的 Python 3.13 环境重新生成并验证两份 PDF。
@@ -150,9 +159,9 @@ npm run build:pages
 
 `main` 的发布链为：
 
-1. `Quality` 对同一提交执行依赖安全审计、类型检查、lint、数据审计、头像 provenance 审计、生成数据一致性检查、Vinext 测试和实际 Pages 构建。
+1. `Quality` 对同一提交执行依赖安全审计、类型检查、lint、数据审计、头像 provenance 审计、生成数据一致性检查、Vinext 测试，并构建和逐项校验 Pages 人物永久页与 sitemap。
 2. 只有 Quality 成功后，`Deploy to GitHub Pages` 才会 checkout 该次通过验证的**精确 commit SHA**。
-3. Pages workflow 重新生成 `docs/`，上传 Pages artifact 并部署。
+3. Pages workflow 对同一 SHA 再次生成并校验静态站，然后上传 Pages artifact 并部署。
 
 因此正常发布只需把已审查改动合入 `main`；不要手工提交 `docs/` 来绕过 Quality 门禁。
 
@@ -163,5 +172,6 @@ npm run build:pages
 ## 数据维护
 
 - `tooling/tests/rendered-html.test.mjs` 检查 SSR 渲染、id 唯一、365 天覆盖、头像与语录引用等契约
+- `tooling/scripts/check_pages_output.mjs` 检查 Pages 人物永久页与 sitemap 的生成契约
 - `tooling/pages/extras/backup-candidates.md` 保存后续扩充候选池
 - 数据源更新后应同时运行 `audit:data`、`audit:avatars`、`build:web-data`、`check:web-data` 与完整测试

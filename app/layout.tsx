@@ -4,6 +4,7 @@ import "./globals.css";
 // 固定站点 URL（Pages base path = /scientist-calendar/），不依赖请求的 Host Header，
 // 避免反向代理或本地预览下 canonical / openGraph 链接错乱。
 const SITE_URL = "https://cochranek.github.io/scientist-calendar/";
+const OG_IMAGE = "https://cochranek.github.io/scientist-calendar/og.jpg";
 
 export async function generateMetadata(): Promise<Metadata> {
   const title = "科学家日历｜每天认识一位科学家";
@@ -13,8 +14,17 @@ export async function generateMetadata(): Promise<Metadata> {
     title,
     description,
     metadataBase: new URL(SITE_URL),
-    openGraph: { title, description, images: ["/og.jpg"], type: "website", locale: "zh_CN" },
-    twitter: { card: "summary_large_image", title, description, images: ["/og.jpg"] },
+    alternates: { canonical: SITE_URL },
+    openGraph: {
+      title,
+      description,
+      url: SITE_URL,
+      siteName: "科学家日历",
+      images: [OG_IMAGE],
+      type: "website",
+      locale: "zh_CN",
+    },
+    twitter: { card: "summary_large_image", title, description, images: [OG_IMAGE] },
   };
 }
 

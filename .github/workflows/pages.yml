@@ -43,8 +43,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Build static site (生成 docs/)
-        run: npm run build:pages
+      - name: Build and verify static site
+        run: npm run build:pages && npm run check:pages
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v5

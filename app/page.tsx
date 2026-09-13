@@ -10,6 +10,7 @@ import {
   getScientistForDate,
 } from "../src/domain/calendar";
 import { useCurrentDate } from "../src/hooks/useCurrentDate";
+import { SITE_BASE_PATH, SITE_URL, scientistAbsoluteUrl, scientistBrowserPath, scientistIdFromPath } from "../src/domain/scientistRoutes";
 
 type AvatarMode = "letter" | "photo";
 type ScientistDetail = { story: string; fact: string; quote?: string; quoteSource?: string };
@@ -17,13 +18,19 @@ type MonthDetails = Record<string, ScientistDetail>;
 
 const scientists = scientistsData as ScientistSummary[];
 const avatars = avatarsData as Record<string, { photo: boolean }>;
-const einsteinIllustration = "art/einstein-archive.webp";
+const runtimeBasePath = typeof window !== "undefined" && (window.location.pathname === SITE_BASE_PATH || window.location.pathname.startsWith(`${SITE_BASE_PATH}/`))
+  ? SITE_BASE_PATH
+  : "";
+function assetPath(path: string): string {
+  return `${runtimeBasePath}/${path.replace(/^\/+/, "")}`;
+}
+const einsteinIllustration = assetPath("art/einstein-archive.webp");
 
 // 日期与“当前日期”逻辑已移至 src/domain/calendar.ts 与 src/hooks/useCurrentDate.ts
 
 function avatarFor(scientist: ScientistSummary, mode: AvatarMode): string | null {
   if (mode !== "photo") return null;
-  if (avatars[scientist.id]?.photo) return `avatars/${scientist.id}.jpg`;
+  if (avatars[scientist.id]?.photo) return assetPath(`avatars/${scientist.id}.jpg`);
   if (scientist.id === "einstein") return einsteinIllustration;
   return null;
 }
@@ -51,13 +58,47 @@ function formatDate(month: number, day: number) {
   return `${month} 月 ${day} 日`;
 }
 
+const HOME_TITLE = "科学家日历｜每天认识一位科学家";
+const HOME_DESCRIPTION = "一份写给好奇心的科学日历：每天认识一位科学家、一项发现与一个改变世界的念头。";
+
+function initialScientistRouteId(): string | null {
+  if (typeof window === "undefined") return null;
+  const routeId = scientistIdFromPath(window.location.pathname);
+  return routeId && scientists.some((scientist) => scientist.id === routeId) ? routeId : null;
+}
+
+function scientistDescription(scientist: ScientistSummary): string {
+  const description = `${scientist.name}（${scientist.latinName}）｜${scientist.country} · ${scientist.field}｜${scientist.tagline}。核心贡献：${scientist.contribution}`;
+  return description.length > 170 ? `${description.slice(0, 167)}…` : description;
+}
+
+function updateMeta(selector: string, content: string) {
+  document.querySelector<HTMLMetaElement>(selector)?.setAttribute("content", content);
+}
+
+function applyPageMetadata(scientist: ScientistSummary | null) {
+  const title = scientist ? `${scientist.name}｜科学家日历` : HOME_TITLE;
+  const description = scientist ? scientistDescription(scientist) : HOME_DESCRIPTION;
+  const url = scientist ? scientistAbsoluteUrl(scientist.id) : SITE_URL;
+  document.title = title;
+  updateMeta('meta[name="description"]', description);
+  updateMeta('meta[property="og:title"]', title);
+  updateMeta('meta[property="og:description"]', description);
+  updateMeta('meta[property="og:url"]', url);
+  updateMeta('meta[property="og:type"]', scientist ? "profile" : "website");
+  updateMeta('meta[name="twitter:title"]', title);
+  updateMeta('meta[name="twitter:description"]', description);
+  document.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.setAttribute("href", url);
+}
+
 function Calendar({ now }: { now: DateParts }) {
   // 2/29 等闰年专属日期在平年日历无对应人物，已由 getScientistForDate 统一回退到 2/28，
   // 禁止 silent fallback 到 Einstein / 错误月份。
   const todayScientist = getScientistForDate(scientists, now);
   const [activeField, setActiveField] = useState<Field | "全部">("全部");
   const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState(todayScientist?.id ?? "einstein");
+  const [selectedId, setSelectedId] = useState(() => initialScientistRouteId() ?? todayScientist?.id ?? "einstein");
+  const [profileRouteId, setProfileRouteId] = useState<string | null>(() => initialScientistRouteId());
   // 月历默认停在“当前月份”，不依赖今日人物是否存在（否则 2/29 会错误跳到 7 月）。
   const [calendarMonth, setCalendarMonth] = useState(now.month);
   const [avatarMode, setAvatarMode] = useState<AvatarMode>("letter");
@@ -65,12 +106,43 @@ function Calendar({ now }: { now: DateParts }) {
   const [detailsById, setDetailsById] = useState<MonthDetails>({});
   const [detailLoadErrors, setDetailLoadErrors] = useState<Set<number>>(() => new Set());
   const [detailRetryToken, setDetailRetryToken] = useState(0);
+  const [shareNotice, setShareNotice] = useState("");
 
   const selected = scientists.find((scientist) => scientist.id === selectedId) ?? scientists[0];
   const selectedDetail = detailsById[selected.id];
   const selectedQuote = selectedDetail?.quote && selectedDetail.quoteSource ? { text: selectedDetail.quote, source: selectedDetail.quoteSource } : undefined;
   const isTodaySelection = selected.id === todayScientist?.id;
   const detailLoadFailed = detailLoadErrors.has(selected.month);
+
+  useEffect(() => {
+    applyPageMetadata(profileRouteId === selected.id ? selected : null);
+  }, [profileRouteId, selected]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const routeId = scientistIdFromPath(window.location.pathname);
+    if (routeId) {
+      const frame = window.requestAnimationFrame(() => {
+        document.getElementById("today")?.scrollIntoView({ block: "start" });
+      });
+      return () => window.cancelAnimationFrame(frame);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handlePopState = () => {
+      const routeId = scientistIdFromPath(window.location.pathname);
+      const target = routeId ? scientists.find((scientist) => scientist.id === routeId) : todayScientist;
+      if (!target) return;
+      setProfileRouteId(routeId && target.id === routeId ? routeId : null);
+      setSelectedId(target.id);
+      setCalendarMonth(target.month);
+      setShareNotice("");
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [todayScientist]);
 
   useEffect(() => {
     if (detailsById[selected.id]) return;
@@ -113,8 +185,14 @@ function Calendar({ now }: { now: DateParts }) {
   const coveragePercent = Math.min(100, (coveredDays / 365) * 100);
 
   function selectScientist(scientist: ScientistSummary) {
+    if (typeof window !== "undefined") {
+      const path = scientistBrowserPath(scientist.id, window.location.pathname);
+      if (window.location.pathname !== path) window.history.pushState({ scientistId: scientist.id }, "", path);
+    }
+    setProfileRouteId(scientist.id);
     setSelectedId(scientist.id);
     setCalendarMonth(scientist.month);
+    setShareNotice("");
     document.getElementById("today")?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -124,6 +202,32 @@ function Calendar({ now }: { now: DateParts }) {
     const currentIndex = dayEntries.findIndex((e) => e.id === selected.id);
     const next = dayEntries[(currentIndex + 1) % dayEntries.length];
     selectScientist(next);
+  }
+
+  async function shareSelectedScientist() {
+    const url = scientistAbsoluteUrl(selected.id);
+    const data = {
+      title: `${selected.name}｜科学家日历`,
+      text: `认识 ${selected.name}：${selected.tagline}`,
+      url,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(data);
+        setShareNotice("已打开系统分享");
+        return;
+      }
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        setShareNotice("人物链接已复制");
+        return;
+      }
+      window.prompt("复制人物链接", url);
+      setShareNotice("可复制上方人物链接");
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setShareNotice("分享失败，请复制地址栏链接");
+    }
   }
 
   return (
@@ -139,7 +243,7 @@ function Calendar({ now }: { now: DateParts }) {
           <p className="eyebrow">THE DAILY SCIENCE NOTEBOOK · {now.year}</p>
           <h1 id="hero-title">每天，<br /><em>遇见一个</em><br />改变世界的念头。</h1>
           <p className="hero-text">一份写给好奇心的科学日历。从一位科学家、一项发现，走进人类理解世界的方式。</p>
-          <div className="hero-actions"><a className="button-primary" href="#today">阅读今日人物 <span>↓</span></a><a className="button-secondary" href={`print/科学家日历_精选${scientists.length}位_A4打印版.pdf`} download>获取 A4 打印版 <span>↓</span></a><a className="button-secondary" href="print/科学家日历_月度生日版_A4.pdf" download>月度生日版（生日·名字·名言）<span>↓</span></a><a className="text-link" href="#calendar">查看月历 <span>→</span></a></div>
+          <div className="hero-actions"><a className="button-primary" href="#today">阅读今日人物 <span>↓</span></a><a className="button-secondary" href={assetPath(`print/科学家日历_精选${scientists.length}位_A4打印版.pdf`)} download>获取 A4 打印版 <span>↓</span></a><a className="button-secondary" href={assetPath("print/科学家日历_月度生日版_A4.pdf")} download>月度生日版（生日·名字·名言）<span>↓</span></a><a className="text-link" href="#calendar">查看月历 <span>→</span></a></div>
         </div>
         <div className="orbit-art" aria-hidden="true">
           <div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="orbit orbit-three" />
@@ -164,7 +268,7 @@ function Calendar({ now }: { now: DateParts }) {
               {(["letter", "photo"] as AvatarMode[]).map((m) => <button key={m} type="button" className={avatarMode === m ? "active" : ""} onClick={() => setAvatarMode(m)}>{m === "letter" ? "单字" : "照片"}</button>)}
             </div>
           </div>
-          <div className="feature-copy"><p className="feature-relation">{selected.relation} · {selected.years}</p><h3>{selected.name}</h3><p className="latin-name">{selected.latinName} · {selected.country}</p><p className="feature-tagline">阅读线索｜{selected.tagline}</p>{selectedQuote && <blockquote className="quote-block"><span>{isTodaySelection ? "今日引语" : "人物引语"}</span><p>“{selectedQuote.text}”</p><cite>— {selectedQuote.source}</cite></blockquote>}<p className="feature-story" aria-live="polite">{selectedDetail?.story ?? (detailLoadFailed ? "人物档案加载失败，请检查网络后重试。" : "正在加载人物档案…")}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selectedDetail?.fact ?? (detailLoadFailed ? "暂时无法加载" : "正在加载…")}</strong></div></div>{detailLoadFailed && <button className="detail-button" type="button" onClick={() => { setDetailLoadErrors((current) => { const next = new Set(current); next.delete(selected.month); return next; }); setDetailRetryToken((token) => token + 1); }}>重新加载人物档案 <span>↻</span></button>}<button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button></div>
+          <div className="feature-copy"><p className="feature-relation">{selected.relation} · {selected.years}</p><h3>{selected.name}</h3><p className="latin-name">{selected.latinName} · {selected.country}</p><p className="feature-tagline">阅读线索｜{selected.tagline}</p>{selectedQuote && <blockquote className="quote-block"><span>{isTodaySelection ? "今日引语" : "人物引语"}</span><p>“{selectedQuote.text}”</p><cite>— {selectedQuote.source}</cite></blockquote>}<p className="feature-story" aria-live="polite">{selectedDetail?.story ?? (detailLoadFailed ? "人物档案加载失败，请检查网络后重试。" : "正在加载人物档案…")}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selectedDetail?.fact ?? (detailLoadFailed ? "暂时无法加载" : "正在加载…")}</strong></div></div>{detailLoadFailed && <button className="detail-button" type="button" onClick={() => { setDetailLoadErrors((current) => { const next = new Set(current); next.delete(selected.month); return next; }); setDetailRetryToken((token) => token + 1); }}>重新加载人物档案 <span>↻</span></button>}<button className="detail-button" type="button" onClick={() => { void shareSelectedScientist(); }}>分享人物 <span>↗</span></button>{shareNotice && <span className="share-notice" role="status" aria-live="polite">{shareNotice}</span>}<button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button></div>
           <div className="feature-index" aria-hidden="true"><span>SCIENCE</span><span>NOTE</span><b>{selected.id.slice(0, 3).toUpperCase()}</b></div>
         </article>
       </section>
@@ -186,7 +290,7 @@ function Calendar({ now }: { now: DateParts }) {
 
       <section className="manifesto" id="about"><p className="eyebrow">WHY A SCIENCE CALENDAR</p><p>科学并非一串遥远的姓名与年份，<br />而是一代代人对世界的<strong>耐心注视</strong>。</p><span>收藏今天的好奇，明天继续提问。</span></section>
 
-      <footer><a className="brand" href="#top"><span className="brand-mark">∴</span> 科学家日历</a><p>精选 {scientists.length} 位人物档案 · 持续更新中</p><a className="footer-download" href={`print/科学家日历_精选${scientists.length}位_A4打印版.pdf`} download>下载 A4 打印版 ↓</a><a href="#top">回到顶部 ↑</a></footer>
+      <footer><a className="brand" href="#top"><span className="brand-mark">∴</span> 科学家日历</a><p>精选 {scientists.length} 位人物档案 · 持续更新中</p><a className="footer-download" href={assetPath(`print/科学家日历_精选${scientists.length}位_A4打印版.pdf`)} download>下载 A4 打印版 ↓</a><a href="#top">回到顶部 ↑</a></footer>
     </main>
   );
 }
