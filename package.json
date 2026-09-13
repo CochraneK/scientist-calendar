@@ -17,6 +17,7 @@
     "lint": "eslint . --config tooling/eslint.config.mjs --ignore-pattern dist --ignore-pattern .next",
     "audit:deps": "npm audit",
     "audit:data": "python -X utf8 tooling/scripts/audit_data.py",
+    "audit:sources": "python -X utf8 tooling/scripts/audit_scientist_sources.py",
     "audit:avatars": "python -X utf8 tooling/scripts/audit_avatar_provenance.py",
     "build:web-data": "python -X utf8 tooling/scripts/build_web_data.py",
     "check:web-data": "python -X utf8 tooling/scripts/build_web_data.py --check",

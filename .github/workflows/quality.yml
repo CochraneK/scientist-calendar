@@ -22,7 +22,7 @@ jobs:
           node-version: 22
           cache: npm
 
-      - name: Setup Python（确保 python 可用，供 audit:data 使用）
+      - name: Setup Python（确保 python 可用，供数据审计使用）
         uses: actions/setup-python@v7
         with:
           python-version: "3.13"
@@ -44,6 +44,9 @@ jobs:
 
       - name: Audit data（365 天平年覆盖 + 结构 + 关联）
         run: npm run audit:data
+
+      - name: Audit scientist fact provenance
+        run: npm run audit:sources
 
       - name: Audit avatar provenance
         run: npm run audit:avatars
