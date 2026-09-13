@@ -25,5 +25,17 @@ export default defineConfig({
   build: {
     outDir: "../../docs",
     emptyOutDir: true,
+    rolldownOptions: {
+      output: {
+        codeSplitting: {
+          groups: [
+            {
+              name: "vendor",
+              test: /node_modules/,
+            },
+          ],
+        },
+      },
+    },
   },
 });
