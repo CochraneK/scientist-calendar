@@ -119,22 +119,32 @@ jobs:
           ''',
           )
 
+          # Fix the Einstein illustration fallback so letter mode is truly letter mode.
           replace_once(
               "app/page.tsx",
-              '''          <div className="portrait-panel"><span className="portrait-number">{String(selected.month).padStart(2, "0")}.{String(selected.day).padStart(2, "0")}</span>{(() => { const src = avatarFor(selected, avatarMode); if (src) return <img className={`portrait-image mode-${avatarMode}`} src={src} alt={`${selected.name}的肖像`} loading="lazy" />; if (selected.id === "einstein") return <img className="portrait-illustration" src={einsteinIllustration} alt="阿尔伯特·爱因斯坦的复古科学插画肖像" />; return <div className={`portrait-abstract tone-${selected.color}`} aria-hidden="true"><i /><b>{selected.name.slice(0, 1)}</b><em>{selected.latinName}</em></div>; })()}<span className="portrait-field">{selected.field}</span>
-                    <div className="portrait-switch" role="group" aria-label="头像模式">
-                      {(["letter", "photo"] as AvatarMode[]).map((m) => <button key={m} type="button" className={avatarMode === m ? "active" : ""} onClick={() => setAvatarMode(m)}>{m === "letter" ? "单字" : "照片"}</button>)}
-                    </div>
-                  </div>
-          ''',
-              '''          <div className="portrait-panel"><span className="portrait-number">{String(selected.month).padStart(2, "0")}.{String(selected.day).padStart(2, "0")}</span>{(() => { const src = avatarFor(selected, avatarMode); if (src) return <img className={`portrait-image mode-${avatarMode}`} src={src} alt={`${selected.name}的${alternatePortraitLabel(selected)}肖像`} loading="lazy" />; return <div className={`portrait-abstract tone-${selected.color}`} aria-hidden="true"><i /><b>{selected.name.slice(0, 1)}</b><em>{selected.latinName}</em></div>; })()}<span className="portrait-field">{selected.field}</span>
-                    {hasAlternatePortrait(selected) && <div className="portrait-switch" role="group" aria-label="头像模式">
-                      <button type="button" className={avatarMode === "letter" ? "active" : ""} aria-pressed={avatarMode === "letter"} onClick={() => setAvatarMode("letter")}>单字</button>
-                      <button type="button" className={avatarMode === "photo" ? "active" : ""} aria-pressed={avatarMode === "photo"} onClick={() => setAvatarMode("photo")}>{alternatePortraitLabel(selected)}</button>
-                    </div>}
-                  </div>
-          ''',
+              '''const src = avatarFor(selected, avatarMode); if (src) return <img className={`portrait-image mode-${avatarMode}`} src={src} alt={`${selected.name}的肖像`} loading="lazy" />; if (selected.id === "einstein") return <img className="portrait-illustration" src={einsteinIllustration} alt="阿尔伯特·爱因斯坦的复古科学插画肖像" />; return''',
+              '''const src = avatarFor(selected, avatarMode); if (src) return <img className={`portrait-image mode-${avatarMode}`} src={src} alt={`${selected.name}的${alternatePortraitLabel(selected)}肖像`} loading="lazy" />; return''',
           )
+
+          # Replace the switch independently so formatting around the portrait image is irrelevant.
+          page = Path("app/page.tsx")
+          text = page.read_text(encoding="utf-8")
+          start_token = '<div className="portrait-switch" role="group" aria-label="头像模式">'
+          start = text.find(start_token)
+          if start < 0 or text.find(start_token, start + 1) >= 0:
+              raise SystemExit("portrait switch start is missing or duplicated")
+          end = text.find("</div>", start)
+          if end < 0:
+              raise SystemExit("portrait switch end missing")
+          end += len("</div>")
+          old_switch = text[start:end]
+          if '(["letter", "photo"] as AvatarMode[]).map' not in old_switch:
+              raise SystemExit("portrait switch shape changed")
+          new_switch = '''{hasAlternatePortrait(selected) && <div className="portrait-switch" role="group" aria-label="头像模式">
+              <button type="button" className={avatarMode === "letter" ? "active" : ""} aria-pressed={avatarMode === "letter"} onClick={() => setAvatarMode("letter")}>单字</button>
+              <button type="button" className={avatarMode === "photo" ? "active" : ""} aria-pressed={avatarMode === "photo"} onClick={() => setAvatarMode("photo")}>{alternatePortraitLabel(selected)}</button>
+            </div>}'''
+          page.write_text(text[:start] + new_switch + text[end:], encoding="utf-8")
 
           old_tail = '''<div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selectedDetail?.fact ?? (detailLoadFailed ? "暂时无法加载" : "正在加载…")}</strong></div></div>{detailLoadFailed && <button className="detail-button" type="button" onClick={() => { setDetailLoadErrors((current) => { const next = new Set(current); next.delete(selected.month); return next; }); setDetailRetryToken((token) => token + 1); }}>重新加载人物档案 <span>↻</span></button>}<button className="detail-button" type="button" onClick={() => { void shareSelectedScientist(); }}>分享人物 <span>↗</span></button>{shareNotice && <span className="share-notice" role="status" aria-live="polite">{shareNotice}</span>}<button className="source-toggle" type="button" aria-expanded={sourcesOpen} onClick={() => { void toggleSources(); }}>资料来源 <span>{sourcesOpen ? "−" : "+"}</span></button>{sourcesOpen && <div className="source-panel" aria-live="polite">{sourceLoadFailed ? <p>资料来源暂时无法加载，请稍后重试。</p> : sourceRegistry?.[selected.id]?.length ? <ul>{sourceRegistry[selected.id].map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer"><strong>{source.publisher}</strong><span>{source.title}</span></a></li>)}</ul> : <p>该人物的资料来源正在逐步补齐。</p>}</div>}<button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button>'''
           new_tail = '''<div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selectedDetail?.fact ?? (detailLoadFailed ? "暂时无法加载" : "正在加载…")}</strong></div></div>{detailLoadFailed && <button className="retry-button" type="button" onClick={() => { setDetailLoadErrors((current) => { const next = new Set(current); next.delete(selected.month); return next; }); setDetailRetryToken((token) => token + 1); }}>重新加载人物档案 <span>↻</span></button>}<div className="feature-utilities" aria-label="人物辅助操作"><button className="utility-button" type="button" onClick={() => { void shareSelectedScientist(); }}>分享 <span>↗</span></button><button className="utility-button" type="button" aria-expanded={sourcesOpen} onClick={() => { void toggleSources(); }}>资料来源 <span>{sourcesOpen ? "−" : "+"}</span></button>{shareNotice && <span className="share-notice" role="status" aria-live="polite">{shareNotice}</span>}</div>{sourcesOpen && <div className="source-panel" aria-live="polite">{sourceLoadFailed ? <p>资料来源暂时无法加载，请稍后重试。</p> : sourceRegistry?.[selected.id]?.length ? <ul>{sourceRegistry[selected.id].map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer"><strong>{source.publisher}</strong><span>{source.title}</span></a></li>)}</ul> : <p>该人物的资料来源正在逐步补齐。</p>}</div>}<button className="feature-continue" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>继续探索档案库 <span>→</span></button>'''
@@ -146,7 +156,6 @@ jobs:
               '''<button className={`archive-card tone-${scientist.color}`} type="button" key={scientist.id} aria-label={`阅读 ${scientist.name} 的人物档案`} onClick={() => selectScientist(scientist)}>''',
           )
 
-          # --- app/globals.css: append deliberate overrides, preserving the existing editorial visual system. ---
           css = Path("app/globals.css")
           existing = css.read_text(encoding="utf-8")
           marker = "/* --- UI polish 2026-09 --- */"
@@ -239,7 +248,6 @@ jobs:
           '''
           css.write_text(existing.rstrip() + polish + "\n", encoding="utf-8")
 
-          # --- rendered HTML regression checks ---
           test = Path("tooling/tests/rendered-html.test.mjs")
           t = test.read_text(encoding="utf-8")
           needle = '''  assert.match(html, /从好奇出发/);
