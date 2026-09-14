@@ -45,6 +45,10 @@ test("server-renders the calendar page", async () => {
   assert.match(html, /今日人物/);
   assert.match(html, /位人物档案/);
   assert.match(html, /从好奇出发/);
+  assert.match(html, /跳到今日人物/);
+  assert.match(html, /<summary>打印版/);
+  assert.match(html, /人物辅助操作/);
+  assert.match(html, /继续探索档案库/);
 
   // 打印版链接由数据推导，这里同样按数据推导，避免增删人物后测试失效。
   const pdfName = `print/科学家日历_精选${scientists.length}位_A4打印版.pdf`;
