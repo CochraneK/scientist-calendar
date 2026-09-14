@@ -1,0 +1,286 @@
+name: Temporary UI polish
+
+on:
+  push:
+    branches: ["feat/ui-polish"]
+
+permissions:
+  contents: write
+
+jobs:
+  polish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: feat/ui-polish
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - name: Apply UI polish
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+
+          def replace_once(path: str, old: str, new: str) -> None:
+              p = Path(path)
+              text = p.read_text(encoding="utf-8")
+              count = text.count(old)
+              if count != 1:
+                  raise SystemExit(f"{path}: expected one match, got {count}: {old[:100]!r}")
+              p.write_text(text.replace(old, new), encoding="utf-8")
+
+          # --- app/page.tsx ---
+          replace_once(
+              "app/page.tsx",
+              '''function avatarFor(scientist: ScientistSummary, mode: AvatarMode): string | null {
+            if (mode !== "photo") return null;
+            if (avatars[scientist.id]?.photo) return assetPath(`avatars/${scientist.id}.jpg`);
+            if (scientist.id === "einstein") return einsteinIllustration;
+            return null;
+          }
+          ''',
+              '''function avatarFor(scientist: ScientistSummary, mode: AvatarMode): string | null {
+            if (mode !== "photo") return null;
+            if (avatars[scientist.id]?.photo) return assetPath(`avatars/${scientist.id}.jpg`);
+            if (scientist.id === "einstein") return einsteinIllustration;
+            return null;
+          }
+
+          function hasAlternatePortrait(scientist: ScientistSummary): boolean {
+            return Boolean(avatars[scientist.id]?.photo) || scientist.id === "einstein";
+          }
+
+          function alternatePortraitLabel(scientist: ScientistSummary): "照片" | "插画" {
+            return avatars[scientist.id]?.photo ? "照片" : "插画";
+          }
+          ''',
+          )
+
+          replace_once(
+              "app/page.tsx",
+              '''      setCalendarMonth(target.month);
+                setShareNotice("");
+          ''',
+              '''      setCalendarMonth(target.month);
+                setShareNotice("");
+                setSourcesOpen(false);
+                setSourceLoadFailed(false);
+          ''',
+          )
+
+          replace_once(
+              "app/page.tsx",
+              '''    setCalendarMonth(scientist.month);
+              setShareNotice("");
+              document.getElementById("today")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          ''',
+              '''    setCalendarMonth(scientist.month);
+              setShareNotice("");
+              setSourcesOpen(false);
+              setSourceLoadFailed(false);
+              document.getElementById("today")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          ''',
+          )
+
+          replace_once(
+              "app/page.tsx",
+              '''  return (
+              <main>
+                <nav className="site-nav" aria-label="主导航">
+          ''',
+              '''  return (
+              <main>
+                <a className="skip-link" href="#today">跳到今日人物</a>
+                <nav className="site-nav" aria-label="主导航">
+          ''',
+          )
+
+          replace_once(
+              "app/page.tsx",
+              '''          <div className="hero-actions"><a className="button-primary" href="#today">阅读今日人物 <span>↓</span></a><a className="button-secondary" href={assetPath(`print/科学家日历_精选${scientists.length}位_A4打印版.pdf`)} download>获取 A4 打印版 <span>↓</span></a><a className="button-secondary" href={assetPath("print/科学家日历_月度生日版_A4.pdf")} download>月度生日版（生日·名字·名言）<span>↓</span></a><a className="text-link" href="#calendar">查看月历 <span>→</span></a></div>
+          ''',
+              '''          <div className="hero-actions">
+                    <a className="button-primary" href="#today">阅读今日人物 <span>↓</span></a>
+                    <a className="button-secondary" href="#calendar">查看月历 <span>→</span></a>
+                    <details className="print-menu">
+                      <summary>打印版 <span>↓</span></summary>
+                      <div className="print-menu-panel">
+                        <a href={assetPath(`print/科学家日历_精选${scientists.length}位_A4打印版.pdf`)} download><strong>每日人物版</strong><small>{scientists.length} 位 · A4 横版</small></a>
+                        <a href={assetPath("print/科学家日历_月度生日版_A4.pdf")} download><strong>月度生日版</strong><small>生日 · 名字 · 名言</small></a>
+                      </div>
+                    </details>
+                  </div>
+          ''',
+          )
+
+          replace_once(
+              "app/page.tsx",
+              '''          <div className="portrait-panel"><span className="portrait-number">{String(selected.month).padStart(2, "0")}.{String(selected.day).padStart(2, "0")}</span>{(() => { const src = avatarFor(selected, avatarMode); if (src) return <img className={`portrait-image mode-${avatarMode}`} src={src} alt={`${selected.name}的肖像`} loading="lazy" />; if (selected.id === "einstein") return <img className="portrait-illustration" src={einsteinIllustration} alt="阿尔伯特·爱因斯坦的复古科学插画肖像" />; return <div className={`portrait-abstract tone-${selected.color}`} aria-hidden="true"><i /><b>{selected.name.slice(0, 1)}</b><em>{selected.latinName}</em></div>; })()}<span className="portrait-field">{selected.field}</span>
+                    <div className="portrait-switch" role="group" aria-label="头像模式">
+                      {(["letter", "photo"] as AvatarMode[]).map((m) => <button key={m} type="button" className={avatarMode === m ? "active" : ""} onClick={() => setAvatarMode(m)}>{m === "letter" ? "单字" : "照片"}</button>)}
+                    </div>
+                  </div>
+          ''',
+              '''          <div className="portrait-panel"><span className="portrait-number">{String(selected.month).padStart(2, "0")}.{String(selected.day).padStart(2, "0")}</span>{(() => { const src = avatarFor(selected, avatarMode); if (src) return <img className={`portrait-image mode-${avatarMode}`} src={src} alt={`${selected.name}的${alternatePortraitLabel(selected)}肖像`} loading="lazy" />; return <div className={`portrait-abstract tone-${selected.color}`} aria-hidden="true"><i /><b>{selected.name.slice(0, 1)}</b><em>{selected.latinName}</em></div>; })()}<span className="portrait-field">{selected.field}</span>
+                    {hasAlternatePortrait(selected) && <div className="portrait-switch" role="group" aria-label="头像模式">
+                      <button type="button" className={avatarMode === "letter" ? "active" : ""} aria-pressed={avatarMode === "letter"} onClick={() => setAvatarMode("letter")}>单字</button>
+                      <button type="button" className={avatarMode === "photo" ? "active" : ""} aria-pressed={avatarMode === "photo"} onClick={() => setAvatarMode("photo")}>{alternatePortraitLabel(selected)}</button>
+                    </div>}
+                  </div>
+          ''',
+          )
+
+          old_tail = '''<div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selectedDetail?.fact ?? (detailLoadFailed ? "暂时无法加载" : "正在加载…")}</strong></div></div>{detailLoadFailed && <button className="detail-button" type="button" onClick={() => { setDetailLoadErrors((current) => { const next = new Set(current); next.delete(selected.month); return next; }); setDetailRetryToken((token) => token + 1); }}>重新加载人物档案 <span>↻</span></button>}<button className="detail-button" type="button" onClick={() => { void shareSelectedScientist(); }}>分享人物 <span>↗</span></button>{shareNotice && <span className="share-notice" role="status" aria-live="polite">{shareNotice}</span>}<button className="source-toggle" type="button" aria-expanded={sourcesOpen} onClick={() => { void toggleSources(); }}>资料来源 <span>{sourcesOpen ? "−" : "+"}</span></button>{sourcesOpen && <div className="source-panel" aria-live="polite">{sourceLoadFailed ? <p>资料来源暂时无法加载，请稍后重试。</p> : sourceRegistry?.[selected.id]?.length ? <ul>{sourceRegistry[selected.id].map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer"><strong>{source.publisher}</strong><span>{source.title}</span></a></li>)}</ul> : <p>该人物的资料来源正在逐步补齐。</p>}</div>}<button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button>'''
+          new_tail = '''<div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selectedDetail?.fact ?? (detailLoadFailed ? "暂时无法加载" : "正在加载…")}</strong></div></div>{detailLoadFailed && <button className="retry-button" type="button" onClick={() => { setDetailLoadErrors((current) => { const next = new Set(current); next.delete(selected.month); return next; }); setDetailRetryToken((token) => token + 1); }}>重新加载人物档案 <span>↻</span></button>}<div className="feature-utilities" aria-label="人物辅助操作"><button className="utility-button" type="button" onClick={() => { void shareSelectedScientist(); }}>分享 <span>↗</span></button><button className="utility-button" type="button" aria-expanded={sourcesOpen} onClick={() => { void toggleSources(); }}>资料来源 <span>{sourcesOpen ? "−" : "+"}</span></button>{shareNotice && <span className="share-notice" role="status" aria-live="polite">{shareNotice}</span>}</div>{sourcesOpen && <div className="source-panel" aria-live="polite">{sourceLoadFailed ? <p>资料来源暂时无法加载，请稍后重试。</p> : sourceRegistry?.[selected.id]?.length ? <ul>{sourceRegistry[selected.id].map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer"><strong>{source.publisher}</strong><span>{source.title}</span></a></li>)}</ul> : <p>该人物的资料来源正在逐步补齐。</p>}</div>}<button className="feature-continue" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>继续探索档案库 <span>→</span></button>'''
+          replace_once("app/page.tsx", old_tail, new_tail)
+
+          replace_once(
+              "app/page.tsx",
+              '''<button className={`archive-card tone-${scientist.color}`} type="button" key={scientist.id} onClick={() => selectScientist(scientist)}>''',
+              '''<button className={`archive-card tone-${scientist.color}`} type="button" key={scientist.id} aria-label={`阅读 ${scientist.name} 的人物档案`} onClick={() => selectScientist(scientist)}>''',
+          )
+
+          # --- app/globals.css: append deliberate overrides, preserving the existing editorial visual system. ---
+          css = Path("app/globals.css")
+          existing = css.read_text(encoding="utf-8")
+          marker = "/* --- UI polish 2026-09 --- */"
+          if marker in existing:
+              raise SystemExit("UI polish CSS already present")
+          polish = r'''
+
+          /* --- UI polish 2026-09 --- */
+          .skip-link { position: fixed; left: 16px; top: 12px; z-index: 100; padding: 10px 14px; background: var(--ink); color: #fff; font: 12px Arial, "Microsoft YaHei", sans-serif; transform: translateY(-160%); transition: transform .16s ease; }
+          .skip-link:focus { transform: translateY(0); }
+
+          .hero-actions { gap: 12px 16px; }
+          .hero-actions .button-primary, .hero-actions .button-secondary { min-height: 44px; }
+          .print-menu { position: relative; color: #5b6877; font: 12px Arial, "Microsoft YaHei", sans-serif; }
+          .print-menu summary { min-height: 44px; display: inline-flex; align-items: center; gap: 10px; padding: 0 2px; border-bottom: 1px solid #9aa4ad; cursor: pointer; list-style: none; user-select: none; }
+          .print-menu summary::-webkit-details-marker { display: none; }
+          .print-menu[open] summary { color: var(--ink); border-color: var(--ink); }
+          .print-menu-panel { position: absolute; z-index: 12; top: calc(100% + 9px); left: 0; width: 270px; padding: 7px; border: 1px solid var(--line); background: #fffdf8; box-shadow: 0 16px 34px rgba(21,38,61,.12); }
+          .print-menu-panel a { display: grid; gap: 3px; padding: 11px 12px; }
+          .print-menu-panel a + a { border-top: 1px solid #ece5da; }
+          .print-menu-panel a:hover { background: #f5eee2; }
+          .print-menu-panel strong { color: var(--ink); font-size: 12px; font-weight: 600; }
+          .print-menu-panel small { color: #74808d; font-size: 10px; }
+
+          .feature-copy { padding-bottom: 38px; }
+          .feature-utilities { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 18px; margin-top: 18px; padding-top: 4px; }
+          .utility-button, .retry-button { border: 0; background: none; cursor: pointer; font: 11px Arial, "Microsoft YaHei", sans-serif; }
+          .utility-button { min-height: 34px; padding: 5px 0; color: #64717f; border-bottom: 1px solid transparent; }
+          .utility-button:hover { color: var(--ink); border-color: #aab2ba; }
+          .utility-button span, .retry-button span, .feature-continue span { margin-left: 8px; }
+          .retry-button { align-self: flex-start; margin-top: 14px; padding: 7px 0; color: #a45849; border-bottom: 1px solid #d7aca2; }
+          .share-notice { color: #788491; font: 10px Arial, "Microsoft YaHei", sans-serif; }
+          .feature-continue { align-self: flex-start; min-height: 40px; margin-top: 17px; padding: 9px 13px; border: 1px solid var(--ink); background: var(--ink); color: #fff; cursor: pointer; font: 11px Arial, "Microsoft YaHei", sans-serif; transition: transform .18s ease, background .18s ease; }
+          .feature-continue:hover { transform: translateY(-1px); background: #243a53; }
+          .source-panel { width: 100%; margin-top: 5px; padding-top: 11px; }
+          .source-panel a { padding: 3px 0; }
+          .source-panel strong { color: #4d5c6c; }
+
+          .portrait-switch button { min-height: 32px; padding: 5px 10px; }
+          .month-switcher button { width: 36px; height: 36px; }
+          .field-filters button { min-height: 38px; padding: 8px 14px; }
+
+          .archive-card { min-height: 294px; padding: 20px; }
+          .archive-art { height: 104px; margin: 13px 0 14px; }
+          .archive-card h3 { font-size: 22px; }
+          .archive-card p { max-width: 92%; min-height: 40px; color: #566779; font-size: 11px; }
+          .archive-open { opacity: .68; transition: opacity .18s ease, transform .18s ease; }
+          .archive-card:focus-visible { transform: translateY(-2px); box-shadow: 0 9px 18px rgba(21,38,61,.09); }
+
+          summary:focus-visible { outline: 3px solid #c89d45; outline-offset: 3px; }
+          @media (hover: hover) {
+            .archive-card:hover .archive-open, .archive-card:focus-visible .archive-open { opacity: 1; transform: translateX(2px); }
+          }
+
+          @media (max-width: 620px) {
+            .hero-actions { align-items: flex-start; }
+            .print-menu-panel { width: min(270px, calc(100vw - 48px)); }
+            .feature-utilities { gap: 4px 16px; }
+            .feature-continue { width: 100%; justify-content: space-between; text-align: left; }
+            .source-panel a { grid-template-columns: 1fr; gap: 2px; }
+            .source-panel span { white-space: normal; overflow: visible; text-overflow: clip; }
+            .month-switcher button { width: 40px; height: 40px; }
+          }
+
+          @media (max-width: 430px) {
+            .hero { padding-top: 54px; }
+            .hero h1 { font-size: clamp(40px, 13vw, 49px); }
+            .orbit-art { min-height: 275px; transform: scale(.74); margin-bottom: -68px; }
+            .overview-strip strong { font-size: 19px; }
+            .overview-strip span { font-size: 9px; }
+            .archive-grid { grid-template-columns: 1fr; }
+            .archive-card { min-height: 142px; display: grid; grid-template-columns: 94px minmax(0, 1fr); grid-template-rows: auto auto 1fr auto; column-gap: 15px; padding: 14px; }
+            .archive-art { grid-column: 1; grid-row: 1 / 5; width: 94px; height: 100%; min-height: 114px; margin: 0; }
+            .archive-date { grid-column: 2; grid-row: 1; padding-right: 54px; }
+            .archive-field { position: absolute; right: 14px; top: 14px; }
+            .archive-card h3 { grid-column: 2; grid-row: 2; margin: 8px 0 5px; font-size: 20px; }
+            .archive-card p { grid-column: 2; grid-row: 3; max-width: 100%; min-height: 0; margin: 0 0 8px; }
+            .archive-open { grid-column: 2; grid-row: 4; margin-top: 0; }
+            .archive-index { display: none; }
+            .calendar-grid { padding: 12px 8px 14px; }
+            .blank-day, .date-cell { min-height: 48px; }
+            .date-cell { padding: 6px; }
+            .dots { right: 5px; bottom: 6px; gap: 3px; }
+            .dot { width: 5px; height: 5px; }
+          }
+
+          @media (prefers-reduced-motion: reduce) {
+            .skip-link, .feature-continue, .archive-open { transition: none; }
+          }
+          '''
+          css.write_text(existing.rstrip() + polish + "\n", encoding="utf-8")
+
+          # --- rendered HTML regression checks ---
+          test = Path("tooling/tests/rendered-html.test.mjs")
+          t = test.read_text(encoding="utf-8")
+          needle = '''  assert.match(html, /从好奇出发/);
+
+            // 打印版链接由数据推导，这里同样按数据推导，避免增删人物后测试失效。
+          '''
+          replacement = '''  assert.match(html, /从好奇出发/);
+            assert.match(html, /跳到今日人物/);
+            assert.match(html, /<summary>打印版/);
+            assert.match(html, /人物辅助操作/);
+            assert.match(html, /继续探索档案库/);
+
+            // 打印版链接由数据推导，这里同样按数据推导，避免增删人物后测试失效。
+          '''
+          if t.count(needle) != 1:
+              raise SystemExit("rendered-html test insertion point changed")
+          test.write_text(t.replace(needle, replacement), encoding="utf-8")
+          PY
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate UI and application
+        run: |
+          npm run audit:deps
+          npm run typecheck
+          npm run typecheck:worker
+          npm run lint
+          npm run audit:data
+          npm run audit:sources
+          npm run audit:avatars
+          npm run check:web-data
+          npm test
+          npm run build:pages
+          npm run check:pages
+
+      - name: Commit product changes
+        run: |
+          git rm .github/workflows/temp-ui-polish.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app/page.tsx app/globals.css tooling/tests/rendered-html.test.mjs
+          git commit -m "feat: polish editorial UI across desktop and mobile"
+          git push origin HEAD:feat/ui-polish
