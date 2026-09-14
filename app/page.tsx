@@ -14,6 +14,8 @@ import { SITE_BASE_PATH, SITE_URL, scientistAbsoluteUrl, scientistBrowserPath, s
 
 type AvatarMode = "letter" | "photo";
 type ScientistDetail = { story: string; fact: string; quote?: string; quoteSource?: string };
+type ScientistSource = { title: string; publisher: string; url: string; covers: string[]; notes?: string };
+type ScientistSourceFile = { scientists: Record<string, ScientistSource[]> };
 type MonthDetails = Record<string, ScientistDetail>;
 
 const scientists = scientistsData as ScientistSummary[];
@@ -107,6 +109,9 @@ function Calendar({ now }: { now: DateParts }) {
   const [detailLoadErrors, setDetailLoadErrors] = useState<Set<number>>(() => new Set());
   const [detailRetryToken, setDetailRetryToken] = useState(0);
   const [shareNotice, setShareNotice] = useState("");
+  const [sourceRegistry, setSourceRegistry] = useState<Record<string, ScientistSource[]> | null>(null);
+  const [sourcesOpen, setSourcesOpen] = useState(false);
+  const [sourceLoadFailed, setSourceLoadFailed] = useState(false);
 
   const selected = scientists.find((scientist) => scientist.id === selectedId) ?? scientists[0];
   const selectedDetail = detailsById[selected.id];
@@ -204,6 +209,23 @@ function Calendar({ now }: { now: DateParts }) {
     selectScientist(next);
   }
 
+  async function toggleSources() {
+  if (sourcesOpen) {
+    setSourcesOpen(false);
+    return;
+  }
+  setSourceLoadFailed(false);
+  if (!sourceRegistry) {
+    try {
+      const sourceData = await import("./data/scientist-sources.json");
+      setSourceRegistry((sourceData.default as ScientistSourceFile).scientists);
+    } catch {
+      setSourceLoadFailed(true);
+    }
+  }
+  setSourcesOpen(true);
+}
+
   async function shareSelectedScientist() {
     const url = scientistAbsoluteUrl(selected.id);
     const data = {
@@ -268,7 +290,7 @@ function Calendar({ now }: { now: DateParts }) {
               {(["letter", "photo"] as AvatarMode[]).map((m) => <button key={m} type="button" className={avatarMode === m ? "active" : ""} onClick={() => setAvatarMode(m)}>{m === "letter" ? "单字" : "照片"}</button>)}
             </div>
           </div>
-          <div className="feature-copy"><p className="feature-relation">{selected.relation} · {selected.years}</p><h3>{selected.name}</h3><p className="latin-name">{selected.latinName} · {selected.country}</p><p className="feature-tagline">阅读线索｜{selected.tagline}</p>{selectedQuote && <blockquote className="quote-block"><span>{isTodaySelection ? "今日引语" : "人物引语"}</span><p>“{selectedQuote.text}”</p><cite>— {selectedQuote.source}</cite></blockquote>}<p className="feature-story" aria-live="polite">{selectedDetail?.story ?? (detailLoadFailed ? "人物档案加载失败，请检查网络后重试。" : "正在加载人物档案…")}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selectedDetail?.fact ?? (detailLoadFailed ? "暂时无法加载" : "正在加载…")}</strong></div></div>{detailLoadFailed && <button className="detail-button" type="button" onClick={() => { setDetailLoadErrors((current) => { const next = new Set(current); next.delete(selected.month); return next; }); setDetailRetryToken((token) => token + 1); }}>重新加载人物档案 <span>↻</span></button>}<button className="detail-button" type="button" onClick={() => { void shareSelectedScientist(); }}>分享人物 <span>↗</span></button>{shareNotice && <span className="share-notice" role="status" aria-live="polite">{shareNotice}</span>}<button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button></div>
+          <div className="feature-copy"><p className="feature-relation">{selected.relation} · {selected.years}</p><h3>{selected.name}</h3><p className="latin-name">{selected.latinName} · {selected.country}</p><p className="feature-tagline">阅读线索｜{selected.tagline}</p>{selectedQuote && <blockquote className="quote-block"><span>{isTodaySelection ? "今日引语" : "人物引语"}</span><p>“{selectedQuote.text}”</p><cite>— {selectedQuote.source}</cite></blockquote>}<p className="feature-story" aria-live="polite">{selectedDetail?.story ?? (detailLoadFailed ? "人物档案加载失败，请检查网络后重试。" : "正在加载人物档案…")}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selectedDetail?.fact ?? (detailLoadFailed ? "暂时无法加载" : "正在加载…")}</strong></div></div>{detailLoadFailed && <button className="detail-button" type="button" onClick={() => { setDetailLoadErrors((current) => { const next = new Set(current); next.delete(selected.month); return next; }); setDetailRetryToken((token) => token + 1); }}>重新加载人物档案 <span>↻</span></button>}<button className="detail-button" type="button" onClick={() => { void shareSelectedScientist(); }}>分享人物 <span>↗</span></button>{shareNotice && <span className="share-notice" role="status" aria-live="polite">{shareNotice}</span>}<button className="source-toggle" type="button" aria-expanded={sourcesOpen} onClick={() => { void toggleSources(); }}>资料来源 <span>{sourcesOpen ? "−" : "+"}</span></button>{sourcesOpen && <div className="source-panel" aria-live="polite">{sourceLoadFailed ? <p>资料来源暂时无法加载，请稍后重试。</p> : sourceRegistry?.[selected.id]?.length ? <ul>{sourceRegistry[selected.id].map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer"><strong>{source.publisher}</strong><span>{source.title}</span></a></li>)}</ul> : <p>该人物的资料来源正在逐步补齐。</p>}</div>}<button className="detail-button" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>在档案库中继续探索 <span>→</span></button></div>
           <div className="feature-index" aria-hidden="true"><span>SCIENCE</span><span>NOTE</span><b>{selected.id.slice(0, 3).toUpperCase()}</b></div>
         </article>
       </section>
