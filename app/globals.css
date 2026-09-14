@@ -52,3 +52,87 @@ button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid 
 .source-panel a:hover span { text-decoration: underline; text-underline-offset: 2px; }
 .source-panel strong { color: #556273; font-size: 10px; font-weight: 600; }
 .source-panel span { min-width: 0; color: #7a8591; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* --- UI polish 2026-09 --- */
+.skip-link { position: fixed; left: 16px; top: 12px; z-index: 100; padding: 10px 14px; background: var(--ink); color: #fff; font: 12px Arial, "Microsoft YaHei", sans-serif; transform: translateY(-160%); transition: transform .16s ease; }
+.skip-link:focus { transform: translateY(0); }
+
+.hero-actions { gap: 12px 16px; }
+.hero-actions .button-primary, .hero-actions .button-secondary { min-height: 44px; }
+.print-menu { position: relative; color: #5b6877; font: 12px Arial, "Microsoft YaHei", sans-serif; }
+.print-menu summary { min-height: 44px; display: inline-flex; align-items: center; gap: 10px; padding: 0 2px; border-bottom: 1px solid #9aa4ad; cursor: pointer; list-style: none; user-select: none; }
+.print-menu summary::-webkit-details-marker { display: none; }
+.print-menu[open] summary { color: var(--ink); border-color: var(--ink); }
+.print-menu-panel { position: absolute; z-index: 12; top: calc(100% + 9px); left: 0; width: 270px; padding: 7px; border: 1px solid var(--line); background: #fffdf8; box-shadow: 0 16px 34px rgba(21,38,61,.12); }
+.print-menu-panel a { display: grid; gap: 3px; padding: 11px 12px; }
+.print-menu-panel a + a { border-top: 1px solid #ece5da; }
+.print-menu-panel a:hover { background: #f5eee2; }
+.print-menu-panel strong { color: var(--ink); font-size: 12px; font-weight: 600; }
+.print-menu-panel small { color: #74808d; font-size: 10px; }
+
+.feature-copy { padding-bottom: 38px; }
+.feature-utilities { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 18px; margin-top: 18px; padding-top: 4px; }
+.utility-button, .retry-button { border: 0; background: none; cursor: pointer; font: 11px Arial, "Microsoft YaHei", sans-serif; }
+.utility-button { min-height: 34px; padding: 5px 0; color: #64717f; border-bottom: 1px solid transparent; }
+.utility-button:hover { color: var(--ink); border-color: #aab2ba; }
+.utility-button span, .retry-button span, .feature-continue span { margin-left: 8px; }
+.retry-button { align-self: flex-start; margin-top: 14px; padding: 7px 0; color: #a45849; border-bottom: 1px solid #d7aca2; }
+.share-notice { color: #788491; font: 10px Arial, "Microsoft YaHei", sans-serif; }
+.feature-continue { align-self: flex-start; min-height: 40px; margin-top: 17px; padding: 9px 13px; border: 1px solid var(--ink); background: var(--ink); color: #fff; cursor: pointer; font: 11px Arial, "Microsoft YaHei", sans-serif; transition: transform .18s ease, background .18s ease; }
+.feature-continue:hover { transform: translateY(-1px); background: #243a53; }
+.source-panel { width: 100%; margin-top: 5px; padding-top: 11px; }
+.source-panel a { padding: 3px 0; }
+.source-panel strong { color: #4d5c6c; }
+
+.portrait-switch button { min-height: 32px; padding: 5px 10px; }
+.month-switcher button { width: 36px; height: 36px; }
+.field-filters button { min-height: 38px; padding: 8px 14px; }
+
+.archive-card { min-height: 294px; padding: 20px; }
+.archive-art { height: 104px; margin: 13px 0 14px; }
+.archive-card h3 { font-size: 22px; }
+.archive-card p { max-width: 92%; min-height: 40px; color: #566779; font-size: 11px; }
+.archive-open { opacity: .68; transition: opacity .18s ease, transform .18s ease; }
+.archive-card:focus-visible { transform: translateY(-2px); box-shadow: 0 9px 18px rgba(21,38,61,.09); }
+
+summary:focus-visible { outline: 3px solid #c89d45; outline-offset: 3px; }
+@media (hover: hover) {
+  .archive-card:hover .archive-open, .archive-card:focus-visible .archive-open { opacity: 1; transform: translateX(2px); }
+}
+
+@media (max-width: 620px) {
+  .hero-actions { align-items: flex-start; }
+  .print-menu-panel { width: min(270px, calc(100vw - 48px)); }
+  .feature-utilities { gap: 4px 16px; }
+  .feature-continue { width: 100%; justify-content: space-between; text-align: left; }
+  .source-panel a { grid-template-columns: 1fr; gap: 2px; }
+  .source-panel span { white-space: normal; overflow: visible; text-overflow: clip; }
+  .month-switcher button { width: 40px; height: 40px; }
+}
+
+@media (max-width: 430px) {
+  .hero { padding-top: 54px; }
+  .hero h1 { font-size: clamp(40px, 13vw, 49px); }
+  .orbit-art { min-height: 275px; transform: scale(.74); margin-bottom: -68px; }
+  .overview-strip strong { font-size: 19px; }
+  .overview-strip span { font-size: 9px; }
+  .archive-grid { grid-template-columns: 1fr; }
+  .archive-card { min-height: 142px; display: grid; grid-template-columns: 94px minmax(0, 1fr); grid-template-rows: auto auto 1fr auto; column-gap: 15px; padding: 14px; }
+  .archive-art { grid-column: 1; grid-row: 1 / 5; width: 94px; height: 100%; min-height: 114px; margin: 0; }
+  .archive-date { grid-column: 2; grid-row: 1; padding-right: 54px; }
+  .archive-field { position: absolute; right: 14px; top: 14px; }
+  .archive-card h3 { grid-column: 2; grid-row: 2; margin: 8px 0 5px; font-size: 20px; }
+  .archive-card p { grid-column: 2; grid-row: 3; max-width: 100%; min-height: 0; margin: 0 0 8px; }
+  .archive-open { grid-column: 2; grid-row: 4; margin-top: 0; }
+  .archive-index { display: none; }
+  .calendar-grid { padding: 12px 8px 14px; }
+  .blank-day, .date-cell { min-height: 48px; }
+  .date-cell { padding: 6px; }
+  .dots { right: 5px; bottom: 6px; gap: 3px; }
+  .dot { width: 5px; height: 5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skip-link, .feature-continue, .archive-open { transition: none; }
+}
+
