@@ -1,4 +1,4 @@
-"""PDF 排版体检：几何方式检测「文字压字 / 越界 / 卡片内混入外来文字」。
+"""PDF 排版体检：检测「文字压字 / 越界 / 卡片内混入外来文字 / 超链接注释」。
 
 为什么需要它：
   生成 PDF 时（尤其是中文 + 复杂版面），重叠/溢出用肉眼很难全量检查；
@@ -87,9 +87,12 @@ def verify(
     leaks: list[tuple] = []
     oob: list[tuple] = []
     tofu: list[tuple] = []
+    links: list[tuple] = []
 
     for pno in range(doc.page_count):
         page = doc[pno]
+        for link in page.get_links():
+            links.append((pno + 1, link.get("uri") or link.get("file") or f"kind={link.get('kind')}"))
         # 豆腐块检测：中文被交给无中文字形的字体(如 Helvetica)渲染时，
         # 提取出来会变成连续的 "I"。这类问题肉眼在页面上很难发现（看着像乱码），
         # 但压字检测完全查不出来。
@@ -126,8 +129,8 @@ def verify(
                         (pno + 1, wi[4], wj[4], round(ox, 1), round(oy, 1))
                     )
 
-    total = len(pairwise) + len(leaks) + len(oob) + len(tofu)
-    return doc.page_count, pairwise, leaks, oob, tofu, total
+    total = len(pairwise) + len(leaks) + len(oob) + len(tofu) + len(links)
+    return doc.page_count, pairwise, leaks, oob, tofu, links, total
 
 
 def main() -> int:
@@ -189,7 +192,7 @@ def main() -> int:
             sys.exit(f"找不到 allow-file：{p}")
         allow += [ln.strip() for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
 
-    pages, pairwise, leaks, oob, tofu, total = verify(
+    pages, pairwise, leaks, oob, tofu, links, total = verify(
         pdf_path,
         card_rgb,
         allow,
@@ -225,9 +228,10 @@ def main() -> int:
     report("内容越界（撞页眉/越内容底线）", oob)
     report("两两文字压字", pairwise)
     report("豆腐块（中文用拉丁字体渲染成连续 I）", tofu)
+    report("PDF 超链接注释", links)
 
     status = "✓ 通过" if total == 0 else f"✗ 发现 {total} 处"
-    print(f"== 汇总：{status}（压字 {len(pairwise)} / 越界 {len(oob)} / 卡片泄漏 {len(leaks)} / 豆腐块 {len(tofu)}）==")
+    print(f"== 汇总：{status}（压字 {len(pairwise)} / 越界 {len(oob)} / 卡片泄漏 {len(leaks)} / 豆腐块 {len(tofu)} / 链接 {len(links)}）==")
     return 0 if total == 0 else 1
 
 
