@@ -55,8 +55,8 @@ jobs:
             setSourceLoadFailed(false);
             if (!sourceRegistry) {
               try {
-                const module = await import("./data/scientist-sources.json");
-                setSourceRegistry((module.default as ScientistSourceFile).scientists);
+                const sourceData = await import("./data/scientist-sources.json");
+                setSourceRegistry((sourceData.default as ScientistSourceFile).scientists);
               } catch {
                 setSourceLoadFailed(true);
               }
