@@ -1,10 +1,21 @@
+<div align="center">
+
 # 科学家日历 · Scientist Calendar
 
-一年 365 天，每天认识一位科学家。项目收录 466 位人物，以日期、领域、贡献、故事、语录和肖像组织成可搜索的交互日历，并提供两套 A4 打印版。
+**一年 365 天，每天认识一位科学家。**
 
-- 在线版（GitHub Pages）：<https://cochranek.github.io/scientist-calendar/>
-- 人物永久链接示例：`/scientist-calendar/scientists/newton/`
-- 打印版：每日人物版（横版，一人一页）+ 月度生日版（纵版，一月一页）
+<p>
+  <img alt="Scientists" src="https://img.shields.io/badge/scientists-466-6C63FF">
+  <img alt="Calendar" src="https://img.shields.io/badge/calendar-365%20days-2F80ED">
+  <img alt="Print" src="https://img.shields.io/badge/print-2%20A4%20editions-27AE60">
+  <img alt="Pages" src="https://img.shields.io/badge/deploy-GitHub%20Pages-F2994A">
+</p>
+
+[**在线日历**](https://cochranek.github.io/scientist-calendar/) · **Search · Profiles · Print**
+
+</div>
+
+项目以日期、领域、贡献、故事、语录和肖像组织 466 位人物，提供可搜索的交互日历、稳定人物永久链接，以及每日人物版 / 月度生日版两套 A4 打印内容。
 
 ## 功能
 
