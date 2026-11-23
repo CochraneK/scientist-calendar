@@ -136,3 +136,7 @@ summary:focus-visible { outline: 3px solid #c89d45; outline-offset: 3px; }
   .skip-link, .feature-continue, .archive-open { transition: none; }
 }
 
+/* --- 空状态（此前 CSS 缺定义，会导致空态裸显示）--- */
+.empty-state { margin: 22px 0; padding: 40px 16px; text-align: center; color: #6b7886; font: 12px/1.7 Arial, "Microsoft YaHei", sans-serif; }
+.empty-state .button-secondary { margin-top: 16px; align-self: center; }
+

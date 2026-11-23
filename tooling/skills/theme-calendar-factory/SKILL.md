@@ -38,6 +38,7 @@ agent_created: true
 | `generate_daily_pdf.py` | 每日人物版：横版 A4，**一人一页**（大图/名言/故事/双卡片） |
 | `generate_monthly_pdf.py` | 月度缩览版：纵版 A4，**一页一个月**，每人只显示 生日·名字·名言 |
 | `verify_pdf_layout.py` | PDF 几何体检：压字 / 越界 / 卡片泄漏（**不依赖看图**） |
+| `smoke_test_theme.py` | **换主题冒烟测试**：造最小 fixture、真实跑两份模板、抽取产物自检（中点存在 / 名言句末标点补齐 / 模板硬编码项目文案残留为 0），换主题后必跑 |
 
 ## 三、数据契约
 
@@ -161,16 +162,20 @@ page.get_drawings()      # -> 填充矩形（可据此定位卡片/色块）
     - **永久护栏**：换主题后**必须实际跑一次模板**（造 3–6 条 fixture，见下方冒烟测试），
       把产物文本抽出来 grep 旧主题名（如 `科学家`），必须为 0。**只做语法检查不够。**
 
-### 模板冒烟测试（换主题后必做，2 分钟）
-造一份最小 fixture（`entries.json` 6 条 + `quotes.json`），`theme.json` 里用**绝对路径**指向它们，然后真跑模板：
+### 模板冒烟测试（换主题后必做，脚本内置，2 分钟）
+**换主题后直接跑脚本**，它会自动造最小 fixture（6 条，含带 `·` 的名字、无句末标点的名言、超长名字）、
+用绝对路径指到 fixture，真实跑 `generate_monthly_pdf.py` 与 `generate_daily_pdf.py`，再抽取产物文本自检：
 
 ```bash
-PY="<装有 reportlab 的解释器>"   # 例：C:/Users/cunyi/.workbuddy/binaries/python/envs/default/Scripts/python.exe
-"$PY" scripts/generate_monthly_pdf.py --config /tmp/tcf_smoke/theme.json
-"$PY" scripts/generate_daily_pdf.py   --config /tmp/tcf_smoke/theme.json   # 若用到每日版
+python tooling/skills/theme-calendar-factory/scripts/smoke_test_theme.py
+# 若环境缺少 reportlab/PyMuPDF，可指定装有它们的解释器：
+python tooling/skills/theme-calendar-factory/scripts/smoke_test_theme.py "<装有 reportlab 的解释器路径>"
 ```
-fixture 要刻意包含：带 `·` 的名字、无句末标点的名言、超长名字（测缩字号/截断）。
-产出后抽文本自检：`中点是否存在`、`名言是否都以标点结尾`、**旧主题名残留是否为 0**。
+
+脚本自检 3 项（任一失败即退出码 1，便于 CI/手动拦截）：
+1. **中点渲染存在** —— STSong-Light 不含 U+00B7，渲染应保留中点码位（不会整段丢失）；
+2. **名言句末标点补齐** —— 无标点名言应被补 `。`；
+3. **模板硬编码项目文案残留为 0** —— 检查模板产物里是否出现项目专属硬编码文案（如 `科学家日历` 标题、`每天认识一位科学家` 页脚），出现即主题串味。
 
 > **模板路径很脆弱**：`entryFile` / `quoteFile` 是 `Path(cfg[...])` **相对当前工作目录**解析，没有 join 项目根。
 > 必须在**项目根目录**下运行（配置里写 `app/data/xxx.json`），换目录跑会找不到数据。

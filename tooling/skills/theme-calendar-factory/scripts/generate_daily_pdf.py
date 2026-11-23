@@ -59,6 +59,17 @@ def font(name: str = "cn") -> str:
 _CN_DOT = "\u30fb"
 
 
+TERMINAL = "。！？.!?…」』）\"'»"
+
+
+def ensure_terminal_punct(text: str) -> str:
+    """名言若缺句末标点则补句号；已有则原样返回。"""
+    t = (text or "").strip()
+    if not t:
+        return t
+    return t if t[-1] in TERMINAL else t + "。"
+
+
 def _fix_dot(text, face):
     return text.replace("\u00b7", _CN_DOT) if face == "cn" else text
 
@@ -183,6 +194,7 @@ def draw_entry(c, entry, theme, quotes, page, total):
     # ---- 引语 → 来源 → 分隔线 → 故事：严格自上而下，物理上不可能互压 ----
     FLOOR = CONTENT_FLOOR
     q_text, q_source = theme.quote(entry, quotes)
+    q_text = ensure_terminal_punct(q_text)
     has_src = bool(q_text and q_source)
     lead = 26 if has_src else 23
     q_size = 18 if has_src else 15

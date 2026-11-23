@@ -8,7 +8,7 @@
   正确解释器：`C:/Users/cunyi/.workbuddy/binaries/python/envs/default/Scripts/python.exe`（reportlab 5.x + PyMuPDF）。
   - `npm run pdf:daily` / `pdf:monthly` 本质是调 `tooling/scripts/` 下的生成器。
   - `npm run verify:pdf` 跑 `verify_pdf_layout.py --check-tofu`，豆腐块必须为 0 才发版。
-- 发布（Pages 由 GitHub Actions 部署）：`git push github main`（远程叫 `github`，**不是** `origin`）；push 前 `env -u HTTPS_PROXY -u HTTP_PROXY -u https_proxy -u http_proxy -u ALL_PROXY -u all_proxy` 清代理（沙箱代理会断 SSH）。push 即触发 `.github/workflows/pages.yml` → `build:pages` → 部署；`docs/` 不提交（已 gitignore），仓库 Pages 设置 Source 须为 `GitHub Actions`（非 `/docs`）。
+- 发布（Pages 由 GitHub Actions 部署）：`git push origin main`（先用 `git remote -v` 核对远程名，当前为 `origin`）；push 前如遇到代理干扰 SSH 可用 `env -u HTTPS_PROXY -u HTTP_PROXY -u https_proxy -u http_proxy -u ALL_PROXY -u all_proxy` 清代理。push 即触发 `.github/workflows/quality.yml` → 通过后触发 `pages.yml` → `build:pages` → 部署；`docs/` 不提交（已 gitignore），仓库 Pages 设置 Source 须为 `GitHub Actions`（非 `/docs`）。
 
 ## 技术栈
 Next.js(vinext)/React19 主站 + Vite 独立静态站 + Cloudflare Worker；PDF 用 reportlab（`STSong-Light` CID 字体，无需装字体）。
@@ -26,5 +26,9 @@ Next.js(vinext)/React19 主站 + Vite 独立静态站 + Cloudflare Worker；PDF 
 
 ## 当前状态 / 下一步
 - 已发布可用：月度版排版修复 + 中点修复已验证；skill 模板页脚主题化回归已修（坑 #20 + 冒烟测试流程）。
-- 待决（pending，未做）：① 每日人物版是否也要句末标点（目前仅月度版有）；② 把「换主题冒烟测试」脚本化为 `smoke_test_theme.py` 放进 skill。
-- 记忆：`C:/Users/cunyi/Documents/科学家日历/.workbuddy/memory/MEMORY.md` 存长期约定；daily 日志（08-29…09-06）未蒸馏（均未满 30 天）。
+- 已完成（**尚未验证/提交**）：
+  - ① 每日人物版句末标点：`ensure_terminal_punct()` 已接入 `generate_print_calendar.py`（项目版）与 skill 的 `generate_daily_pdf.py`。注意数据里 466 条语录本就带标点，此为兜底防御。
+  - ② `smoke_test_theme.py` 已落地到 `tooling/skills/theme-calendar-factory/scripts/`，造 fixture 真跑双生成器并自检三项（中点 / 句末标点 / 旧主题名残留为 0）。已跑通。
+  - ③ 空态 `.empty-state` 样式补齐；领域筛选加 `aria-pressed`；空态加「返回全部人物」CTA。
+- 下一步：`npm ci`（依赖缺失）→ `typecheck` / `lint` / `audit:data` → 提交推送。详见 `.workbuddy/memory/2026-11-23.md`。
+- 记忆：`.workbuddy/memory/MEMORY.md` 存长期约定与常用命令；`.workbuddy/memory/YYYY-MM-DD.md` 存每日工作日志。注意 `.workbuddy/` 已被 gitignore，**重克隆会丢失**，重要状态请同步写入本文件。

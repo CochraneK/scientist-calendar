@@ -62,6 +62,21 @@ def _fix_dot(text: str, face: str) -> str:
     return text.replace("\u00b7", _CN_DOT) if face == "cn" else text
 
 
+# 句子结尾标点：名言必须成句，没有结尾标点则补句号（中文语境优先）。
+_TERMINAL = "。！？.!?…」』）\"'»●"
+_PLACEHOLDER = "—"
+
+
+def ensure_terminal_punct(text: str) -> str:
+    """名言若缺句末标点则补句号；已有则原样返回；空串返回占位符。"""
+    t = (text or "").strip()
+    if not t:
+        return _PLACEHOLDER
+    if t[-1] in _TERMINAL:
+        return t
+    return t + "。"
+
+
 def draw_text(c: canvas.Canvas, text: str, x: float, y: float, size: float, color=INK, face="cn") -> None:
     c.setFillColor(color)
     c.setFont(font(face), size)
@@ -324,7 +339,9 @@ def draw_entry(c: canvas.Canvas, entry: dict[str, str], page: int, total: int, q
     quote_color = HexColor("#B85E4C") if has_sourced_quote else MUTED
     quote_prefix = "“" if has_sourced_quote else "阅读线索｜"
     quote_suffix = "”" if has_sourced_quote else ""
-    quote_full = quote_prefix + (quote_text or entry.get("tagline", "")) + quote_suffix
+    # 名言必须以句末标点成句（多数用句号）：无标点则补「。」。
+    quote_body = ensure_terminal_punct(quote_text or entry.get("tagline", ""))
+    quote_full = quote_prefix + quote_body + quote_suffix
 
     # 行数上限：给「来源(8) + 来源→分隔(12) + 分隔→故事(30) + 至少 0 故事」预留空间，避免互相压字
     room = Q_START - FLOOR
