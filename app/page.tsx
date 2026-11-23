@@ -117,6 +117,7 @@ function Calendar({ now }: { now: DateParts }) {
   const [detailLoadErrors, setDetailLoadErrors] = useState<Set<number>>(() => new Set());
   const [detailRetryToken, setDetailRetryToken] = useState(0);
   const [shareNotice, setShareNotice] = useState("");
+  const [posterBusy, setPosterBusy] = useState(false);
   const [sourceRegistry, setSourceRegistry] = useState<Record<string, ScientistSource[]> | null>(null);
   const [sourcesOpen, setSourcesOpen] = useState(false);
   const [sourceLoadFailed, setSourceLoadFailed] = useState(false);
@@ -264,6 +265,35 @@ function Calendar({ now }: { now: DateParts }) {
     }
   }
 
+  async function downloadSelectedPoster() {
+    if (posterBusy) return;
+    setPosterBusy(true);
+    setShareNotice("正在生成分享海报…");
+    try {
+      const { renderScientistPosterBlob, posterFilename } = await import("../src/lib/posterCanvas");
+      const portraitUrl = avatarFor(selected, avatarMode);
+      const blob = await renderScientistPosterBlob({
+        scientist: selected,
+        quote: selectedQuote,
+        fact: selectedDetail?.fact,
+        portraitUrl,
+      });
+      const objectUrl = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = objectUrl;
+      link.download = posterFilename(selected);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1500);
+      setShareNotice("分享海报已保存");
+    } catch {
+      setShareNotice("海报生成失败，请稍后重试");
+    } finally {
+      setPosterBusy(false);
+    }
+  }
+
   return (
     <main>
       <a className="skip-link" href="#today">跳到今日人物</a>
@@ -286,6 +316,7 @@ function Calendar({ now }: { now: DateParts }) {
             <div className="print-menu-panel">
               <a href={assetPath(`print/科学家日历_精选${scientists.length}位_A4打印版.pdf`)} download><strong>每日人物版</strong><small>{scientists.length} 位 · A4 横版</small></a>
               <a href={assetPath("print/科学家日历_月度生日版_A4.pdf")} download><strong>月度生日版</strong><small>生日 · 名字 · 名言</small></a>
+              <a href={assetPath("scientist-calendar.ics")} download="scientist-calendar.ics"><strong>订阅手机日历 (.ics)</strong><small>365 天 · 每年自动循环提醒</small></a>
             </div>
           </details>
         </div>
@@ -314,7 +345,7 @@ function Calendar({ now }: { now: DateParts }) {
     <button type="button" className={avatarMode === "photo" ? "active" : ""} aria-pressed={avatarMode === "photo"} onClick={() => setAvatarMode("photo")}>{alternatePortraitLabel(selected)}</button>
   </div>}
           </div>
-          <div className="feature-copy"><p className="feature-relation">{selected.relation} · {selected.years}</p><h3>{selected.name}</h3><p className="latin-name">{selected.latinName} · {selected.country}</p><p className="feature-tagline">阅读线索｜{selected.tagline}</p>{selectedQuote && <blockquote className="quote-block"><span>{isTodaySelection ? "今日引语" : "人物引语"}</span><p>“{selectedQuote.text}”</p><cite>— {selectedQuote.source}</cite></blockquote>}<p className="feature-story" aria-live="polite">{selectedDetail?.story ?? (detailLoadFailed ? "人物档案加载失败，请检查网络后重试。" : "正在加载人物档案…")}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selectedDetail?.fact ?? (detailLoadFailed ? "暂时无法加载" : "正在加载…")}</strong></div></div>{detailLoadFailed && <button className="retry-button" type="button" onClick={() => { setDetailLoadErrors((current) => { const next = new Set(current); next.delete(selected.month); return next; }); setDetailRetryToken((token) => token + 1); }}>重新加载人物档案 <span>↻</span></button>}<div className="feature-utilities" aria-label="人物辅助操作"><button className="utility-button" type="button" onClick={() => { void shareSelectedScientist(); }}>分享 <span>↗</span></button><button className="utility-button" type="button" aria-expanded={sourcesOpen} onClick={() => { void toggleSources(); }}>资料来源 <span>{sourcesOpen ? "−" : "+"}</span></button>{shareNotice && <span className="share-notice" role="status" aria-live="polite">{shareNotice}</span>}</div>{sourcesOpen && <div className="source-panel" aria-live="polite">{sourceLoadFailed ? <p>资料来源暂时无法加载，请稍后重试。</p> : sourceRegistry?.[selected.id]?.length ? <ul>{sourceRegistry[selected.id].map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer"><strong>{source.publisher}</strong><span>{source.title}</span></a></li>)}</ul> : <p>该人物的资料来源正在逐步补齐。</p>}</div>}<button className="feature-continue" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>继续探索档案库 <span>→</span></button></div>
+          <div className="feature-copy"><p className="feature-relation">{selected.relation} · {selected.years}</p><h3>{selected.name}</h3><p className="latin-name">{selected.latinName} · {selected.country}</p><p className="feature-tagline">阅读线索｜{selected.tagline}</p>{selectedQuote && <blockquote className="quote-block"><span>{isTodaySelection ? "今日引语" : "人物引语"}</span><p>“{selectedQuote.text}”</p><cite>— {selectedQuote.source}</cite></blockquote>}<p className="feature-story" aria-live="polite">{selectedDetail?.story ?? (detailLoadFailed ? "人物档案加载失败，请检查网络后重试。" : "正在加载人物档案…")}</p><div className="feature-meta"><div><span>核心贡献</span><strong>{selected.contribution}</strong></div><div><span>你知道吗</span><strong>{selectedDetail?.fact ?? (detailLoadFailed ? "暂时无法加载" : "正在加载…")}</strong></div></div>{detailLoadFailed && <button className="retry-button" type="button" onClick={() => { setDetailLoadErrors((current) => { const next = new Set(current); next.delete(selected.month); return next; }); setDetailRetryToken((token) => token + 1); }}>重新加载人物档案 <span>↻</span></button>}<div className="feature-utilities" aria-label="人物辅助操作"><button className="utility-button" type="button" onClick={() => { void shareSelectedScientist(); }}>分享 <span>↗</span></button><button className="utility-button" type="button" disabled={posterBusy} onClick={() => { void downloadSelectedPoster(); }}>{posterBusy ? "正在生成…" : "保存海报"} <span>↓</span></button><button className="utility-button" type="button" aria-expanded={sourcesOpen} onClick={() => { void toggleSources(); }}>资料来源 <span>{sourcesOpen ? "−" : "+"}</span></button>{shareNotice && <span className="share-notice" role="status" aria-live="polite">{shareNotice}</span>}</div>{sourcesOpen && <div className="source-panel" aria-live="polite">{sourceLoadFailed ? <p>资料来源暂时无法加载，请稍后重试。</p> : sourceRegistry?.[selected.id]?.length ? <ul>{sourceRegistry[selected.id].map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noreferrer"><strong>{source.publisher}</strong><span>{source.title}</span></a></li>)}</ul> : <p>该人物的资料来源正在逐步补齐。</p>}</div>}<button className="feature-continue" type="button" onClick={() => document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" })}>继续探索档案库 <span>→</span></button></div>
           <div className="feature-index" aria-hidden="true"><span>SCIENCE</span><span>NOTE</span><b>{selected.id.slice(0, 3).toUpperCase()}</b></div>
         </article>
       </section>
@@ -322,7 +353,7 @@ function Calendar({ now }: { now: DateParts }) {
       <section className="calendar-section" id="calendar" aria-labelledby="calendar-title">
         <header className="section-heading"><div><p className="eyebrow">SCIENCE DATES · {now.year}</p><h2 id="calendar-title">月历</h2></div><div className="month-switcher"><button type="button" aria-label="上一个月" onClick={() => setCalendarMonth((month) => month === 1 ? 12 : month - 1)}>←</button><span>{monthNames[calendarMonth - 1]} {now.year}</span><button type="button" aria-label="下一个月" onClick={() => setCalendarMonth((month) => month === 12 ? 1 : month + 1)}>→</button></div></header>
         <div className="calendar-layout"><div className="calendar-grid" role="grid" aria-label={`${calendarMonth} 月日历`}><div className="weekdays">{weekdayNames.map((day) => <span key={day}>{day}</span>)}</div><div className="dates">{Array.from({ length: firstWeekday }, (_, index) => <span className="blank-day" key={`blank-${index}`} />)}{Array.from({ length: monthDays }, (_, index) => { const day = index + 1; const dayEntries = monthEntriesByDay.get(day) ?? []; return <button className={`date-cell ${dayEntries.length ? `has-entry ${dayEntries.some((e) => e.id === selected.id) ? "selected" : ""}` : ""}`} type="button" key={day} onClick={() => dayEntries.length && (dayEntries.length > 1 ? cycleDayScientist(day) : selectScientist(dayEntries[0]))} disabled={!dayEntries.length} title={dayEntries.length ? `${day} 日：${dayEntries.map((e) => e.name).join("、")}${dayEntries.length > 1 ? "（点击切换）" : ""}` : undefined} aria-label={dayEntries.length ? `${day} 日：${dayEntries.map((e) => e.name).join("、")}` : `${day} 日没有收录人物`}><span>{day}</span>{dayEntries.length > 0 && <span className="dots" aria-hidden="true">{dayEntries.map((entry) => <i key={entry.id} className={`dot ${entry.color}${entry.id === selected.id ? " active" : ""}`} />)}</span>}</button>; })}</div></div>
-          <aside className="calendar-notes"><p className="eyebrow">THIS MONTH</p><h3>{monthEntries.length ? `${monthEntries.length} 个科学瞬间` : "正在整理中"}</h3>{monthEntries.length ? monthEntries.map((entry) => <button className="month-entry" type="button" key={entry.id} onClick={() => selectScientist(entry)}><span>{String(entry.day).padStart(2, "0")}</span><div><strong>{entry.name}</strong><small>{entry.relation} · {entry.field}</small></div><b>↗</b></button>) : <p>这一页将留给新的好奇心。</p>}<p className="calendar-tip">带有彩色圆点的日期收录了科学人物；同一天多位人物时，点击日期可切换查看，圆点高亮为当前人物。</p></aside></div>
+          <aside className="calendar-notes"><p className="eyebrow">THIS MONTH</p><h3>{monthEntries.length ? `${monthEntries.length} 个科学瞬间` : "正在整理中"}</h3>{monthEntries.length ? monthEntries.map((entry) => <button className="month-entry" type="button" key={entry.id} onClick={() => selectScientist(entry)}><span>{String(entry.day).padStart(2, "0")}</span><div><strong>{entry.name}</strong><small>{entry.relation} · {entry.field}</small></div><b>↗</b></button>) : <p>这一页将留给新的好奇心。</p>}<p className="calendar-tip">带有彩色圆点的日期收录了科学人物；同一天多位人物时，点击日期可切换查看，圆点高亮为当前人物。</p><a className="calendar-subscribe" href={assetPath("scientist-calendar.ics")} download="scientist-calendar.ics">导入全年 365 天到手机日历 (.ics) <span>↓</span></a></aside></div>
       </section>
 
       <section className="explore-section" id="explore" aria-labelledby="explore-title">
@@ -336,7 +367,7 @@ function Calendar({ now }: { now: DateParts }) {
 
       <section className="manifesto" id="about"><p className="eyebrow">WHY A SCIENCE CALENDAR</p><p>科学并非一串遥远的姓名与年份，<br />而是一代代人对世界的<strong>耐心注视</strong>。</p><span>收藏今天的好奇，明天继续提问。</span></section>
 
-      <footer><a className="brand" href="#top"><span className="brand-mark">∴</span> 科学家日历</a><p>精选 {scientists.length} 位人物档案 · 持续更新中</p><a className="footer-download" href={assetPath(`print/科学家日历_精选${scientists.length}位_A4打印版.pdf`)} download>下载 A4 打印版 ↓</a><a href="#top">回到顶部 ↑</a></footer>
+      <footer><a className="brand" href="#top"><span className="brand-mark">∴</span> 科学家日历</a><p>精选 {scientists.length} 位人物档案 · 持续更新中</p><div className="footer-links"><a className="footer-download" href={assetPath(`print/科学家日历_精选${scientists.length}位_A4打印版.pdf`)} download>下载 A4 打印版 ↓</a><a className="footer-download" href={assetPath("scientist-calendar.ics")} download="scientist-calendar.ics">订阅日历 .ics ↓</a></div><a href="#top">回到顶部 ↑</a></footer>
     </main>
   );
 }

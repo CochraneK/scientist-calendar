@@ -54,6 +54,9 @@ jobs:
       - name: Check generated web data
         run: npm run check:web-data
 
+      - name: Check generated ICS calendar
+        run: npm run check:ics
+
       - name: Test（含 vinext 构建 + 渲染测试）
         run: npm test
 

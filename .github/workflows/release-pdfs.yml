@@ -1,0 +1,67 @@
+name: Release Print PDFs & ICS
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Release tag name (e.g. v2026.11)"
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: tooling/requirements.txt
+
+      - name: Install pinned PDF tooling
+        run: python -m pip install -r tooling/requirements.txt
+
+      - name: Generate daily & monthly PDFs
+        run: |
+          python -X utf8 tooling/scripts/generate_print_calendar.py
+          python -X utf8 tooling/scripts/generate_monthly_calendar.py
+
+      - name: Verify PDF layout & zero tofu
+        run: |
+          python -X utf8 tooling/scripts/verify_pdf_layout.py "output/pdf/科学家日历_精选466位_A4打印版.pdf" --quiet
+          python -X utf8 tooling/scripts/verify_pdf_layout.py "output/pdf/科学家日历_月度生日版_A4.pdf" --quiet
+
+      - name: Generate & verify 365-day ICS subscription
+        run: |
+          python -X utf8 tooling/scripts/generate_ics_calendar.py
+          python -X utf8 tooling/scripts/generate_ics_calendar.py --check
+
+      - name: Publish GitHub Release with PDF & ICS assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG_NAME: ${{ inputs.tag || github.ref_name }}
+        run: |
+          if gh release view "$TAG_NAME" >/dev/null 2>&1; then
+            gh release upload "$TAG_NAME" \
+              "output/pdf/科学家日历_精选466位_A4打印版.pdf" \
+              "output/pdf/科学家日历_月度生日版_A4.pdf" \
+              "public/scientist-calendar.ics" \
+              --clobber
+          else
+            gh release create "$TAG_NAME" \
+              "output/pdf/科学家日历_精选466位_A4打印版.pdf" \
+              "output/pdf/科学家日历_月度生日版_A4.pdf" \
+              "public/scientist-calendar.ics" \
+              --title "科学家日历 $TAG_NAME" \
+              --notes "自动构建并经排版体检通过的双 A4 打印版 PDF（每日人物版 + 月度生日版）与 365 天年度循环订阅日历（.ics）。"
+          fi

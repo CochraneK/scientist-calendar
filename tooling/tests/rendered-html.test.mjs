@@ -47,6 +47,8 @@ test("server-renders the calendar page", async () => {
   assert.match(html, /从好奇出发/);
   assert.match(html, /跳到今日人物/);
   assert.match(html, /<summary>打印版/);
+  assert.match(html, /scientist-calendar\.ics/);
+  assert.match(html, /保存海报/);
   assert.match(html, /人物辅助操作/);
   assert.match(html, /继续探索档案库/);
 

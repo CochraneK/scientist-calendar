@@ -140,3 +140,9 @@ summary:focus-visible { outline: 3px solid #c89d45; outline-offset: 3px; }
 .empty-state { margin: 22px 0; padding: 40px 16px; text-align: center; color: #6b7886; font: 12px/1.7 Arial, "Microsoft YaHei", sans-serif; }
 .empty-state .button-secondary { margin-top: 16px; align-self: center; }
 
+/* --- 订阅日历 & 海报导出辅助样式 --- */
+.utility-button:disabled { opacity: .55; cursor: wait; }
+.calendar-subscribe { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; padding-bottom: 3px; border-bottom: 1px solid #9aa5b1; color: var(--ink); font: 600 11px/1.5 Arial, "Microsoft YaHei", sans-serif; }
+.calendar-subscribe:hover { opacity: .68; }
+.footer-links { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+

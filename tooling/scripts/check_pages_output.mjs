@@ -30,4 +30,10 @@ for (const scientist of scientists) {
   assert.ok(sitemap.includes(`<loc>${url}</loc>`), `sitemap missing ${scientist.id}`);
 }
 
-console.log(`✓ Pages output verified: ${scientists.length} scientist profiles + sitemap`);
+const icsPath = resolve(docsDir, "scientist-calendar.ics");
+assert.equal(existsSync(icsPath), true, "missing scientist-calendar.ics in Pages output");
+const ics = readFileSync(icsPath, "utf8");
+const eventCount = (ics.match(/^BEGIN:VEVENT\r?$/gm) ?? []).length;
+assert.equal(eventCount, 365, `expected 365 VEVENTs in scientist-calendar.ics, got ${eventCount}`);
+
+console.log(`✓ Pages output verified: ${scientists.length} scientist profiles + sitemap + 365-day ICS`);
