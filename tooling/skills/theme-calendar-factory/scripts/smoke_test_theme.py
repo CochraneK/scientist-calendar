@@ -45,10 +45,14 @@ DEFAULT_PY = r"C:/Users/cunyi/.workbuddy/binaries/python/envs/default/Scripts/py
 
 
 def _has_reportlab(py: str) -> bool:
-    """用 subprocess 检查 reportlab 是否可用（避免 import 时直接崩）。"""
+    """用 subprocess 检查 reportlab 与 PyMuPDF 是否可用（避免 import 时直接崩）。"""
     try:
         subprocess.run(
-            [py, "-c", "import reportlab, fitz"],
+            [
+                py,
+                "-c",
+                "import reportlab\ntry:\n    import pymupdf\nexcept ImportError:\n    import fitz",
+            ],
             check=True,
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
@@ -221,7 +225,12 @@ def _run_smoke(py: str) -> int:
 
 
 def main() -> int:
-    py = sys.argv[1] if len(sys.argv) > 1 else DEFAULT_PY
+    if len(sys.argv) > 1:
+        py = sys.argv[1]
+    elif _has_reportlab(sys.executable):
+        py = sys.executable
+    else:
+        py = DEFAULT_PY
     return _run_smoke(py)
 
 

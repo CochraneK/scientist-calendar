@@ -37,9 +37,12 @@ import sys
 from pathlib import Path
 
 try:
-    import fitz  # PyMuPDF
+    import pymupdf  # PyMuPDF >= 1.24 推荐导入名
 except ImportError:  # pragma: no cover
-    sys.exit("需要 PyMuPDF：pip install pymupdf")
+    try:
+        import fitz as pymupdf  # 兼容旧版 PyMuPDF
+    except ImportError:
+        sys.exit("需要 PyMuPDF：pip install pymupdf")
 
 
 def hex_to_rgb(value: str) -> tuple[float, float, float]:
@@ -82,7 +85,7 @@ def verify(
     check_bounds: bool = False,
     check_tofu: bool = True,
 ):
-    doc = fitz.open(pdf_path)
+    doc = pymupdf.open(pdf_path)
     pairwise: list[tuple] = []
     leaks: list[tuple] = []
     oob: list[tuple] = []
