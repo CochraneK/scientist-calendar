@@ -30,7 +30,7 @@
     "photo": true
   },
   "steklov": {
-    "photo": false
+    "photo": true
   },
   "auto-q170267": {
     "photo": true
@@ -60,10 +60,10 @@
     "photo": true
   },
   "kariko": {
-    "photo": false
+    "photo": true
   },
   "ehrenfest": {
-    "photo": false
+    "photo": true
   },
   "watt": {
     "photo": true
@@ -96,10 +96,10 @@
     "photo": true
   },
   "dobzhansky": {
-    "photo": false
+    "photo": true
   },
   "kusch": {
-    "photo": false
+    "photo": true
   },
   "auto-q273223": {
     "photo": true
@@ -108,10 +108,10 @@
     "photo": true
   },
   "lewin": {
-    "photo": false
+    "photo": true
   },
   "engelbart": {
-    "photo": false
+    "photo": true
   },
   "auto-q553809": {
     "photo": true
@@ -135,7 +135,7 @@
     "photo": true
   },
   "hardy-weinberg": {
-    "photo": false
+    "photo": true
   },
   "auto-q57963": {
     "photo": true
@@ -159,7 +159,7 @@
     "photo": true
   },
   "dana": {
-    "photo": false
+    "photo": true
   },
   "shockley": {
     "photo": true
@@ -180,7 +180,7 @@
     "photo": true
   },
   "volta": {
-    "photo": false
+    "photo": true
   },
   "auto-q311187": {
     "photo": true
@@ -195,13 +195,13 @@
     "photo": true
   },
   "doudna": {
-    "photo": false
+    "photo": true
   },
   "auto-q179572": {
     "photo": true
   },
   "boltzmann": {
-    "photo": false
+    "photo": true
   },
   "auto-q190501": {
     "photo": true
@@ -228,13 +228,13 @@
     "photo": true
   },
   "pauling": {
-    "photo": false
+    "photo": true
   },
   "auto-q1187542": {
     "photo": true
   },
   "oparin": {
-    "photo": false
+    "photo": true
   },
   "auto-q368087": {
     "photo": true
@@ -258,7 +258,7 @@
     "photo": true
   },
   "miller": {
-    "photo": false
+    "photo": true
   },
   "auto-q14278": {
     "photo": true
@@ -270,7 +270,7 @@
     "photo": true
   },
   "fitch": {
-    "photo": false
+    "photo": true
   },
   "auto-q104154": {
     "photo": true
@@ -282,7 +282,7 @@
     "photo": true
   },
   "lowell": {
-    "photo": false
+    "photo": true
   },
   "priestley": {
     "photo": true
@@ -306,7 +306,7 @@
     "photo": true
   },
   "joliot-curie": {
-    "photo": false
+    "photo": true
   },
   "auto-q77126": {
     "photo": true
@@ -393,7 +393,7 @@
     "photo": true
   },
   "wiles": {
-    "photo": false
+    "photo": true
   },
   "auto-q223963": {
     "photo": true
@@ -432,10 +432,10 @@
     "photo": true
   },
   "levi-montalcini": {
-    "photo": false
+    "photo": true
   },
   "planck": {
-    "photo": false
+    "photo": true
   },
   "david-blackwell": {
     "photo": true
@@ -444,7 +444,7 @@
     "photo": true
   },
   "penzias": {
-    "photo": false
+    "photo": true
   },
   "morse": {
     "photo": true
@@ -453,13 +453,13 @@
     "photo": true
   },
   "oort": {
-    "photo": false
+    "photo": true
   },
   "auto-q81082": {
     "photo": true
   },
   "shannon": {
-    "photo": false
+    "photo": true
   },
   "gauss": {
     "photo": true
@@ -648,7 +648,7 @@
     "photo": true
   },
   "friedmann": {
-    "photo": false
+    "photo": true
   },
   "mcclintock": {
     "photo": true
@@ -702,7 +702,7 @@
     "photo": true
   },
   "leibniz": {
-    "photo": false
+    "photo": true
   },
   "auto-q211940": {
     "photo": true
@@ -975,7 +975,7 @@
     "photo": true
   },
   "ritchie": {
-    "photo": false
+    "photo": true
   },
   "compton": {
     "photo": true
@@ -1113,7 +1113,7 @@
     "photo": true
   },
   "chandrasekhar": {
-    "photo": false
+    "photo": true
   },
   "chadwick": {
     "photo": true
@@ -1122,7 +1122,7 @@
     "photo": true
   },
   "jansky": {
-    "photo": false
+    "photo": true
   },
   "bloch": {
     "photo": true
@@ -1200,10 +1200,10 @@
     "photo": true
   },
   "auto-q312248": {
-    "photo": false
+    "photo": true
   },
   "rayleigh": {
-    "photo": false
+    "photo": true
   },
   "auto-q230612": {
     "photo": true
@@ -1347,7 +1347,7 @@
     "photo": true
   },
   "michelson": {
-    "photo": false
+    "photo": true
   },
   "auto-q312806": {
     "photo": true
@@ -1395,6 +1395,6 @@
     "photo": true
   },
   "jacobi": {
-    "photo": false
+    "photo": true
   }
 }

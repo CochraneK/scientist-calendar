@@ -145,4 +145,10 @@ summary:focus-visible { outline: 3px solid #c89d45; outline-offset: 3px; }
 .calendar-subscribe { display: inline-flex; align-items: center; gap: 6px; margin-top: 12px; padding-bottom: 3px; border-bottom: 1px solid #9aa5b1; color: var(--ink); font: 600 11px/1.5 Arial, "Microsoft YaHei", sans-serif; }
 .calendar-subscribe:hover { opacity: .68; }
 .footer-links { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 14px; }
+.source-portrait { display: grid; grid-template-columns: minmax(110px, auto) 1fr; gap: 10px; align-items: baseline; margin-top: 10px; padding-top: 9px; border-top: 1px dashed #e5ddd0; }
+.source-portrait-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 10px; min-width: 0; }
+.source-panel .source-portrait-meta a { display: inline; padding: 0; color: #7a8591; }
+.source-panel .source-portrait-meta a:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 2px; }
+.source-panel .source-portrait-meta a.source-license { color: #556273; font-weight: 600; white-space: nowrap; }
+@media (max-width: 680px) { .source-portrait { grid-template-columns: 1fr; gap: 4px; } }
 
