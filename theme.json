@@ -1,0 +1,110 @@
+{
+  "theme": {
+    "name": "科学家日历",
+    "nameEn": "Scientist Calendar",
+    "unitLabel": "位科学家",
+    "unitNoun": "科学家",
+    "dailySubtitle": "DAILY SCIENCE NOTEBOOK",
+    "subtitle": "每天认识一位科学家",
+    "tagline": "每天认识一位科学家，一项发现，与一个改变世界的念头。",
+    "description": "一份写给好奇心的科学日历：每天认识一位科学家、一项发现与一个改变世界的念头。",
+    "backCoverLines": [
+      "把今天的好奇",
+      "留给明天的问题。"
+    ]
+  },
+  "site": {
+    "origin": "https://cochranek.github.io",
+    "basePath": "/scientist-calendar",
+    "entryRouteSegment": "scientists",
+    "icsFilename": "scientist-calendar.ics",
+    "dailyPdfPattern": "科学家日历_精选{count}位_A4打印版.pdf",
+    "monthlyPdfFilename": "科学家日历_月度生日版_A4.pdf",
+    "posterSlogan": "每天遇见一个改变世界的念头",
+    "posterSiteTag": "cochranek.github.io/scientist-calendar",
+    "heroEyebrow": "TODAY'S SCIENTIST",
+    "heroTitle": "今日人物",
+    "calendarEyebrow": "ANNUAL CALENDAR",
+    "calendarTitle": "翻看整年",
+    "calendarTip": "带有彩色圆点的日期收录了科学人物；同一天多位人物时，点击日期可切换查看，圆点高亮为当前人物。",
+    "exploreEyebrow": "THE ARCHIVE",
+    "exploreTitle": "从好奇出发",
+    "searchPlaceholder": "搜索人物、领域或贡献",
+    "searchAriaLabel": "搜索科学家档案",
+    "filterAriaLabel": "按科学领域筛选",
+    "manifestoEyebrow": "WHY A SCIENCE CALENDAR",
+    "manifestoLines": [
+      "科学并非一串遥远的姓名与年份，",
+      "而是一代代人对世界的",
+      "耐心注视",
+      "。"
+    ],
+    "manifestoSub": "收藏今天的好奇，明天继续提问。",
+    "footerSummary": "精选 {count} 位人物档案 · 持续更新中",
+    "fallbackEntryId": "einstein",
+    "illustrations": {
+      "einstein": "art/einstein-archive.webp"
+    },
+    "fields": [
+      "物理",
+      "化学",
+      "生命科学",
+      "数学",
+      "计算机",
+      "天文",
+      "医学",
+      "地球科学"
+    ]
+  },
+  "print": {
+    "coverImage": "public/og.jpg",
+    "coverBadge": "精选 {count} 位人物 · A4 横版打印版",
+    "includeOverview": true,
+    "overviewTitle": "全年科学纪念日总览",
+    "overviewSubtitle": "{count} SCIENCE NOTES",
+    "overviewFootNote": "带色点的日期收录了科学人物或科学史纪念。",
+    "overviewFootRight": "科学家日历 · {count} 个好奇心的起点",
+    "includePrintNotes": true,
+    "printNotesEdition": "PRINTING NOTES · FIRST EDITION",
+    "printNotesContent": "本册收录精选 {count} 位科学人物与科学史纪念日，全部条目均已完成日期与权威来源核验，可直接用于桌面翻阅或打印装帧。",
+    "printNotesBannerSub": "在线翻阅、每日海报导出与全年 .ics 订阅：cochranek.github.io/scientist-calendar",
+    "backCoverUrl": "cochranek.github.io/scientist-calendar",
+    "dailyFilename": "科学家日历_精选{count}位_A4打印版.pdf",
+    "monthlyFilename": "科学家日历_月度生日版_A4.pdf"
+  },
+  "ics": {
+    "prodId": "-//Scientist Calendar//Daily Scientists 365//ZH",
+    "calName": "科学家日历｜每天认识一位科学家",
+    "calDesc": "365 天科学人物日历：每天认识一位科学家、一项发现与一个改变世界的念头。",
+    "uidPrefix": "scientist-calendar",
+    "uidDomain": "cochranek.github.io",
+    "summaryPrefix": "今日科学家",
+    "requireFullYear": true,
+    "includeLinks": true,
+    "outputPath": "public/scientist-calendar.ics"
+  },
+  "entryFile": "app/data/scientists.json",
+  "quoteFile": "app/data/quotes.json",
+  "outputDir": "output/pdf",
+  "monthlyColumns": "auto",
+  "fieldMap": {
+    "id": "id",
+    "month": "month",
+    "day": "day",
+    "name": "name",
+    "subtitle": "latinName",
+    "years": "years",
+    "field": "field",
+    "place": "country",
+    "relation": "relation",
+    "tagline": "tagline",
+    "story": "story",
+    "cardA": "contribution",
+    "cardB": "fact"
+  },
+  "labels": {
+    "cardA": "核心贡献",
+    "cardB": "你知道吗",
+    "quoteLabel": "今日引语"
+  }
+}

@@ -12,6 +12,7 @@ from __future__ import annotations
 import argparse
 import datetime
 import json
+import re
 import sys
 import unicodedata
 from pathlib import Path
@@ -93,14 +94,23 @@ def font(name: str = "cn") -> str:
     return "STSong-Light" if name == "cn" else "Helvetica"
 
 
-# STSong-Light(Adobe-GB1 CID 字体)有两个拉丁/符号渲染坑：
-# 1. 不含 U+00B7(MIDDLE DOT)字形，画到 · 会丢字 → 替换为 U+30FB(片假名中点)。
-# 2. 对欧洲重音拉丁字母要么静默丢弃(ç / É / ä / ß → François 变 Franois)，要么以全角汉字宽
-#    渲染(ó / ě 导致 Ramón 裂成 Ramó  n) → 统一 NFKD 降级与连字展开为标准 ASCII 拼写。
+# STSong-Light(Adobe-GB1 CID 字体)的字符渲染坑（与 generate_daily_pdf.py 保持一致）
 _CN_DOT = "\u30fb"
 _SPECIAL_LATIN = {
     "ß": "ss", "Æ": "AE", "æ": "ae", "Œ": "OE", "œ": "oe",
     "Ø": "O", "ø": "o", "Ł": "L", "ł": "l", "Ð": "D", "ð": "d", "Þ": "Th", "þ": "th",
+    "đ": "d", "Đ": "D", "ħ": "h", "Ħ": "H", "ı": "i", "İ": "I",
+    "ŋ": "n", "Ŋ": "N", "ŧ": "t", "Ŧ": "T",
+}
+_SUPER_RE = re.compile(r"[⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻]+")
+_SUB_RE = re.compile(r"[₀₁₂₃₄₅₆₇₈₉₊₋]+")
+_SUPER_MAP = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻", "0123456789+-")
+_SUB_MAP = str.maketrans("₀₁₂₃₄₅₆₇₈₉₊₋", "0123456789+-")
+_SPECIAL_SYMBOLS = {
+    "\u2027": "\u00b7",
+    "\u30fb": "\u00b7",
+    "∂": "partial",
+    "𬭳": "Sg",
 }
 _NO_START_PUNCT = frozenset("。，、；：！？）》」』”’…—.,;:!?)]")
 
@@ -108,11 +118,14 @@ _NO_START_PUNCT = frozenset("。，、；：！？）》」』”’…—.,;:!?
 def _fix_dot(text, face):
     if face != "cn":
         return text
-    text = text.replace("\u00b7", _CN_DOT)
+    text = _SUPER_RE.sub(lambda m: "^" + m.group(0).translate(_SUPER_MAP), text)
+    text = _SUB_RE.sub(lambda m: "_" + m.group(0).translate(_SUB_MAP), text)
     out = []
     for ch in text:
         if ord(ch) < 128:
             out.append(ch)
+        elif ch in _SPECIAL_SYMBOLS:
+            out.append(_SPECIAL_SYMBOLS[ch])
         elif ch in _SPECIAL_LATIN:
             out.append(_SPECIAL_LATIN[ch])
         elif unicodedata.category(ch).startswith("L") and "LATIN" in unicodedata.name(ch, ""):
@@ -122,6 +135,42 @@ def _fix_dot(text, face):
         else:
             out.append(ch)
     return "".join(out)
+
+
+# 混排：ASCII 与 ·×– 走 Helvetica（STSong-Light 对它们给全角/异常宽度，导致"A medeo"、"埃尔温·  薛定谔"、
+# "6.02×  10^23"、"1887–  1961" 出现大空隙）；其余字符走 STSong-Light。
+_LATIN_EXTRA = frozenset("\u00b7\u00d7\u2013")
+
+
+def _is_latin(ch):
+    return ord(ch) < 128 or ch in _LATIN_EXTRA
+
+
+def _runs(text):
+    runs = []
+    for ch in text:
+        f = "Helvetica" if _is_latin(ch) else "STSong-Light"
+        if runs and runs[-1][0] == f:
+            runs[-1][1] += ch
+        else:
+            runs.append([f, ch])
+    return runs
+
+
+def mixed_width(c, text, size):
+    return sum(c.stringWidth(seg, f, size) for f, seg in _runs(text))
+
+
+def draw_mixed(c, text, x, y, size, align="left"):
+    w = mixed_width(c, text, size)
+    if align == "right":
+        x -= w
+    elif align == "center":
+        x -= w / 2
+    for f, seg in _runs(text):
+        c.setFont(f, size)
+        c.drawString(x, y, seg)
+        x += c.stringWidth(seg, f, size)
 
 
 # 句子结尾标点：没有结尾标点则补句号（中文语境优先）。
@@ -140,14 +189,20 @@ def ensure_terminal_punct(text: str) -> str:
 
 def draw_text(c, text, x, y, size, color=INK, face="cn"):
     c.setFillColor(color)
+    if face == "cn":
+        draw_mixed(c, _fix_dot(text, face), x, y, size)
+        return
     c.setFont(font(face), size)
-    c.drawString(x, y, _fix_dot(text, face))
+    c.drawString(x, y, text)
 
 
 def draw_right(c, text, x, y, size, color=INK, face="cn"):
     c.setFillColor(color)
+    if face == "cn":
+        draw_mixed(c, _fix_dot(text, face), x, y, size, "right")
+        return
     c.setFont(font(face), size)
-    c.drawRightString(x, y, _fix_dot(text, face))
+    c.drawRightString(x, y, text)
 
 
 def wrap_lines(c, text, width, size, face="cn", cap=None):
@@ -155,7 +210,7 @@ def wrap_lines(c, text, width, size, face="cn", cap=None):
     text = _fix_dot(text, face)
     lines, cur = [], ""
     for ch in text:
-        if c.stringWidth(cur + ch, font(face), size) <= width:
+        if (mixed_width(c, cur + ch, size) if face == "cn" else c.stringWidth(cur + ch, font(face), size)) <= width:
             cur += ch
         elif ch in _NO_START_PUNCT and len(cur) >= 2:
             cut = len(cur) - 1
@@ -290,7 +345,7 @@ def draw_block(c, entry, x, y_top, col_w, theme, quotes, layout):
             p for p in (theme.get(entry, "years"), theme.get(entry, "field"), theme.get(entry, "place")) if p
         )
         if meta_text:
-            meta_w = c.stringWidth(_fix_dot(meta_text, "cn"), font("cn"), 8.5) + 14
+            meta_w = mixed_width(c, _fix_dot(meta_text, "cn"), 8.5) + 14
 
     # 坑：超长名字会越出本栏、压到邻栏文字。必须按栏宽缩字号，仍放不下就截断。
     day_w = c.stringWidth(day, font("latin"), day_size)
@@ -299,13 +354,13 @@ def draw_block(c, entry, x, y_top, col_w, theme, quotes, layout):
     size, shown = name_size, _fix_dot(name, "cn")
     c.setFont(font("cn"), size)
     while size >= 7:
-        if c.stringWidth(shown, font("cn"), size) <= avail:
+        if mixed_width(c, shown, size) <= avail:
             break
         size -= 1
     else:
         cur = ""
         for ch in shown:
-            if c.stringWidth(cur + ch + "…", font("cn"), 7) > avail:
+            if mixed_width(c, cur + ch + "…", 7) > avail:
                 break
             cur += ch
         shown, size = cur + "…", 7
@@ -404,7 +459,12 @@ def main() -> int:
         by_month[int(e[theme.fm["month"]])].append(e)
 
     out_dir = resolve_cfg_path(cfg_path, cfg.get("outputDir", "output/pdf"), prefer_config_dir=cfg_relative_mode)
-    out = Path(args.out) if args.out else (out_dir / f"{cfg['theme'].get('name','主题日历')}_月度生日版_A4.pdf")
+    p_cfg = cfg.get("print", {})
+    default_name = p_cfg.get("monthlyFilename", "{title}_月度生日版_A4.pdf").format(
+        title=cfg["theme"].get("name", "主题日历"),
+        count=len(entries),
+    )
+    out = Path(args.out) if args.out else (out_dir / default_name)
     out.parent.mkdir(parents=True, exist_ok=True)
 
     pdfmetrics.registerFont(UnicodeCIDFont("STSong-Light"))

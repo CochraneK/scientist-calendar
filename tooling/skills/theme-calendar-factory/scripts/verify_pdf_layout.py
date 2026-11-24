@@ -1,4 +1,4 @@
-"""PDF 排版体检：几何方式检测「文字压字 / 越界 / 卡片内混入外来文字」。
+"""PDF 排版体检：检测「文字压字 / 越界 / 卡片内混入外来文字 / 超链接注释」。
 
 为什么需要它：
   生成 PDF 时（尤其是中文 + 复杂版面），重叠/溢出用肉眼很难全量检查；
@@ -34,6 +34,7 @@ from __future__ import annotations
 import argparse
 import re
 import sys
+import unicodedata
 from pathlib import Path
 
 try:
@@ -71,9 +72,26 @@ def in_any_rect(word, rects, slop: float = 1.0) -> bool:
     return any(r.x0 - slop <= cx <= r.x1 + slop and r.y0 - slop <= cy <= r.y1 + slop for r in rects)
 
 
+_NO_START_PUNCT = frozenset("。，、；：！？）》」』”’…")
+_SUPER_RE = re.compile(r"[⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻]+")
+_SUB_RE = re.compile(r"[₀₁₂₃₄₅₆₇₈₉₊₋]+")
+_SUPER_MAP = str.maketrans("⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻", "0123456789+-")
+_SUB_MAP = str.maketrans("₀₁₂₃₄₅₆₇₈₉₊₋", "0123456789+-")
+
+
 def _norm_card_text(s: str) -> str:
-    """统一中点(U+30FB -> U+00B7)并去掉空格，便于对卡片折行后的片段做子串比对。"""
-    return re.sub(r"\s+", "", s.replace("\u30fb", "\u00b7"))
+    """统一中点、上下标、拉丁重音与生僻元素名并去掉空格，便于对卡片折行后的片段做子串比对。"""
+    s = _SUPER_RE.sub(lambda m: "^" + m.group(0).translate(_SUPER_MAP), s)
+    s = _SUB_RE.sub(lambda m: "_" + m.group(0).translate(_SUB_MAP), s)
+    s = s.replace("\u30fb", "\u00b7").replace("\u2027", "\u00b7").replace("𬭳", "Sg").replace("∂", "partial")
+    out = []
+    for ch in s:
+        if ord(ch) > 127 and unicodedata.category(ch).startswith("L") and "LATIN" in unicodedata.name(ch, ""):
+            decomposed = unicodedata.normalize("NFKD", ch)
+            out.append("".join(c for c in decomposed if ord(c) < 128) or ch)
+        else:
+            out.append(ch)
+    return re.sub(r"\s+", "", "".join(out))
 
 
 def verify(
@@ -89,6 +107,7 @@ def verify(
     footer_y: float | None = None,
     check_bounds: bool = False,
     check_tofu: bool = True,
+    check_kinsoku: bool = True,
     skip_pages: set[int] | None = None,
 ):
     doc = pymupdf.open(pdf_path)
@@ -96,6 +115,8 @@ def verify(
     leaks: list[tuple] = []
     oob: list[tuple] = []
     tofu: list[tuple] = []
+    links: list[tuple] = []
+    kinsoku: list[tuple] = []
     skipped = skip_pages or set()
     allow_norm = [_norm_card_text(a) for a in allow_in_card if _norm_card_text(a)]
     allow_blob = "\n".join(allow_norm)
@@ -104,13 +125,21 @@ def verify(
         if (pno + 1) in skipped:
             continue
         page = doc[pno]
+        for link in page.get_links():
+            links.append((pno + 1, link.get("uri") or link.get("file") or f"kind={link.get('kind')}"))
+        text = page.get_text()
         # 豆腐块检测：中文被交给无中文字形的字体(如 Helvetica)渲染时，
         # 提取出来会变成连续的 "I" 或替换字符 U+FFFD。阈值取 4 个连续 I，避免误报 DSM-III 等罗马数字。
         if check_tofu:
-            text = page.get_text()
             bad = re.findall(r"I{4,}|\ufffd", text)
             if bad:
                 tofu.append((pno + 1, bad[:3], "中文可能用了拉丁字体渲染"))
+        # 中文行首避头点检测：杜绝孤零零掉在行首的句号/逗号/右括号/右引号
+        if check_kinsoku:
+            for ln in text.splitlines():
+                st = ln.strip()
+                if st and st[0] in _NO_START_PUNCT:
+                    kinsoku.append((pno + 1, st[:28]))
         h = page.rect.height
         # 每页按自身高度推导边界 —— 同一份 PDF 可能有横版/纵版混排
         hy = header_y if header_y is not None else ratio_header * h
@@ -140,8 +169,8 @@ def verify(
                         (pno + 1, wi[4], wj[4], round(ox, 1), round(oy, 1))
                     )
 
-    total = len(pairwise) + len(leaks) + len(oob) + len(tofu)
-    return doc.page_count, pairwise, leaks, oob, tofu, total
+    total = len(pairwise) + len(leaks) + len(oob) + len(tofu) + len(links) + len(kinsoku)
+    return doc.page_count, pairwise, leaks, oob, tofu, links, kinsoku, total
 
 
 def main() -> int:
@@ -187,6 +216,19 @@ def main() -> int:
         action="store_false",
         help="关闭豆腐块检测",
     )
+    ap.add_argument(
+        "--check-kinsoku",
+        dest="check_kinsoku",
+        action="store_true",
+        default=True,
+        help="启用中文行首避头点检测（默认开）",
+    )
+    ap.add_argument(
+        "--no-check-kinsoku",
+        dest="check_kinsoku",
+        action="store_false",
+        help="关闭中文行首避头点检测",
+    )
     ap.add_argument("--skip-pages", default="", help="跳过检查的 1-based 页码，逗号分隔（如 1 表示跳过封面）")
     ap.add_argument("--max-report", type=int, default=20)
     ap.add_argument("--quiet", action="store_true", help="只输出汇总")
@@ -205,7 +247,7 @@ def main() -> int:
         allow += [ln.strip() for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
     skip_pages = {int(x) for x in args.skip_pages.split(",") if x.strip().isdigit()}
 
-    pages, pairwise, leaks, oob, tofu, total = verify(
+    pages, pairwise, leaks, oob, tofu, links, kinsoku, total = verify(
         pdf_path,
         card_rgb,
         allow,
@@ -218,6 +260,7 @@ def main() -> int:
         args.footer_y,
         check_bounds=args.check_bounds,
         check_tofu=args.check_tofu,
+        check_kinsoku=args.check_kinsoku,
         skip_pages=skip_pages,
     )
 
@@ -242,9 +285,11 @@ def main() -> int:
     report("内容越界（撞页眉/越内容底线）", oob)
     report("两两文字压字", pairwise)
     report("豆腐块（中文用拉丁字体渲染成连续 I）", tofu)
+    report("PDF 超链接注释", links)
+    report("中文行首避头点违规", kinsoku)
 
     status = "✓ 通过" if total == 0 else f"✗ 发现 {total} 处"
-    print(f"== 汇总：{status}（压字 {len(pairwise)} / 越界 {len(oob)} / 卡片泄漏 {len(leaks)} / 豆腐块 {len(tofu)}）==")
+    print(f"== 汇总：{status}（压字 {len(pairwise)} / 越界 {len(oob)} / 卡片泄漏 {len(leaks)} / 豆腐块 {len(tofu)} / 链接 {len(links)} / 避头点 {len(kinsoku)}）==")
     return 0 if total == 0 else 1
 
 

@@ -183,7 +183,18 @@ page.get_drawings()      # -> 填充矩形（可据此定位卡片/色块）
     - 每日版卡片底边锚定页脚之上（`CARD_BOTTOM = 54`），`FLOOR = card_top + box_h + 14` 动态随卡片高度变化，避免短卡片下方出现大面积空洞同时给正文多腾出 2–3 行空间。
 26. **中文排版「行首避头点」与 `verify_pdf_layout.py` 罗马数字 / 折行误报修复。**
     - 纯贪心逐字折行容易让句号 `。` 或逗号 `，` 孤零零掉在下一行行首；两份 PDF 生成器的 `wrap_lines()` 现已内置中文避头点禁则（连同连续右括号/右引号前一个正文字符一并下移），全页零孤悬标点。
-    - `verify_pdf_layout.py` 豆腐块正则升级为 `I{4,}|\ufffd`（避免把 `DSM-III` 等合法罗马数字误判成豆腐块），卡片泄漏检查升级为支持折行子串匹配与中点归一化，并新增 `--skip-pages` 支持跳过封面页。
+    - `verify_pdf_layout.py` 豆腐块正则升级为 `I{4,}|\ufffd`（避免把 `DSM-III` 等合法罗马数字误判成豆腐块），卡片泄漏检查升级为支持折行子串匹配与中点归一化，并新增 `--skip-pages` 支持跳过封面页、`--check-kinsoku` 默认开启行首禁则检测。
+27. **`STSong-Light` 不含上下标 / 偏导符号 / 超 BMP 生僻汉字，且会静默破坏文本流。**
+    实测 `² ³ ⁻ ₀₁₂ ∂ 𬭳`（106 号元素 Seaborgium）在该字体下要么丢字，要么让整段数值被截断——`6.02×10²³` 会变成 `6.02×10`（数值直接错掉，极难肉眼发现）。
+    - **修法**：`_fix_dot()` 增加 `_SUPER_RE` / `_SUB_RE` 转写（`²³` → `^23`、`⁻` → `^-`）与 `_SPECIAL_SYMBOLS` 映射（`∂` → `partial`、`𬭳` → `Sg`），保证科学记法可读且不失真。
+    - **配套**：新增 `tooling/scripts/verify_pdf_layout.py --check-kinsoku` 与字符集自检脚本，用「把数据里所有非 ASCII 字符逐个塞进 PDF 再抽回来比对」的方式系统性找出所有静默丢字字符，而不是靠肉眼抽查。
+28. **`STSong-Light` 对 ASCII 与 `· × –` 给全角宽度，中英混排出现难看的宽空隙。**
+    即使字符不丢，单独用 `face="cn"` 画一行 `Amedeo Avogadro · 意大利` 也会渲染成 `A medeo Avogadro ·  意大利`（每个 ASCII 字母后都留半个汉字宽），中文名里的 `·` 同样会撑出空隙。
+    - **修法**：两份生成器新增 `draw_mixed()` / `mixed_width()`，按字符把字符串切成「ASCII 与 `·×–` 用 Helvetica、其余用 STSong-Light」的连续段逐段绘制，折行测量也改用 `mixed_width()`，彻底消除混排空隙。
+29. **项目脚本与通用模板分叉 = 两套 bug 修两次。**
+    科学家日历早期保留 `tooling/scripts/generate_print_calendar.py` / `generate_monthly_calendar.py` / `generate_ics_calendar.py` 三份项目定制副本，与 skill 模板逻辑逐渐偏离（项目版丢 17 个重音字母、143 处行首孤悬标点，模板版全绿）。
+    - **修法**：项目侧脚本一律退化为**薄包装**（`subprocess` 调 skill 模板 + 根目录 `theme.json`），主题差异全部收敛到 `theme.json`；模板侧新增 `print.*` / `ics.*` / `site.*` 配置段（封面图、总览页、印刷说明页、ICS 产物路径与永久链接），使「换主题」真的等于「换一份 JSON」。
+    - **纪律**：模板改动后**必须**同步 `tooling/skills/` 与 `~/.workbuddy/skills/` 两处，并用 SHA-256 逐文件比对确认一致。
 
 ### 模板冒烟测试（换主题后必做，脚本内置，2 分钟）
 **换主题后直接跑脚本**，它会自动造最小 fixture（6 条，含带 `·` 的名字、带 `ç`/`ó` 的拉丁名、`DSM-III` 罗马数字、无句末标点的名言，并使用相对路径配置），
@@ -203,6 +214,16 @@ python tooling/skills/theme-calendar-factory/scripts/smoke_test_theme.py "<装�
 5. **RFC 5545 订阅日历 (.ics)** —— 每行 UTF-8 ≤ 75 字节折行，事件数与日期去重数匹配；
 6. **欧洲重音字母防丢字与裂口** —— `François Magendie` → `Francois Magendie`、`Santiago Ramón y Cajal` → `Santiago Ramon y Cajal`；
 7. **排版几何体检与中文行首避头点** —— 双 PDF 通过 `verify_pdf_layout.py`（`DSM-III` 不误报豆腐块、0 压字）且全页无孤悬行首标点。
+
+### 字符集自检（发现「静默丢字」的唯一可靠办法）
+肉眼抽查永远抓不全 CID 字体丢字。正确做法是**把数据里出现的每一个非 ASCII 字符单独渲染进 PDF，再抽回来逐个比对**：
+
+```bash
+python tooling/scripts/audit_pdf_glyphs.py \
+  app/data/scientists.json app/data/quotes.json
+```
+
+脚本会输出「被字体静默丢弃 / 被破坏」的字符清单（如 `² ∂ 𬭳`），据此在 `_fix_dot()` 里补映射即可。**任何一次新增数据集后都应跑一遍**——新增数据很可能引入新字符，而丢字不会报错、不会吐豆腐块，只会让 PDF 悄悄变错。
 
 ## 六、发布到 GitHub Pages
 
