@@ -236,15 +236,48 @@ python tooling/scripts/audit_pdf_glyphs.py \
 
 ## 七、迁移清单（换个主题照着走）
 
-- [ ] 准备 `entries.json`（≥365 天覆盖）+ `quotes.json`（按 id 索引；没有就用 tagline 回落），**放进 `app/data/`**
-- [ ] 复制 `assets/theme.example.json` 改名，填 `theme` 与 `fieldMap`（`entryFile`/`quoteFile` 已默认指向 `app/data/`）
-- [ ] `python tooling/scripts/generate_daily_pdf.py --config theme.json`
-- [ ] `python tooling/scripts/generate_monthly_pdf.py --config theme.json`
-- [ ] `python tooling/scripts/verify_pdf_layout.py <pdf>` 两份都跑，**压字必须为 0**
-- [ ] 每日版若保留卡片：`--card-color F0EBE1 --allow-file <卡片允许词条>`
-- [ ] 数据体检：`verify_dates` / `verify_facts`，按第五节的 8–12 条分辨真假阳性
-- [ ] 复制到 `public/print/` + `docs/print/`，提交推送，核验 Pages 200 + 文件大小一致
-- [ ] 网页上补上新 PDF 的下载入口（**容易漏**：之前新增月度版就忘了挂链接）
+整个迁移分两条线：**PDF/ICS 线**（只需数据 + 配置，零代码改动）和**网页线**（需要 theme.json + 一键生成 siteConfig.ts，也是零代码改动）。
+
+### ① 准备数据
+
+- [ ] 准备 `entries.json`（建议覆盖 365 天，精选版可以少）+ `quotes.json`（按 id 索引；没有名言时自动回落到 tagline），放进独立主题目录如 `tooling/themes/<name>/`
+- [ ] 跑 Wikidata 核验（`verify_dates.py` / `verify_facts.py`），按第五节的 8–12 条分辨真假阳性
+- [ ] 跑 `audit_pdf_glyphs.py` 检查新增数据是否引入新的静默丢字字符
+
+### ② 编写 theme.json
+
+- [ ] 复制 `assets/theme.example.json`，填 `theme.*`（名称/量词/标语）与 `fieldMap`（逻辑角色 → 你的字段名）
+- [ ] 网页线：填 `site.*` 段（origin/basePath/fields/fallbackEntryId/posterSlogan 等）
+- [ ] 可选：`print.*` 段（封面图、总览页、印刷说明页）、`ics.*` 段（产物路径、永久链接、日历名）
+
+### ③ 生成全套产物（零改代码）
+
+```bash
+# PDF/ICS 线
+python -X utf8 tooling/skills/theme-calendar-factory/scripts/generate_daily_pdf.py   --config tooling/themes/<name>/theme.json
+python -X utf8 tooling/skills/theme-calendar-factory/scripts/generate_monthly_pdf.py --config tooling/themes/<name>/theme.json
+python -X utf8 tooling/skills/theme-calendar-factory/scripts/generate_ics.py         --config tooling/themes/<name>/theme.json
+
+# 网页线
+python -X utf8 tooling/scripts/build_site_config.py  # 生成 src/domain/siteConfig.ts
+
+# 几何体检
+python -X utf8 tooling/scripts/verify_pdf_layout.py <daily_pdf> --card-color F0EBE1 --quiet
+python -X utf8 tooling/scripts/verify_pdf_layout.py <monthly_pdf> --check-bounds --quiet
+python -X utf8 tooling/skills/theme-calendar-factory/scripts/smoke_test_theme.py
+```
+
+- [ ] 两份 PDF 体检 **0 压字 / 0 越界 / 0 卡片泄漏 / 0 豆腐块 / 0 避头点**
+- [ ] ICS 校验通过（每行 UTF-8 ≤ 75 字节）
+- [ ] `build_site_config.py --check` 通过（siteConfig.ts 与 theme.json 一致）
+- [ ] `typecheck / test:unit / lint` 全绿
+- [ ] `npm run build && npm run build:pages && npm run check:pages` 全绿（渲染测试验证网页文案无串味）
+
+### ④ 提交与发布
+
+- [ ] PDF 复制到 `public/print/`，提交推送
+- [ ] 打 tag 触发 `release-pdfs.yml`（可选：发布 GitHub Release 挂 PDF + ICS）
+- [ ] 验证线上 Pages 200、PDF URL 返回 200 且文件大小一致
 
 ### 七·附：默认目录布局（新项目开箱即用，别再走科学家日历踩坑的老路）
 
@@ -253,13 +286,14 @@ python tooling/scripts/audit_pdf_glyphs.py \
 ```
 <project>/
 ├─ app/                      # Next.js 站点
-│  ├─ data/                  # 数据集：scientists.json / quotes.json / curated_content*.json
-│  ├─ page.tsx
+│  ├─ data/                  # 数据集：entries.json / quotes.json（主项目定名 scientists.json）
+│  ├─ page.tsx               # 所有主题文案从 src/domain/siteConfig.ts 取
 │  └─ ...
 ├─ public/                   # 静态素材（含 print/ PDF）
 ├─ docs/                     # GitHub Pages 发布目录（build:pages 输出）
 ├─ worker/                   # Cloudflare Worker
 ├─ tooling/                  # 非站点工程资产
+│  ├─ themes/               # 主题目录：每本主题日历的 theme.json + entries.json + quotes.json
 │  ├─ scripts/              # generate_daily_pdf.py / generate_monthly_pdf.py / verify_pdf_layout.py / verify_dates.py ...
 │  ├─ tests/                 # 渲染/数据测试
 │  ├─ skills/                # 本 Skill 的项目内副本：skills/theme-calendar-factory/

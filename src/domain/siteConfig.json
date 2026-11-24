@@ -1,0 +1,33 @@
+{
+  "name": "科学家日历",
+  "nameEn": "Scientist Calendar",
+  "unitLabel": "位科学家",
+  "description": "一份写给好奇心的科学日历：每天认识一位科学家、一项发现与一个改变世界的念头。",
+  "origin": "https://cochranek.github.io",
+  "basePath": "/scientist-calendar",
+  "entryRouteSegment": "scientists",
+  "icsFilename": "scientist-calendar.ics",
+  "dailyPdfPattern": "科学家日历_精选{count}位_A4打印版.pdf",
+  "monthlyPdfFilename": "科学家日历_月度生日版_A4.pdf",
+  "posterSlogan": "每天遇见一个改变世界的念头",
+  "posterSiteTag": "cochranek.github.io/scientist-calendar",
+  "fields": [
+    "物理",
+    "化学",
+    "生命科学",
+    "数学",
+    "计算机",
+    "天文",
+    "医学",
+    "地球科学"
+  ],
+  "fallbackEntryId": "einstein",
+  "illustrations": {
+    "einstein": "art/einstein-archive.webp"
+  },
+  "labels": {
+    "cardA": "核心贡献",
+    "cardB": "你知道吗",
+    "quoteLabel": "今日引语"
+  }
+}
