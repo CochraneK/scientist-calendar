@@ -1,0 +1,32 @@
+{
+  "_comment": "神经科学与精神医学史日历 — 基于 theme-calendar-factory 搭建的第二本主题日历，零生成器改代码即可出双 PDF 与 ICS 订阅日历。",
+  "theme": {
+    "name": "神经科学与精神医学史日历",
+    "nameEn": "Neuroscience and Psychiatry History Calendar",
+    "unitLabel": "位先驱",
+    "unitNoun": "先驱"
+  },
+  "entryFile": "entries.json",
+  "quoteFile": "quotes.json",
+  "outputDir": "../../../output/themes/neuro-psychiatry",
+  "monthlyColumns": "auto",
+  "fieldMap": {
+    "id": "id",
+    "month": "month",
+    "day": "day",
+    "name": "name",
+    "subtitle": "latinName",
+    "years": "years",
+    "field": "field",
+    "place": "country",
+    "relation": "relation",
+    "tagline": "tagline",
+    "story": "story",
+    "cardA": "contribution",
+    "cardB": "fact"
+  },
+  "labels": {
+    "cardA": "里程碑贡献",
+    "cardB": "临床与史料注记"
+  }
+}

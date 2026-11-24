@@ -4,7 +4,8 @@
   "theme": {
     "name": "医学日历",
     "nameEn": "Medical Calendar",
-    "unitLabel": "位医者"
+    "unitLabel": "位医者",
+    "unitNoun": "医者"
   },
 
   "entryFile": "app/data/doctors.json",

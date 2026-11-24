@@ -71,6 +71,11 @@ def in_any_rect(word, rects, slop: float = 1.0) -> bool:
     return any(r.x0 - slop <= cx <= r.x1 + slop and r.y0 - slop <= cy <= r.y1 + slop for r in rects)
 
 
+def _norm_card_text(s: str) -> str:
+    """统一中点(U+30FB -> U+00B7)并去掉空格，便于对卡片折行后的片段做子串比对。"""
+    return re.sub(r"\s+", "", s.replace("\u30fb", "\u00b7"))
+
+
 def verify(
     pdf_path: Path,
     card_rgb: tuple[float, float, float] | None,
@@ -84,6 +89,7 @@ def verify(
     footer_y: float | None = None,
     check_bounds: bool = False,
     check_tofu: bool = True,
+    skip_pages: set[int] | None = None,
 ):
     doc = pymupdf.open(pdf_path)
     pairwise: list[tuple] = []
@@ -91,17 +97,21 @@ def verify(
     oob: list[tuple] = []
     tofu: list[tuple] = []
     links: list[tuple] = []
+    skipped = skip_pages or set()
+    allow_norm = [_norm_card_text(a) for a in allow_in_card if _norm_card_text(a)]
+    allow_blob = "\n".join(allow_norm)
 
     for pno in range(doc.page_count):
+        if (pno + 1) in skipped:
+            continue
         page = doc[pno]
         for link in page.get_links():
             links.append((pno + 1, link.get("uri") or link.get("file") or f"kind={link.get('kind')}"))
         # 豆腐块检测：中文被交给无中文字形的字体(如 Helvetica)渲染时，
-        # 提取出来会变成连续的 "I"。这类问题肉眼在页面上很难发现（看着像乱码），
-        # 但压字检测完全查不出来。
+        # 提取出来会变成连续的 "I" 或替换字符 U+FFFD。阈值取 4 个连续 I，避免误报 DSM-III 等罗马数字。
         if check_tofu:
             text = page.get_text()
-            bad = re.findall(r"I{3,}", text)
+            bad = re.findall(r"I{4,}|\ufffd", text)
             if bad:
                 tofu.append((pno + 1, bad[:3], "中文可能用了拉丁字体渲染"))
         h = page.rect.height
@@ -114,9 +124,10 @@ def verify(
         cards = find_card_rects(page, card_rgb) if card_rgb else []
 
         for i, wi in enumerate(words):
-            # 1) 卡片内混入外来文字
+            # 1) 卡片内混入外来文字（支持折行片段子串匹配与中点归一化）
             if cards and in_any_rect(wi, cards):
-                if not any(a in wi[4] for a in allow_in_card):
+                wn = _norm_card_text(wi[4])
+                if wn and not (wn in allow_blob or any(a in wn for a in allow_norm)):
                     leaks.append((pno + 1, wi[4], round(wi[0], 1), round(wi[1], 1)))
             # 2) 越界（默认关闭；排除页脚区：页脚页码是合法内容）
             if check_bounds and not (wi[3] > fty) and (wi[1] < hy or wi[3] > fy):
@@ -179,6 +190,7 @@ def main() -> int:
         action="store_false",
         help="关闭豆腐块检测",
     )
+    ap.add_argument("--skip-pages", default="", help="跳过检查的 1-based 页码，逗号分隔（如 1 表示跳过封面）")
     ap.add_argument("--max-report", type=int, default=20)
     ap.add_argument("--quiet", action="store_true", help="只输出汇总")
     args = ap.parse_args()
@@ -194,6 +206,7 @@ def main() -> int:
         if not p.exists():
             sys.exit(f"找不到 allow-file：{p}")
         allow += [ln.strip() for ln in p.read_text(encoding="utf-8").splitlines() if ln.strip()]
+    skip_pages = {int(x) for x in args.skip_pages.split(",") if x.strip().isdigit()}
 
     pages, pairwise, leaks, oob, tofu, links, total = verify(
         pdf_path,
@@ -208,6 +221,7 @@ def main() -> int:
         args.footer_y,
         check_bounds=args.check_bounds,
         check_tofu=args.check_tofu,
+        skip_pages=skip_pages,
     )
 
     if not args.quiet:

@@ -17,6 +17,7 @@ import argparse
 import datetime
 import json
 import sys
+import unicodedata
 from pathlib import Path
 
 from reportlab.lib.colors import HexColor, white
@@ -42,10 +43,9 @@ ACCENTS = {
 }
 
 # ---- 版面常量（与 verify 脚本的 --card-color 对应）----
-CARD_TOP_EDGE = 224      # 卡片顶边(y-up)固定
+CARD_BOTTOM = 54         # 卡片底边固定在页脚分割线(y=42)之上 12pt，避免短卡片下方出现大面积空洞
 MIN_BOX_H = 46
-MAX_BOX_H = 174
-CONTENT_FLOOR = 230      # 卡片顶 + 6px 安全：正文基线不得低于此值
+MAX_BOX_H = 160
 Q_START = 333            # 引语起点（在姓名行 y=383 之下，不撞）
 LEFT = 273               # 右栏左边界
 
@@ -54,9 +54,16 @@ def font(name: str = "cn") -> str:
     return "STSong-Light" if name == "cn" else "Helvetica"
 
 
-# STSong-Light(Adobe-GB1 CID 字体)不含 U+00B7(MIDDLE DOT)字形，画到 · 会整段丢失；
-# 数据里名姓/分隔常用 U+00B7，画中文(face="cn")时统一替换为 U+30FB(片假名中点，CID 可渲染)。
+# STSong-Light(Adobe-GB1 CID 字体)有两个拉丁/符号渲染坑：
+# 1. 不含 U+00B7(MIDDLE DOT)字形，画到 · 会丢字 → 替换为 U+30FB(片假名中点)。
+# 2. 对欧洲重音拉丁字母要么静默丢弃(ç / É / ä / ß → François 变 Franois)，要么以全角汉字宽
+#    渲染(ó / ě 导致 Ramón 裂成 Ramó  n) → 统一 NFKD 降级与连字展开为标准 ASCII 拼写。
 _CN_DOT = "\u30fb"
+_SPECIAL_LATIN = {
+    "ß": "ss", "Æ": "AE", "æ": "ae", "Œ": "OE", "œ": "oe",
+    "Ø": "O", "ø": "o", "Ł": "L", "ł": "l", "Ð": "D", "ð": "d", "Þ": "Th", "þ": "th",
+}
+_NO_START_PUNCT = frozenset("。，、；：！？）》」』”’…—.,;:!?)]")
 
 
 TERMINAL = "。！？.!?…」』）\"'»"
@@ -71,13 +78,34 @@ def ensure_terminal_punct(text: str) -> str:
 
 
 def _fix_dot(text, face):
-    return text.replace("\u00b7", _CN_DOT) if face == "cn" else text
+    if face != "cn":
+        return text
+    text = text.replace("\u00b7", _CN_DOT)
+    out = []
+    for ch in text:
+        if ord(ch) < 128:
+            out.append(ch)
+        elif ch in _SPECIAL_LATIN:
+            out.append(_SPECIAL_LATIN[ch])
+        elif unicodedata.category(ch).startswith("L") and "LATIN" in unicodedata.name(ch, ""):
+            decomposed = unicodedata.normalize("NFKD", ch)
+            ascii_base = "".join(c for c in decomposed if ord(c) < 128)
+            out.append(ascii_base or ch)
+        else:
+            out.append(ch)
+    return "".join(out)
 
 
 def draw_text(c, text, x, y, size, color=INK, face="cn"):
     c.setFillColor(color)
     c.setFont(font(face), size)
     c.drawString(x, y, _fix_dot(text, face))
+
+
+def draw_right(c, text, x, y, size, color=INK, face="cn"):
+    c.setFillColor(color)
+    c.setFont(font(face), size)
+    c.drawRightString(x, y, _fix_dot(text, face))
 
 
 def draw_centered(c, text, x, y, size, color=INK):
@@ -93,6 +121,17 @@ def wrap_lines(c, text, width, size, face="cn", cap=None):
     for ch in text:
         if c.stringWidth(cur + ch, font(face), size) <= width:
             cur += ch
+        elif ch in _NO_START_PUNCT and len(cur) >= 2:
+            # 中文行首避头点：连续跳过行尾右括号/右引号，连同前一个正文字符一起带到下一行
+            cut = len(cur) - 1
+            while cut > 1 and cur[cut] in _NO_START_PUNCT:
+                cut -= 1
+            if cut >= 1 and cur[cut] not in _NO_START_PUNCT:
+                lines.append(cur[:cut])
+                cur = cur[cut:] + ch
+            else:
+                lines.append(cur)
+                cur = ch
         else:
             lines.append(cur)
             cur = ch
@@ -159,14 +198,22 @@ def draw_entry(c, entry, theme, quotes, page, total):
     draw_centered(c, theme.get(entry, "field"), cx, cy - 104, 10, INK)
     c.setStrokeColor(LINE)
     c.line(45, 151, 219, 151)
-    draw_centered(c, theme.get(entry, "relation"), cx, cy - 157, 9, MUTED)
+    rel_text = theme.get(entry, "relation")
+    rel_size = 9
+    while rel_size > 6.5 and c.stringWidth(_fix_dot(rel_text, "cn"), font("cn"), rel_size) > 176:
+        rel_size -= 0.5
+    draw_centered(c, rel_text, cx, cy - 157, rel_size, MUTED)
 
     left = LEFT
-    draw_text(c, theme.get(entry, "relation") + " · " + theme.get(entry, "years"), left, 430, 10, MUTED)
+    meta_top = " · ".join(p for p in (theme.get(entry, "relation"), theme.get(entry, "years")) if p)
+    if meta_top:
+        draw_text(c, meta_top, left, 430, 10, MUTED)
     n = len(name)
     name_size = 40 if n <= 5 else (34 if n <= 7 else (28 if n <= 9 else (23 if n <= 11 else 19)))
     draw_text(c, name, left, 383, name_size)
-    draw_text(c, theme.get(entry, "subtitle") + " · " + theme.get(entry, "place"), left, 358, 10, MUTED)
+    meta_sub = " · ".join(p for p in (theme.get(entry, "subtitle"), theme.get(entry, "place")) if p)
+    if meta_sub:
+        draw_text(c, meta_sub, left, 358, 10, MUTED)
 
     # ---- 卡片：顶边固定 + 高度自适应（先算高度，最后才画）----
     contrib_w, fact_w = 205, 238
@@ -189,10 +236,10 @@ def draw_entry(c, entry, theme, quotes, page, total):
         (len(contrib_lines) - 1) * 15, (len(fact_lines) - 1) * 13
     )
     box_h = max(MIN_BOX_H, min(MAX_BOX_H, content_h))
-    card_top = CARD_TOP_EDGE - box_h  # 底边浮动 → 短内容矮卡片
+    card_top = CARD_BOTTOM  # 底边锚定页脚之上，顶边随内容自适应向上生长
 
     # ---- 引语 → 来源 → 分隔线 → 故事：严格自上而下，物理上不可能互压 ----
-    FLOOR = CONTENT_FLOOR
+    FLOOR = card_top + box_h + 14
     q_text, q_source = theme.quote(entry, quotes)
     q_text = ensure_terminal_punct(q_text)
     has_src = bool(q_text and q_source)
@@ -201,7 +248,8 @@ def draw_entry(c, entry, theme, quotes, page, total):
     q_color = HexColor("#B85E4C") if has_src else MUTED
     prefix = "“" if has_src else "阅读线索｜"
     suffix = "”" if has_src else ""
-    full = prefix + (q_text or theme.get(entry, "tagline")) + suffix
+    lead_body = q_text or ensure_terminal_punct(theme.get(entry, "tagline"))
+    full = prefix + lead_body + suffix
     room = Q_START - FLOOR
     need = 26 if has_src else 0
     max_q = min(max(1, (room - need) // lead), 2 if has_src else 3)
@@ -214,19 +262,20 @@ def draw_entry(c, entry, theme, quotes, page, total):
         c.drawString(left, y, line)
         y -= lead
     if has_src:
-        src_y = y - 6
+        src_y = y + 8
         draw_text(c, "— " + q_source, left, src_y, 8, MUTED)
         divider_y = src_y - 12
     else:
-        divider_y = y - 6
+        divider_y = y + 6
     divider_y = max(divider_y, FLOOR + 6)
     c.setStrokeColor(LINE)
     c.setLineWidth(0.7)
     c.line(left, divider_y, W - 48, divider_y)
 
     # 故事：分隔线之下逐行绘制，底线不低于 FLOOR（绝不 re-wrap）
-    story_top = max(divider_y - 30, FLOOR + 22)
-    max_story = max(0, (story_top - FLOOR) // 20 + 1)
+    story_lead = 18
+    story_top = max(divider_y - 20, FLOOR + 20)
+    max_story = max(0, (story_top - FLOOR) // story_lead + 1)
     if max_story > 0:
         lines = wrap_lines(c, theme.get(entry, "story"), 490, 12)
         if len(lines) > max_story:
@@ -236,7 +285,7 @@ def draw_entry(c, entry, theme, quotes, page, total):
         else:
             kept = lines
         for i, line in enumerate(kept):
-            y_line = story_top - i * 20
+            y_line = story_top - i * story_lead
             if y_line < FLOOR:
                 break
             draw_text(c, line, left, y_line, 12, INK)
@@ -261,7 +310,8 @@ def draw_entry(c, entry, theme, quotes, page, total):
     c.setStrokeColor(LINE)
     c.line(43, 42, W - 43, 42)
     draw_text(c, f"第 {page:02d} 页 / {total:02d}", 43, 25, 8, MUTED)
-    draw_text(c, "每天认识一位", W - 160, 25, 8, MUTED)
+    unit_label = theme.cfg.get("theme", {}).get("unitLabel", "位人物")
+    draw_right(c, f"每天认识一{unit_label}", W - 43, 25, 8, MUTED)
     c.showPage()
 
 
@@ -269,10 +319,23 @@ def draw_cover(c, theme, count):
     c.setFillColor(INK)
     c.rect(0, 0, W, H, fill=1, stroke=0)
     t = theme.cfg.get("theme", {})
-    draw_text(c, t.get("name", "主题日历"), 61, 300, 44, white)
+    title = t.get("name", "主题日历")
+    title_size = 44 if len(title) <= 10 else (36 if len(title) <= 14 else 28)
+    draw_text(c, title, 61, 300, title_size, white)
     draw_text(c, f"精选 {count} {t.get('unitLabel','位人物')} · A4 横版打印版", 61, 240, 18, HexColor("#F0B29F"))
     draw_text(c, f"PRINT EDITION · {datetime.date.today().year}", W - 220, 40, 9, HexColor("#B6C0CC"), "latin")
     c.showPage()
+
+
+def resolve_cfg_path(cfg_path: Path, raw: str, *, prefer_config_dir: bool = False) -> Path:
+    """支持相对 --config 所在目录或当前工作目录解析路径，消除换目录即报错的脆弱性。"""
+    p = Path(raw)
+    if p.is_absolute():
+        return p
+    from_cfg = (cfg_path.parent / p).resolve()
+    if prefer_config_dir or from_cfg.exists():
+        return from_cfg
+    return p
 
 
 def main() -> int:
@@ -281,21 +344,24 @@ def main() -> int:
     ap.add_argument("--out", default=None)
     args = ap.parse_args()
 
-    cfg = json.loads(Path(args.config).read_text(encoding="utf-8"))
+    cfg_path = Path(args.config).resolve()
+    cfg = json.loads(cfg_path.read_text(encoding="utf-8"))
     theme = Theme(cfg)
-    entries = json.loads(Path(cfg["entryFile"]).read_text(encoding="utf-8"))
-    quotes = json.loads(Path(cfg["quoteFile"]).read_text(encoding="utf-8")) if cfg.get("quoteFile") else {}
+    entry_path = resolve_cfg_path(cfg_path, cfg["entryFile"])
+    cfg_relative_mode = (not Path(cfg["entryFile"]).is_absolute()) and entry_path == (cfg_path.parent / cfg["entryFile"]).resolve()
+    entries = json.loads(entry_path.read_text(encoding="utf-8"))
+    quotes = json.loads(resolve_cfg_path(cfg_path, cfg["quoteFile"]).read_text(encoding="utf-8")) if cfg.get("quoteFile") else {}
     entries.sort(key=lambda e: (int(e[theme.fm["month"]]), int(e[theme.fm["day"]]), theme.get(e, "name")))
 
-    out = Path(args.out or Path(cfg.get("outputDir", "output/pdf")) / f"{cfg['theme'].get('name','主题日历')}_每日版_A4.pdf")
+    out_dir = resolve_cfg_path(cfg_path, cfg.get("outputDir", "output/pdf"), prefer_config_dir=cfg_relative_mode)
+    out = Path(args.out) if args.out else (out_dir / f"{cfg['theme'].get('name','主题日历')}_每日版_A4.pdf")
     out.parent.mkdir(parents=True, exist_ok=True)
 
     pdfmetrics.registerFont(UnicodeCIDFont("STSong-Light"))
     c = canvas.Canvas(str(out), pagesize=(W, H), pageCompression=1)
     c.setTitle(f"{cfg['theme'].get('name','主题日历')} - 每日版")
     draw_cover(c, theme, len(entries))
-    # +1 = 封底
-    total = len(entries) + 1
+    total = len(entries)
     for i, entry in enumerate(entries, start=1):
         draw_entry(c, entry, theme, quotes, i, total)
 

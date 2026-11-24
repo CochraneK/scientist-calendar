@@ -25,10 +25,8 @@ Next.js(vinext)/React19 主站 + Vite 独立静态站 + Cloudflare Worker；PDF 
 - skill 通用模板**不得出现项目专属文案**（曾把「每天认识一位科学家」写死进页脚导致主题串味）；换主题后必须真跑一次模板冒烟测试，grep 旧主题名必须为 0。
 
 ## 当前状态 / 下一步
-- 已发布可用：月度版排版修复 + 中点修复已验证；skill 模板页脚主题化回归已修（坑 #20 + 冒烟测试流程）。
-- 已完成（**尚未验证/提交**）：
-  - ① 每日人物版句末标点：`ensure_terminal_punct()` 已接入 `generate_print_calendar.py`（项目版）与 skill 的 `generate_daily_pdf.py`。注意数据里 466 条语录本就带标点，此为兜底防御。
-  - ② `smoke_test_theme.py` 已落地到 `tooling/skills/theme-calendar-factory/scripts/`，造 fixture 真跑双生成器并自检三项（中点 / 句末标点 / 旧主题名残留为 0）。已跑通。
-  - ③ 空态 `.empty-state` 样式补齐；领域筛选加 `aria-pressed`；空态加「返回全部人物」CTA。
-- 下一步：`npm ci`（依赖缺失）→ `typecheck` / `lint` / `audit:data` → 提交推送。详见 `.workbuddy/memory/2026-11-23.md`。
+- 已完成并验证（2026-11-24）：
+  - 主站与工程门禁：P0 收口 + 方向 A（溯源与头像清债）/ 方向 B（体验与传播 + ICS）/ 方向 C（单元测试 + CI 门禁）均已合入 `main` 并持续通过 CI。
+  - 方向 D（主题日历工厂实战）：基于 `theme-calendar-factory` 搭建第二本主题日历 `tooling/themes/neuro-psychiatry/`（《神经科学与精神医学史日历》，78 位 Wikidata 核验先驱、17 条核验原句、0 编造），一键 `npm run theme:neuro:build` 产出双 A4 PDF（80 页 / 13 页）+ RFC 5545 订阅日历（70 事件），几何体检与避头点全为 0 缺陷。
+  - 实战反哺 `theme-calendar-factory`（已同步至 `~/.workbuddy/skills/theme-calendar-factory/`）：相对 `--config` 路径解析、欧洲重音拉丁字母防丢字与防全角裂口、月度版自动 1/2/3 栏与高对比度 `DAY_ACCENTS`、每日版卡片锚定页脚、中文行首避头点禁则、通用 `generate_ics.py`、`verify_pdf_layout.py` 修复 `DSM-III` 误报与卡片折行匹配、冒烟测试升级至 7/7。
 - 记忆：`.workbuddy/memory/MEMORY.md` 存长期约定与常用命令；`.workbuddy/memory/YYYY-MM-DD.md` 存每日工作日志。注意 `.workbuddy/` 已被 gitignore，**重克隆会丢失**，重要状态请同步写入本文件。

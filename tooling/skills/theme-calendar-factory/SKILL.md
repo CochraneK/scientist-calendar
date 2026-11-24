@@ -37,8 +37,9 @@ agent_created: true
 |---|---|
 | `generate_daily_pdf.py` | 每日人物版：横版 A4，**一人一页**（大图/名言/故事/双卡片） |
 | `generate_monthly_pdf.py` | 月度缩览版：纵版 A4，**一页一个月**，每人只显示 生日·名字·名言 |
-| `verify_pdf_layout.py` | PDF 几何体检：压字 / 越界 / 卡片泄漏（**不依赖看图**） |
-| `smoke_test_theme.py` | **换主题冒烟测试**：造最小 fixture、真实跑两份模板、抽取产物自检（中点存在 / 名言句末标点补齐 / 模板硬编码项目文案残留为 0），换主题后必跑 |
+| `generate_ics.py` | RFC 5545 年度循环日历订阅文件（`.ics`），同日多人自动合并，75 字节 UTF-8 折行 |
+| `verify_pdf_layout.py` | PDF 几何体检：压字 / 越界 / 卡片泄漏 / 豆腐块（**不依赖看图**） |
+| `smoke_test_theme.py` | **换主题冒烟测试**：造最小 fixture、真实跑双 PDF + ICS 模板并执行 5 项自检，换主题后必跑 |
 
 ## 三、数据契约
 
@@ -162,9 +163,31 @@ page.get_drawings()      # -> 填充矩形（可据此定位卡片/色块）
     - **永久护栏**：换主题后**必须实际跑一次模板**（造 3–6 条 fixture，见下方冒烟测试），
       把产物文本抽出来 grep 旧主题名（如 `科学家`），必须为 0。**只做语法检查不够。**
 
+21. **量词拼接语法坑（月度版封面「出生的位医者们」）与每日版页脚残缺。**
+    `unitLabel` 含中文量词（如 `位医者`），适合拼在「每天认识一{unitLabel}」和「12 {unitLabel}的生日在这个月」，
+    但直接拼在月度版封面「在这个月出生的{unitLabel}们」会产出病句「出生的位医者们」。
+    同时旧版每日版页脚硬编码了残缺的 `"每天认识一位"`。
+    - **修法**：月度版通过 `unit_noun()` 优先读 `theme.unitNoun`，未配置时自动剥离首字量词（`位/名/个/颗/座`）；
+      每日版页脚改用右对齐 `draw_right(..., f"每天认识一{unit_label}")`，封面标题按字数动态缩放字号，避免 10+ 字长主题名溢出。
+22. **可选字段为空时不得留下悬挂分隔符。**
+    每日版绘制 `relation · years` 与 `subtitle · place` 时用 `" · ".join(p for p in (...) if p)`，缺字段时不画多余的 `·`。
+23. **相对路径应优先相对 `--config` 所在目录解析。**
+    早期模板仅按当前工作目录解析 `entryFile`/`quoteFile`/`outputDir`，换目录调用就会报 FileNotFoundError。
+    三份生成器（daily / monthly / ics）现已统一使用 `resolve_cfg_path()`：相对路径优先相对 `--config` 所在目录解析，不存在时再回退到当前工作目录，兼容绝对路径、项目根相对路径与独立主题目录。
+24. **`STSong-Light` 对欧洲重音拉丁字母存在「静默丢字」与「全角裂口」双坑（`François` → `Franois`、`Ramón` → `Ramó  n`）。**
+    实测 Adobe-GB1 CID 字体对 `ç / É / ä / ö / ñ / ß / ø / ł` 等 70+ 字母会静默丢弃（不报错、不吐豆腐块），而对仅存的 13 个汉语拼音带调小写元音（`àáèéêìíòóùúüě`）则按汉字全角宽（1000 em）渲染，与半宽拉丁字母混排产生难看裂口。
+    - **修法**：两份 PDF 生成器的 `_fix_dot()` 对所有非 ASCII 拉丁扩展字母统一做 NFKD 降级与连字展开（`ß→ss`、`ø→o`、`Ramón→Ramon`、`François→Francois`），既杜绝静默丢字又保持均匀字距。
+25. **小体量精选主题（< 120 人）月度版自动切单栏/双栏 + 高对比度日期色 + 每日版底部卡片锚定页脚。**
+    365+ 人的三栏布局套到 60–100 人的专题日历上会让每页右侧三分之二空白，且原本供背景色块用的浅粉彩 `ACCENTS` 在米白纸上直接做日期字色偏浅发虚。
+    - **修法**：`generate_monthly_pdf.py` 通过 `monthlyColumns: "auto"` 按单月最大人数自动选 1/2/3 栏（≤10 人切单栏并展示生卒年·领域·国家、1 行核心贡献摘要与分隔线，≤20 人切双栏，>20 人维持三栏），并改用专门调深的印刷字色 `DAY_ACCENTS`（WCAG ≥ 4.5:1）。
+    - 每日版卡片底边锚定页脚之上（`CARD_BOTTOM = 54`），`FLOOR = card_top + box_h + 14` 动态随卡片高度变化，避免短卡片下方出现大面积空洞同时给正文多腾出 2–3 行空间。
+26. **中文排版「行首避头点」与 `verify_pdf_layout.py` 罗马数字 / 折行误报修复。**
+    - 纯贪心逐字折行容易让句号 `。` 或逗号 `，` 孤零零掉在下一行行首；两份 PDF 生成器的 `wrap_lines()` 现已内置中文避头点禁则（连同连续右括号/右引号前一个正文字符一并下移），全页零孤悬标点。
+    - `verify_pdf_layout.py` 豆腐块正则升级为 `I{4,}|\ufffd`（避免把 `DSM-III` 等合法罗马数字误判成豆腐块），卡片泄漏检查升级为支持折行子串匹配与中点归一化，并新增 `--skip-pages` 支持跳过封面页。
+
 ### 模板冒烟测试（换主题后必做，脚本内置，2 分钟）
-**换主题后直接跑脚本**，它会自动造最小 fixture（6 条，含带 `·` 的名字、无句末标点的名言、超长名字）、
-用绝对路径指到 fixture，真实跑 `generate_monthly_pdf.py` 与 `generate_daily_pdf.py`，再抽取产物文本自检：
+**换主题后直接跑脚本**，它会自动造最小 fixture（6 条，含带 `·` 的名字、带 `ç`/`ó` 的拉丁名、`DSM-III` 罗马数字、无句末标点的名言，并使用相对路径配置），
+真实跑 `generate_monthly_pdf.py`、`generate_daily_pdf.py`、`generate_ics.py` 与 `verify_pdf_layout.py`，执行 7 项自检：
 
 ```bash
 python tooling/skills/theme-calendar-factory/scripts/smoke_test_theme.py
@@ -172,13 +195,14 @@ python tooling/skills/theme-calendar-factory/scripts/smoke_test_theme.py
 python tooling/skills/theme-calendar-factory/scripts/smoke_test_theme.py "<装有 reportlab 的解释器路径>"
 ```
 
-脚本自检 3 项（任一失败即退出码 1，便于 CI/手动拦截）：
+脚本自检 7 项（任一失败即退出码 1，便于 CI/手动拦截）：
 1. **中点渲染存在** —— STSong-Light 不含 U+00B7，渲染应保留中点码位（不会整段丢失）；
 2. **名言句末标点补齐** —— 无标点名言应被补 `。`；
-3. **模板硬编码项目文案残留为 0** —— 检查模板产物里是否出现项目专属硬编码文案（如 `科学家日历` 标题、`每天认识一位科学家` 页脚），出现即主题串味。
-
-> **模板路径很脆弱**：`entryFile` / `quoteFile` 是 `Path(cfg[...])` **相对当前工作目录**解析，没有 join 项目根。
-> 必须在**项目根目录**下运行（配置里写 `app/data/xxx.json`），换目录跑会找不到数据。
+3. **模板硬编码项目文案残留为 0** —— 检查 PDF 与 ICS 产物中是否出现旧主题专属文案（如 `科学家日历`、`每天认识一位科学家`）；
+4. **封面量词与每日版页脚主题化** —— 月度封面不含「出生的位…」，每日版页脚含完整 `每天认识一{unitLabel}`；
+5. **RFC 5545 订阅日历 (.ics)** —— 每行 UTF-8 ≤ 75 字节折行，事件数与日期去重数匹配；
+6. **欧洲重音字母防丢字与裂口** —— `François Magendie` → `Francois Magendie`、`Santiago Ramón y Cajal` → `Santiago Ramon y Cajal`；
+7. **排版几何体检与中文行首避头点** —— 双 PDF 通过 `verify_pdf_layout.py`（`DSM-III` 不误报豆腐块、0 压字）且全页无孤悬行首标点。
 
 ## 六、发布到 GitHub Pages
 

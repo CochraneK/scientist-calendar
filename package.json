@@ -32,7 +32,8 @@
     "verify:pdf:monthly": "python -X utf8 tooling/scripts/verify_pdf_layout.py \"output/pdf/科学家日历_月度生日版_A4.pdf\" --quiet",
     "pdf:daily": "python -X utf8 tooling/scripts/generate_print_calendar.py",
     "pdf:monthly": "python -X utf8 tooling/scripts/generate_monthly_calendar.py",
-    "pdf:build": "npm run pdf:daily && npm run pdf:monthly && npm run verify:pdf"
+    "pdf:build": "npm run pdf:daily && npm run pdf:monthly && npm run verify:pdf",
+    "theme:neuro:build": "python -X utf8 tooling/skills/theme-calendar-factory/scripts/generate_daily_pdf.py --config tooling/themes/neuro-psychiatry/theme.json && python -X utf8 tooling/skills/theme-calendar-factory/scripts/generate_monthly_pdf.py --config tooling/themes/neuro-psychiatry/theme.json && python -X utf8 tooling/skills/theme-calendar-factory/scripts/generate_ics.py --config tooling/themes/neuro-psychiatry/theme.json"
   },
   "dependencies": {
     "next": "16.3.3",

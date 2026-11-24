@@ -33,9 +33,12 @@ from pathlib import Path
 # 本 Skill 的脚本目录
 SCRIPT_DIR = Path(__file__).resolve().parent
 
-# 两份模板生成器（本 Skill 的对照模板，不是项目定制版）
+# 模板生成器（本 Skill 的对照模板，不是项目定制版）
 MONTHLY_GEN = SCRIPT_DIR / "generate_monthly_pdf.py"
 DAILY_GEN = SCRIPT_DIR / "generate_daily_pdf.py"
+ICS_GEN = SCRIPT_DIR / "generate_ics.py"
+VERIFY_SCRIPT = SCRIPT_DIR / "verify_pdf_layout.py"
+NO_START_PUNCT = frozenset("。，、；：！？）》」』”’…")
 
 # 冒烟 fixture 规模：6 条（覆盖月/日/名/·/长名/无标点名言）
 N_ENTRIES = 6
@@ -68,8 +71,8 @@ def _make_fixture(root: Path, theme_name: str, unit_label: str) -> tuple[Path, P
     names = [
         ("阿尔伯特·爱因斯坦", "Albert Einstein"),
         ("玛丽·居里", "Marie Curie"),
-        ("尼古拉·特斯拉", "Nikola Tesla"),
-        ("阿里的巴德·瓦特", "Alessandro Volta"),
+        ("弗朗索瓦·马让迪", "François Magendie"),
+        ("圣地亚哥·拉蒙-卡哈尔", "Santiago Ramón y Cajal"),
         ("约翰·纳什", "John Nash"),
         ("玛丽亚·安德烈耶娃", "Maria Andreyevova"),
     ]
@@ -87,11 +90,11 @@ def _make_fixture(root: Path, theme_name: str, unit_label: str) -> tuple[Path, P
             "field": "物理",
             "country": "瑞士",
             "color": "blue",
-            "relation": "科学家",
+            "relation": "先驱",
             "tagline": "每天一位的候选条目",
-            "story": "这是一条用于冒烟测试的短故事，用于验证卡片与压字。",
-            "contribution": "核心贡献样例，用于卡片排版。",
-            "fact": "你知道吗的补充事实样例。",
+            "story": "这是一条用于冒烟测试的短故事，包含 DSM-III 罗马数字与中文标点（用于验证卡片、避头点与零压字）。",
+            "contribution": "核心贡献样例，用于卡片排版与折行检测。",
+            "fact": "你知道吗的补充事实样例（含 DSM-III 罗马数字不误报豆腐块）。",
         })
 
     quotes = {
@@ -106,10 +109,10 @@ def _make_fixture(root: Path, theme_name: str, unit_label: str) -> tuple[Path, P
     quotes_path.write_text(json.dumps(quotes, ensure_ascii=False, indent=2), encoding="utf-8")
 
     theme = {
-        "theme": {"name": theme_name, "unitLabel": unit_label},
-        "entryFile": str(entries_path),
-        "quoteFile": str(quotes_path),
-        "outputDir": str(root / "pdf"),
+        "theme": {"name": theme_name, "nameEn": "Smoke Test Calendar", "unitLabel": unit_label},
+        "entryFile": "entries.json",
+        "quoteFile": "quotes.json",
+        "outputDir": "pdf",
         "fieldMap": {
             "id": "id",
             "month": "month",
@@ -187,16 +190,18 @@ def _run_smoke(py: str) -> int:
     root = tmp / "theme-smoke"
     root.mkdir(parents=True, exist_ok=True)
     try:
-        _make_fixture(root, "冒烟测试历", "位人物")
+        _make_fixture(root, "冒烟测试历", "位医者")
 
-        # 两份模板共用同一份 theme.json（生成器不区分版式，靠配置里的 outputDir 区分产物）
+        # 两份 PDF 模板 + 1 份 ICS 模板共用同一份 theme.json
         monthly_pdf = _run_generator(py, MONTHLY_GEN, root / "theme.json")
         daily_pdf = _run_generator(py, DAILY_GEN, root / "theme.json")
-        if not monthly_pdf or not daily_pdf:
-            raise RuntimeError("模板未产出 PDF，请检查生成器输出")
+        ics_path = _run_generator(py, ICS_GEN, root / "theme.json")
+        if not monthly_pdf or not daily_pdf or not ics_path:
+            raise RuntimeError("模板未产出 PDF 或 ICS，请检查生成器输出")
 
         monthly_text = _extract_pdf_text(monthly_pdf)
         daily_text = _extract_pdf_text(daily_pdf)
+        ics_raw = ics_path.read_text(encoding="utf-8")
 
         all_text = monthly_text + "\n" + daily_text
 
@@ -205,18 +210,50 @@ def _run_smoke(py: str) -> int:
         print(f"[自检 1] 中点（名姓分隔）渲染：{'通过' if dot_ok else '失败'}")
 
         # 自检 2：名言/引语都以句末标点成句（不缺句号）
-        # 无标点名言（smoke-1 "知识就是力量"）在补句号后应以「。」结尾；若仍缺句号则失败
         no_punct_ok = ("知识就是力量。") in all_text or ("知识就是力量") not in all_text
         print(f"[自检 2] 名言句末标点补齐：{'通过' if no_punct_ok else '失败'}")
 
-        # 自检 3：旧主题名残留为 0（主题串味）。
-        # 检查的是「模板硬编码的项目专属文案」（如科学家日历标题/页脚），
-        # 而非 fixture 数据里的合法字段值（如 relation=科学家）。
-        residue_ok = ("科学家日历" not in all_text) and ("每天认识一位科学家" not in all_text)
+        # 自检 3：旧主题名残留为 0（主题串味）
+        residue_ok = (
+            ("科学家日历" not in all_text)
+            and ("每天认识一位科学家" not in all_text)
+            and ("科学家日历" not in ics_raw)
+        )
         print(f"[自检 3] 模板硬编码项目文案残留为 0：{'通过' if residue_ok else '失败（残留见产物文本）'}")
 
-        if dot_ok and no_punct_ok and residue_ok:
-            print("\n✓ 换主题冒烟测试通过")
+        # 自检 4：量词语法 & 每日版页脚主题化（不出现「出生的位医者们」、每日版页脚含「每天认识一位医者」）
+        grammar_ok = ("出生的位" not in monthly_text) and ("出生的医者们" in monthly_text) and ("每天认识一位医者" in daily_text)
+        print(f"[自检 4] 封面量词与每日版页脚主题化：{'通过' if grammar_ok else '失败'}")
+
+        # 自检 5：ICS 符合 RFC 5545（75 字节折行 + 6 条 VEVENT）
+        ics_lines = ics_raw.splitlines()
+        ics_ok = (
+            ics_raw.startswith("BEGIN:VCALENDAR")
+            and ics_raw.count("BEGIN:VEVENT") == N_ENTRIES
+            and all(len(ln.encode("utf-8")) <= 75 for ln in ics_lines)
+        )
+        print(f"[自检 5] RFC 5545 订阅日历 (.ics)：{'通过' if ics_ok else '失败'}")
+
+        # 自检 6：STSong-Light 不静默吞掉欧洲重音字母，且不留全角拼音裂口（François → Francois，Ramón → Ramon）
+        diacritic_ok = (
+            ("Francois Magendie" in daily_text)
+            and ("Franois" not in all_text)
+            and ("Santiago Ramon y Cajal" in daily_text)
+        )
+        print(f"[自检 6] 欧洲重音字母防丢字与裂口（François / Ramón）：{'通过' if diacritic_ok else '失败'}")
+
+        # 自检 7：几何排版体检（零压字 / 零豆腐块含 DSM-III 不误报）+ 零行首避头点标点
+        v_daily = subprocess.run([py, "-X", "utf8", str(VERIFY_SCRIPT), str(daily_pdf), "--quiet"], capture_output=True)
+        v_monthly = subprocess.run([py, "-X", "utf8", str(VERIFY_SCRIPT), str(monthly_pdf), "--quiet"], capture_output=True)
+        bad_starts = [
+            ln.strip() for ln in all_text.splitlines()
+            if ln.strip() and ln.strip()[0] in NO_START_PUNCT
+        ]
+        layout_ok = (v_daily.returncode == 0) and (v_monthly.returncode == 0) and (len(bad_starts) == 0)
+        print(f"[自检 7] 排版几何体检与行首避头点禁则：{'通过' if layout_ok else '失败'}")
+
+        if dot_ok and no_punct_ok and residue_ok and grammar_ok and ics_ok and diacritic_ok and layout_ok:
+            print("\n✓ 换主题冒烟测试通过（7/7）")
             return 0
         print("\n✗ 换主题冒烟测试未通过，请按上方自检修复模板后重跑", file=sys.stderr)
         return 1
