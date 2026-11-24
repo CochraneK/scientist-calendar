@@ -1,6 +1,8 @@
 // 单日人物分享海报（Canvas 2D 客户端生成，1080x1440 竖版 3:4）。
 // 沿用主站暖纸质感与印刷体层级：不引入任何外部字体或第三方重依赖。
+// 品牌文案与站点地址全部从 siteConfig 取，换学科 = 换 theme.json。
 
+import { SITE_CONFIG } from "../domain/siteConfig.ts";
 import type { ScientistSummary } from "../domain/calendar";
 
 export type PosterInput = {
@@ -171,7 +173,7 @@ export async function renderScientistPosterBlob(input: PosterInput): Promise<Blo
   ctx.fillStyle = INK;
   ctx.font = `700 26px ${sans}`;
   ctx.textBaseline = "alphabetic";
-  ctx.fillText("∴  科学家日历", innerX, cursorY);
+  ctx.fillText(`\u2234  ${SITE_CONFIG.name}`, innerX, cursorY);
 
   const dateLabel = `${String(scientist.month).padStart(2, "0")}.${String(scientist.day).padStart(2, "0")}  ·  ${scientist.field}`;
   ctx.font = `600 24px ${sans}`;
@@ -329,7 +331,7 @@ export async function renderScientistPosterBlob(input: PosterInput): Promise<Blo
 
   ctx.fillStyle = tone.accent;
   ctx.font = `600 19px ${sans}`;
-  ctx.fillText("核心贡献", innerX + 36, cursorY + 40);
+  ctx.fillText(SITE_CONFIG.labels.cardA, innerX + 36, cursorY + 40);
 
   ctx.fillStyle = INK;
   ctx.font = `500 28px ${sans}`;
@@ -350,11 +352,11 @@ export async function renderScientistPosterBlob(input: PosterInput): Promise<Blo
 
   ctx.fillStyle = INK;
   ctx.font = `500 23px ${serif}`;
-  ctx.fillText("每天遇见一个改变世界的念头", innerX, footerLineY + 46);
+  ctx.fillText(SITE_CONFIG.posterSlogan, innerX, footerLineY + 46);
 
   ctx.fillStyle = MUTED;
   ctx.font = `400 20px ${sans}`;
-  const siteTag = "cochranek.github.io/scientist-calendar";
+  const siteTag = SITE_CONFIG.posterSiteTag;
   const siteW = ctx.measureText(siteTag).width;
   ctx.fillText(siteTag, innerX + innerW - siteW, footerLineY + 46);
 
@@ -370,5 +372,5 @@ export function posterFilename(scientist: ScientistSummary): string {
   const mm = String(scientist.month).padStart(2, "0");
   const dd = String(scientist.day).padStart(2, "0");
   const safeName = scientist.name.replace(/[\\/:*?"<>|]/g, "");
-  return `科学家日历_${mm}${dd}_${safeName}.png`;
+  return `${SITE_CONFIG.name}_${mm}${dd}_${safeName}.png`;
 }

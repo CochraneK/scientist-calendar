@@ -22,8 +22,8 @@
     "monthlyPdfFilename": "科学家日历_月度生日版_A4.pdf",
     "posterSlogan": "每天遇见一个改变世界的念头",
     "posterSiteTag": "cochranek.github.io/scientist-calendar",
-    "heroEyebrow": "TODAY'S SCIENTIST",
-    "heroTitle": "今日人物",
+    "heroEyebrow": "THE DAILY SCIENCE NOTEBOOK",
+    "heroTitle": "今天，遇见一个改变世界的念头。",
     "calendarEyebrow": "ANNUAL CALENDAR",
     "calendarTitle": "翻看整年",
     "calendarTip": "带有彩色圆点的日期收录了科学人物；同一天多位人物时，点击日期可切换查看，圆点高亮为当前人物。",
@@ -54,7 +54,20 @@
       "天文",
       "医学",
       "地球科学"
-    ]
+    ],
+    "heroText": "一份写给好奇心的科学日历。从一位科学家、一项发现，走进人类理解世界的方式。",
+    "heroDiscSuffix": "种好奇",
+    "fieldCountLabel": "个科学领域",
+    "entryCountLabel": "位人物档案",
+    "monthTip": "带有彩色圆点的日期收录了科学人物；同一天多位人物时，点击日期可切换查看，圆点高亮为当前人物。",
+    "monthTitle": "月历",
+    "monthSectionLabel": "个科学瞬间",
+    "manifestoHtml": "科学并非一串遥远的姓名与年份，<br />而是一代代人对世界的<strong>耐心注视</strong>。",
+    "emptySearchTip": "没有找到匹配的人物，换个关键词或领域试试。",
+    "archiveEyebrowPrefix": "THE ARCHIVE",
+    "entryIndexPrefix": "SCIENCE",
+    "entryIndexSuffix": "NOTE",
+    "footerSummaryPattern": "精选 {count} 位人物档案 · 持续更新中"
   },
   "print": {
     "coverImage": "public/og.jpg",

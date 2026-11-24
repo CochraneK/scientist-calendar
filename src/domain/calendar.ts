@@ -1,15 +1,10 @@
 // 日期与日历领域逻辑：所有日期业务规则集中在此，组件不再各自推导。
 // 同时被 app/page.tsx（Next 主应用）与 tooling/pages（GitHub Pages 静态站）复用。
+// 领域分类从 siteConfig 注入，不再硬编码「物理/化学/…」。
 
-export type Field =
-  | "物理"
-  | "化学"
-  | "生命科学"
-  | "数学"
-  | "计算机"
-  | "天文"
-  | "医学"
-  | "地球科学";
+import { SITE_CONFIG } from "./siteConfig.ts";
+
+export type Field = string;
 
 export type ScientistSummary = {
   id: string;
@@ -37,6 +32,9 @@ export type DateParts = { year: number; month: number; day: number };
 
 // 平年每月天数（二月 28）——365 天日历的合法日期基准。
 const COMMON_YEAR_LENGTHS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+/** 全站领域分类（含「全部」占位由组件侧拼接）。 */
+export const SITE_FIELDS: string[] = SITE_CONFIG.fields;
 
 export function getLocalDate(): DateParts {
   const d = new Date();
@@ -75,7 +73,7 @@ export function getDaysInMonth(year: number, month: number): number {
   return COMMON_YEAR_LENGTHS[month - 1];
 }
 
-/** 按“当日人物”语义取科学家：闰年 2/29 自动回退到 2/28。 */
+/** 按「当日人物」语义取科学家：闰年 2/29 自动回退到 2/28。 */
 export function getScientistForDate<T extends { month: number; day: number }>(
   scientists: T[],
   date: DateParts,
@@ -86,7 +84,7 @@ export function getScientistForDate<T extends { month: number; day: number }>(
   );
 }
 
-/** 按 (month*100+day) 聚合，便于“同日多人”快速索引。 */
+/** 按 (month*100+day) 聚合，便于「同日多人」快速索引。 */
 export function groupScientistsByDate(
   scientists: Scientist[],
 ): Map<number, Scientist[]> {

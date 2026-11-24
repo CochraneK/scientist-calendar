@@ -4,6 +4,7 @@ import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath, URL } from "node:url";
 import { SITE_URL, scientistAbsoluteUrl } from "../../src/domain/scientistRoutes.ts";
+import { SITE_CONFIG, entryTitle } from "../../src/domain/siteConfig.ts";
 
 type ScientistSeo = {
   id: string;
@@ -43,7 +44,7 @@ function scientistDescription(scientist: ScientistSeo): string {
 }
 
 function renderScientistHtml(baseHtml: string, scientist: ScientistSeo): string {
-  const title = `${scientist.name}｜科学家日历`;
+  const title = entryTitle(scientist.name);
   const description = scientistDescription(scientist);
   const canonical = scientistAbsoluteUrl(scientist.id);
 
@@ -76,7 +77,26 @@ function generateStaticPages() {
     closeBundle() {
       const outDir = fileURLToPath(new URL("../../docs", import.meta.url));
       const indexPath = join(outDir, "index.html");
-      const baseHtml = readFileSync(indexPath, "utf8");
+      let baseHtml = readFileSync(indexPath, "utf8");
+
+      // 主题化 head 标签（title / meta / canonical / og:*），换学科 = 换 theme.json
+      const siteTitle = `${SITE_CONFIG.name}｜${SITE_CONFIG.unitLabel.replace(/^位/, "每天认识一位")}`;
+      const siteUrl = `${SITE_CONFIG.origin}${SITE_CONFIG.basePath}/`;
+      const siteDesc = SITE_CONFIG.description;
+      const ogImage = `${siteUrl}og.jpg`;
+      baseHtml = baseHtml.replace(/<title>[^<]*<\/title>/, `<title>${escapeHtml(siteTitle)}</title>`);
+      baseHtml = baseHtml.replace(/<link rel="icon"[^>]*href="[^"]*"/, `<link rel="icon" type="image/svg+xml" href="${SITE_CONFIG.basePath}/favicon.svg"`);
+      baseHtml = baseHtml.replace(/<link rel="canonical"[^>]*href="[^"]*"/, `<link rel="canonical" href="${siteUrl}"`);
+      baseHtml = baseHtml.replace(/<meta name="description" content="[^"]*"/, `<meta name="description" content="${escapeHtml(siteDesc)}"`);
+      baseHtml = baseHtml.replace(/<meta property="og:title" content="[^"]*"/, `<meta property="og:title" content="${escapeHtml(siteTitle)}"`);
+      baseHtml = baseHtml.replace(/<meta property="og:description" content="[^"]*"/, `<meta property="og:description" content="${escapeHtml(siteDesc)}"`);
+      baseHtml = baseHtml.replace(/<meta property="og:image" content="[^"]*"/, `<meta property="og:image" content="${ogImage}"`);
+      baseHtml = baseHtml.replace(/<meta property="og:url" content="[^"]*"/, `<meta property="og:url" content="${siteUrl}"`);
+      baseHtml = baseHtml.replace(/<meta property="og:site_name" content="[^"]*"/, `<meta property="og:site_name" content="${escapeHtml(SITE_CONFIG.name)}"`);
+      baseHtml = baseHtml.replace(/<meta name="twitter:title" content="[^"]*"/, `<meta name="twitter:title" content="${escapeHtml(siteTitle)}"`);
+      baseHtml = baseHtml.replace(/<meta name="twitter:description" content="[^"]*"/, `<meta name="twitter:description" content="${escapeHtml(siteDesc)}"`);
+      baseHtml = baseHtml.replace(/<meta name="twitter:image" content="[^"]*"/, `<meta name="twitter:image" content="${ogImage}"`);
+      writeFileSync(indexPath, baseHtml, "utf8");
       const scientists = JSON.parse(
         readFileSync(new URL("../../app/data/scientists-index.json", import.meta.url), "utf8"),
       ) as ScientistSeo[];
@@ -106,7 +126,7 @@ function generateStaticPages() {
 
 export default defineConfig({
   root: fileURLToPath(new URL(".", import.meta.url)),
-  base: "/scientist-calendar/",
+  base: `${SITE_CONFIG.basePath}/`,
   publicDir: "../../public",
   plugins: [react(), generateStaticPages()],
   build: {
